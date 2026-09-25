@@ -464,7 +464,11 @@ else { & $ScriptFile }
             Assert-True ($transactions.Count -eq 1) "$operation/$failure deleted its recovery transaction"
             $recovery = $transactions[0].FullName
             Assert-True ((Get-FileDigest (Join-Path $recovery "$held/15")) -eq $original) "original recovery copy changed"
-            Assert-True ($output.Contains("Recovery path: $recovery")) "recovery path was not reported"
+            # Windows PowerShell 5.1 can preserve mixed separators in Join-Path
+            # output; FileInfo.FullName uses canonical separators. Compare the
+            # complete path, not that presentation difference.
+            $reportedPath = "Recovery path: " + $recovery.Replace('\', '/')
+            Assert-True ($output.Replace('\', '/').Contains($reportedPath)) "recovery path was not reported for $operation/$failure"
             if ($evacuation) { Assert-True ((Get-FileDigest $specialist) -eq $original) "occupied target was overwritten" }
             else { Assert-PathAbsent $specialist }
             Assert-PathExists (Join-Path $homePath ".codex/agents/prove-controller.toml")
@@ -491,3 +495,8 @@ try {
 finally {
     if (Test-Path -LiteralPath $testRoot) { Remove-Item -LiteralPath $testRoot -Recurse -Force }
 }
+
+# GitHub's PowerShell wrapper propagates LASTEXITCODE. The final intentional
+# child failure is not the result of this suite; reach this only after all
+# assertions and cleanup succeed.
+exit 0
