@@ -54,11 +54,13 @@ $requiredFiles = @(
     ".agents/skills/codex-prove/agents/openai.yaml",
     ".agents/skills/codex-prove/references/orchestration.md",
     ".agents/skills/codex-prove/references/runtime-notes.md",
+    ".agents/skills/codex-prove/references/ponytail-license.txt",
     ".agents/skills/sol-control/SKILL.md",
     ".agents/skills/sol-control/agents/openai.yaml",
     ".codex/agents/prove-controller.toml",
     ".codex/agents/prove-complex-worker.toml",
     ".codex/agents/prove-efficient-worker.toml",
+    ".codex/agents/prove-specialist-worker.toml",
     "scripts/install.sh",
     "scripts/validate.sh",
     "scripts/uninstall.sh",
@@ -123,7 +125,7 @@ foreach ($marker in @(
     "Planning", "Routing", "Ownership", "Verification", "Evidence",
     "Requirement ID", "one owner", "Native Nested", "Compatibility",
     'fork_turns="none"', "Fail Closed", "PASS | FIX | BLOCKED",
-    "prove-controller", "prove-complex-worker", "prove-efficient-worker"
+    "prove-controller", "prove-complex-worker", "prove-efficient-worker", "prove-specialist-worker"
 )) {
     Assert-Condition ($combined.IndexOf($marker, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) "orchestration contract is missing: $marker"
 }
@@ -146,9 +148,10 @@ Assert-Regex $compatText '\$codex-prove' "compatibility openai.yaml misses canon
 Assert-Regex $compatText '(?m)^\s{2}allow_implicit_invocation:\s*false\s*$' "compatibility openai.yaml permits implicit invocation"
 
 $agentExpectations = @(
-    @(".codex/agents/prove-controller.toml", "prove-controller", "gpt-5.6-sol", "high", "read-only", $false),
+    @(".codex/agents/prove-specialist-worker.toml", "prove-specialist-worker", "gpt-6-sol", "high", "workspace-write", $true),
+    @(".codex/agents/prove-controller.toml", "prove-controller", "gpt-6-astra", "high", "read-only", $false),
     @(".codex/agents/prove-complex-worker.toml", "prove-complex-worker", "gpt-5.6-terra", "high", "workspace-write", $true),
-    @(".codex/agents/prove-efficient-worker.toml", "prove-efficient-worker", "gpt-5.6-luna", "max", "workspace-write", $true)
+    @(".codex/agents/prove-efficient-worker.toml", "prove-efficient-worker", "gpt-6-luna", "max", "workspace-write", $true)
 )
 foreach ($expectation in $agentExpectations) {
     $text = Get-Text (Join-Path $repoRoot $expectation[0])

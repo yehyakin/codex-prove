@@ -1,6 +1,6 @@
-# Contributing to Codex Codex PROVE
+# Contributing to Codex PROVE
 
-Thank you for helping improve Codex Codex PROVE. Contributions should keep the project focused on one job: Sol controls planning, delegation, and review while bounded workers execute independently verifiable work.
+Thank you for helping improve Codex PROVE. Contributions should keep the project focused on one job: one controller owns planning, delegation, and review while bounded workers execute independently verifiable work. Models are selected through the role profiles, not the project name.
 
 ## Before you start
 

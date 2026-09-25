@@ -14,25 +14,47 @@
 
 **规划任务，路由模型，用证据完成交付。**
 
-`codex-prove` 是一个显式调用、模型中立的 Codex 编排 Skill：**一个 Controller 做判断和终审，两个可替换的 worker profile 做有界执行。**
+`codex-prove` 是一个显式调用、模型中立的 Codex 编排 Skill：**一个 Controller 做判断和终审，按需选择 worker 做有界执行。**
 
 [60 秒开始](#60-秒开始) · [路由方式](#工作方式) · [成本模型](#为什么能节省成本) · [运行证据](#当前状态) · [安装维护](#安装检查与卸载)
 
 你只需要给出目标、完成条件和限制；PROVE 会自动完成规划、能力路由、文件 ownership、分阶段执行、验证和证据审核。
 
 - **Controller** 是唯一主控：理解目标、规划、路由、分配 ownership、调度并完成最终审核。
-- **Complex worker** 处理跨模块、长上下文、模糊调试、共享接口与高后果实现。
-- **Efficient worker** 承接清晰、低歧义、边界明确、可独立验证的执行。
+- **Specialist worker** 处理困难但可独立验收的实现、根因分析或专项只读审核。
+- **Regular worker（Complex worker profile）** 处理方案明确的常规功能、修复、测试与集成。
+- **Efficient worker** 承接规则明确、可客观验证的机械批量执行；单行小改不必委派。
 
 简单任务仍由当前 Codex 直接完成。复杂、跨模块、可并行或高风险任务，再显式调用 `$codex-prove`。
 
 运行时默认使用简体中文；如果用户明确指定其他语言，则遵循用户选择。
 
-> **v1.0.0 已验证：**115 项测试、39 个 Forward 场景、POSIX 与 Windows PowerShell 5.1/7 CI，以及全新会话 Compatibility 真实路由。
+> **上一稳定版 v1.0.0 的记录：**115 项测试、39 个 Forward 场景、POSIX 与 Windows PowerShell 5.1/7 CI，以及全新会话 Compatibility 真实路由。
 
 规范仓库：[yehyakin/codex-prove](https://github.com/yehyakin/codex-prove)。这是独立社区项目，不代表 OpenAI 官方产品或背书。
 
+## v1.1 开发版：更强主控，更少流程
+
+**Astra 统筹，Sol 攻坚，Terra 主力，Luna 批量；小任务直接做。**
+主控为 GPT-6 Astra / high；按需选择 GPT-6 Sol / high、GPT-5.6 Terra / high 或 GPT-6 Luna / max 执行，
+不要求四个模型全部参与，也不按模型等级逐层接力。
+
+- 小任务即使显式调用，也保持 **Direct、零委派**。
+- 有权威模型选择记录即可直接派发完整任务，不再空跑一轮“自证握手”。
+- 已授权的本地实现、测试和修正连续执行；缺少标题或一次测试失败不再机械 `BLOCKED`。
+- 同一范围只允许一个活跃写入者；停稳旧执行者及其进程、保留 Diff 后可以安全移交。
+- 融入 **Ponytail** 的最小实现思想：先复用现有代码、标准库和平台能力，不增加常驻 Hook、模式开关或审批。
+
+本节描述开发分支，不是已发布版本。审计、测试和运行边界见 [v1.1 升级记录](docs/release/v1.1-gpt6-audit.md)。
+
+9 月 26 日确认本候选的默认分工：**Astra 主控、Sol 专项、Terra 常规、Luna 批处理**。
+Sol、Luna 升级代际，保留既有 effort、权限和角色标识；Terra 继续常规执行，
+不因新模型发布而自动替换。Jev 仅用于研发调研，不接入默认路由，也不成为安装或运行依赖。
+
 ## 核心路由与预计节省
+
+> **历史口径：**下表和下方完整计算保留 v1.0 的 Sol 主控及 **2026-08-04** 费率快照；不适用于 v1.1 Astra 主控。新配置尚无匹配成本测量，不能沿用这些百分比，也不能叠加 Ponytail 的上游节省数据。
+
 
 下表以“同一任务全部使用 Sol”为 `1.00×` 基线。三个模型的 token 份额合计为 100%，`编排开销`表示额外的 Sol 规划、审核、协调和必要返工，相对于全 Sol 基线增加的成本。
 
@@ -126,7 +148,7 @@ Codex PROVE 的节省逻辑很直接：
 
 这些数字属于 `scenario_model_projection`：它们用于预算规划，**不是匹配 A/B 实验、不是每个任务的保证，也不代表一定更快**。上下文重复、错误拆分、并行等待、输出量、Fast mode 和返工都可能降低甚至反转节省。
 
-因此，更准确的公开说法是：
+在这一历史假设下，预算示例是：
 
 > **普通明确型项目可投影节省约 72%–76%，典型混合项目约 50%–60%，复杂项目约 33%–43%；实际结果必须按真实路由和 token 使用复算。**
 
@@ -155,7 +177,7 @@ Codex PROVE 的节省逻辑很直接：
 | GPT-5.6 Terra | 50 credits | 5 credits | 300 credits |
 | GPT-5.6 Luna | 5 credits | 0.5 credits | 30 credits |
 
-当前两套口径的相对比例相同：
+当时两套口径的相对比例相同：
 
 ```text
 Sol = 1.00
@@ -206,130 +228,75 @@ API 用户看到的是美元金额；ChatGPT / Codex 用户通常看到的是 cr
 | 常见问题 | Codex PROVE 的处理方式 |
 | --- | --- |
 | 同一个 Agent 同时规划、实现和验证，容易顾此失彼 | Controller 专注判断与审核，worker 专注有界执行 |
-| 所有工作都使用最高成本模型 | 按能力需求路由到 efficient 或 complex profile |
+| 所有工作都使用最高成本模型 | 按不确定性和验收方式选择 specialist、regular 或 efficient worker |
 | 多个执行者同时修改共享文件 | **一个文件，一个 owner**；重叠范围必须串行 |
 | “完成”只有口头总结，没有真实证据 | 必须返回 changed paths、diff、测试、构建或产物 |
-| 错误任务被无限重试 | 只允许一次有边界的修正，否则 `BLOCKED` |
+| 错误任务被无限重试 | 有新证据才继续；连续无进展或触及真实边界时停止该路径 |
 
 它的目标不是制造一个热闹的多 Agent 团队，而是为复杂任务建立一个清晰、可审核的控制面。
 
 ## 工作方式
 
-![Direct、Controller-only、efficient 与 complex worker 路径，所有证据最终返回 Controller 审核](docs/assets/readme/control-plane-zh.svg)
+![v1.0 双 worker 路径示意；v1.1 当前分工以下方文字和配置表为准](docs/assets/readme/control-plane-zh.svg)
+
+上图保留 v1.0 的两类 worker 示意；v1.1 增加独立 specialist，当前路径如下。
 
 ```text
 用户目标
    │
    ▼
-Controller：理解 → 规划 → 路由 → 分配 → 调度
-   │
+Host：轻量路由
    ├─ Direct：简单任务由当前 Codex 直接完成
-   ├─ Controller-only：只做计划、分析或审核
-   ├─ Efficient worker：清晰、低歧义、可独立验证的执行
-   └─ Complex worker：跨模块、长上下文或高后果执行
+   └─ 复杂任务 → Controller：理解 → 规划 → 分配 → 调度
+                     ├─ Controller-only：计划、分析或审核
+                     ├─ Specialist worker：困难但独立的执行 / 审核
+                     ├─ Regular worker（Complex worker profile）：常规实现 / 测试
+                     └─ Efficient worker：机械批量执行
    │
    ▼
 真实文件 + Diff + 测试 / 构建 / 产物证据
    │
    ▼
-Controller：按 REQ-ID 做 artifact-first 审核 → PASS / FIX / BLOCKED
+复杂任务由 Controller 按 REQ-ID 审核 → PASS / FIX / BLOCKED → Host 交付
 ```
 
 <details>
-<summary><strong>展开完整控制协议：角色、路由、并行、验证与失败处理</strong></summary>
+<summary><strong>角色、并行与恢复规则</strong></summary>
 
-<br>
+### 当前默认配置
 
-### 证据优先控制
-
-v1.0 契约保持单一 Controller，不增加第二个 Reviewer，并包含五个质量控制点：
-
-1. **需求—证据图。** 每个 `done_when` 使用稳定的 `REQ-ID`，任务、验证和最终证据必须回指对应要求。
-2. **Artifact-first 审核。** Controller 先看原始要求、真实 changed paths、文件、完整 diff 和验证产物，最后才看 worker 的 `PASS` 与总结。
-3. **验证验证器。** 退出码为 0 还不够；检查必须命中最终候选、正确 scope 和目标要求，存在性检查或跑错模块不能通过。
-4. **选择性挑战。** 普通任务零额外挑战；只有高后果、跨模块、共享接口、证据冲突或未覆盖要求才允许最多一个只读 challenge。它只返回 findings，最终裁决仍属于 Controller。
-5. **可恢复执行。** 长任务记录 owner、候选身份、要求覆盖和尝试次数；恢复时不重复派发已完成任务，也不重置修正预算。
-
-### 角色层级
-
-| 角色 | 配置 | 负责什么 | 明确边界 |
-| --- | --- | --- | --- |
-| **Controller** | `prove-controller` → `gpt-5.6-sol` / `high` / `read-only` | 理解目标、定义 `done_when`、路由任务、分配 owner、安排阶段、最终审核 | 不承担大批量机械实现 |
-| **Complex worker** | `prove-complex-worker` → `gpt-5.6-terra` / `high` / `workspace-write` | 跨模块、长上下文、模糊调试、共享接口判断、高后果实现 | 不是第二个主控；不改计划、不创建子代理 |
-| **Efficient worker** | `prove-efficient-worker` → `gpt-5.6-luna` / `max` / `workspace-write` | 清晰、低歧义、小上下文、机械或高吞吐任务 | 不扩大 scope、不创建子代理、不批准整体任务 |
-
-角色名保持稳定，箭头右侧的模型是 v1.0 默认配置。未来模型换代只更新 TOML、验证与发布说明，不再更改项目名或协议。
-
-### 路由选择
-
-| 路径 | 什么时候使用 | 成本含义 |
+| 角色 | 配置 | 边界 |
 | --- | --- | --- |
-| **Direct** | 单文件、小改动、目标清楚 | 不承担编排开销，路由节省为 0% |
-| **Controller-only** | 需要规划、分析或审核，但不改文件 | 只使用主控能力 |
-| **Controller → efficient** | scope 可精确划分，结果可独立验证 | 优先承接大量明确执行 |
-| **Controller → complex** | 跨模块、长上下文、共享接口、模糊调试或高后果实现 | 使用更强执行 profile |
+| Controller | `prove-controller` → `gpt-6-astra` / `high` / `read-only` | 一个主控，负责规划、分配和终审 |
+| Specialist worker | `prove-specialist-worker` → `gpt-6-sol` / `high` / `workspace-write` | 困难但能独立验收的执行或专项只读审核，不是第二主控 |
+| Regular worker | `prove-complex-worker` → `gpt-5.6-terra` / `high` / `workspace-write` | 常规功能、修复、测试与集成；保留既有标识以兼容安装 |
+| Efficient worker | `prove-efficient-worker` → `gpt-6-luna` / `max` / `workspace-write` | 规则明确、客观可验证的机械批量执行 |
 
-Complex worker 不是 efficient worker 的固定上级，也不是常驻第二主控。两者都由 Controller 按任务能力需求选择。
+最难且不可拆分的全局决策仍由 Astra 处理。所有 worker 禁止再创建子代理；
+只读任务的写入范围为空，即使技术权限允许写入也不得修改。
 
-### 多个执行者如何协作
+v1.0 的主控为 `gpt-5.6-sol`。角色名不随模型代际改变；模型升级还需同步验证，不是改一个名字就算成功。
 
-复杂任务可以同时使用一个或多个 worker，但并行由**文件所有权**决定，而不是由 Agent 数量决定：
+### 必须保留的边界
 
-```text
-Stage 1
-├─ Complex A   → src/auth/core/*
-├─ Efficient A → src/account/ui/*
-└─ Efficient B → docs/account.md
+1. **一个活跃 owner。** 独立且无重叠的任务可以并行；共享配置、文件和副作用必须串行或分 Wave。并发量取决于实时容量。
+2. **允许安全交接。** 旧 worker 及其写入进程停止后，Host 检查并保留已有 Diff、用户修改和尝试记录，再指定新 owner。超时不代表已经停止。
+3. **真实证据。** 主控检查原始要求、实际文件、Diff、验证输出和覆盖情况；worker 的 `PASS` 或 transport 的 `completed` 不等于交付通过。
+4. **按影响验证。** 后续改动只使受影响的证据失效；沿用无变化候选上的新鲜证据。文案改动不全量构建，迁移不只做存在性检查。
+5. **按进展修正。** `FIX` 表示继续已授权的窄范围修复；连续两次无进展后停止该路径并重新判断，不通过换 Agent 重置历史。
+6. **真实阻塞才询问。** 新权限、重大未决选择或无安全下一步时才 `BLOCKED`；模型不可选仍必须如实报告，不静默替换。
+7. **精简不减功能。** Ponytail 思想用于复用和避免过度实现，不删除必要验证、错误处理、无障碍能力或用户明确要求。
+8. **不冒充隔离。** 工作区前后快照只能说明净变化，不能证明期间从未写入。高风险操作仍需要授权和实际可执行的权限边界。
 
-Stage 2
-└─ 原指定 owner → src/shared/routes.ts
-```
+Native Nested 可用且经过真实调用验证时，主控直接调度 worker；否则由 Host 按同一计划派发，再交回主控审核，即 Compatibility。无需为了缺少嵌套能力反复请求批准。
 
-只有 write scope 完全不重叠的任务才能同时执行。共享文件必须指定唯一 owner；依赖、共享接口或边界不确定时，Controller 会合并任务或改为串行执行。
-
-worker 数量没有固定承诺。Controller 根据依赖关系、实时容量和安全边界分批启动最少数量的执行者。
-
-## 一条完整的证据闭环
-
-1. **提取要求。** Controller 给每条完成条件分配稳定的 `REQ-ID` 和所需证据。
-2. **计划。** Controller 把每项任务映射到 Requirement IDs、能力 profile、依赖、精确 `write_scope`、排除项、验证步骤、通过条件和必需证据。
-3. **执行。** worker 只修改分配范围，不改整体计划。
-4. **自检。** 执行者运行指定验证并返回 changed paths、Requirement coverage、测试、构建或产物证据。
-5. **审核。** Controller 先检查真实文件、完整 diff、验证质量与需求覆盖，再读取 worker 总结。
-6. **结论。** Controller 返回封闭裁决 `PASS`、一次 focused `FIX` 或 `BLOCKED`；非阻塞建议单独列出。
-
-worker 的 `PASS` 只代表它自己的任务通过。只有 Controller 可以批准整体工作。
-
-## 不可妥协的边界
-
-1. **一个文件，一个 owner。** 同一轮执行中，不允许两个 worker 修改同一文件。
-2. **执行者不能创建子代理。** Complex 与 efficient worker 都是叶子节点。
-3. **没有证据，不算完成。** transport / spawn 的 `completed` 只表示投递结束。
-4. **验证必须绑定最终候选。** 验证后文件发生变化，旧证据立即失效。
-5. **最多一次 focused fix。** 原 owner 只能在原 scope 内修正一次；再次失败则 `BLOCKED`。
-6. **能力不等于授权。** 运行时暴露更宽技术能力不会扩大用户授权或 `write_scope`；必须如实记录，并用 Host 前后快照检查越界。
-7. **不降低审核门槛。** 用户催促、并行需求或成本目标都不能替代验证与证据。
-8. **Worker PASS 不是证明。** Controller 必须按真实产物独立重建成功结论。
-9. **挑战不是第二主控。** 只读 challenge 无写权限、无批准权，且普通任务不承担固定调用开销。
-10. **高风险仍然失败关闭。** 模型身份、fork 或必要范围证据无法证明时阻塞；破坏性、生产或不可逆外部操作还必须有可强制的匹配边界，或用户明确批准更宽能力。
-
-### Efficient 到 complex 的有界升级
-
-只有当 efficient worker 的第一次失败发生在它写入任何 owned file **之前**，Controller 才能把同一任务、同一 scope 一次升级给 complex profile。
-
-升级门槛只看首次失败前是否零写入。
-
-一旦 worker 已经写入 owned file，它保留该文件在本轮运行中的 ownership。Controller 只能把一次 focused fix 交回原 owner，不能把已经写过的文件转交给其他 profile 覆盖。
-
-## 审核结果
-
-| 结果 | 含义 |
+| 裁决 | 含义 |
 | --- | --- |
-| `PASS` | 所有完成条件均由真实文件和新鲜证据支持 |
-| `FIX` | 原 owner 可以在不扩大 scope 的前提下完成一次精确修正 |
-| `BLOCKED` | 权限、依赖、运行时身份、scope、冲突或验证问题阻止可信交付 |
+| `PASS` | 全部要求由当前候选的真实证据支持 |
+| `FIX` | 存在可在授权范围内继续解决的问题 |
+| `BLOCKED` | 确实没有安全、授权内的下一步，并给出具体原因 |
 
-三个结果构成封闭裁决。可选改进与 residual suggestions 保持在裁决之外；但任何未满足的 `REQ-ID` 都不能被降级为建议。
+详细协议只维护在 [orchestration.md](.agents/skills/codex-prove/references/orchestration.md) 和按需读取的 [runtime-notes.md](.agents/skills/codex-prove/references/runtime-notes.md)。
 
 </details>
 
@@ -382,9 +349,11 @@ pwsh -NoProfile -File scripts/uninstall.ps1 -RestoreLatest
 
 ## 当前状态
 
-当前版本为 **[v1.0.0](https://github.com/yehyakin/codex-prove/releases/tag/v1.0.0)**。
+上一稳定版本为 **[v1.0.0](https://github.com/yehyakin/codex-prove/releases/tag/v1.0.0)**。
 
 > **迁移说明：**Sol Control 已更名为 Codex PROVE。新入口是 `$codex-prove`；`$sol-control` 在 v1.0 中保留为显式兼容别名。安装器可事务迁移受管的 v0.1–v0.5 版本，`--restore-latest` 可恢复升级前状态。
+
+以下表格是 v1.0 历史证据，不是 v1.1 的测试报告。
 
 | 验证面 | 已记录证据 |
 | --- | --- |
@@ -407,11 +376,13 @@ v1.0.0 将品牌、Skill 与 Agent 角色从具体模型名解耦，同时保留
 │  ├─ SKILL.md
 │  └─ references/
 │     ├─ orchestration.md      编排契约
-│     └─ runtime-notes.md      运行时与能力 profile
+│     ├─ runtime-notes.md      运行时与能力 profile
+│     └─ ponytail-license.txt  上游 MIT 归属
 └─ sol-control/                v1.0 显式兼容入口
 
 .codex/agents/
 ├─ prove-controller.toml
+├─ prove-specialist-worker.toml
 ├─ prove-complex-worker.toml
 └─ prove-efficient-worker.toml
 
@@ -433,6 +404,7 @@ README.en.md                   English
 - [编排契约](.agents/skills/codex-prove/references/orchestration.md)
 - [运行时与能力 profile](.agents/skills/codex-prove/references/runtime-notes.md)
 - [Controller 配置](.codex/agents/prove-controller.toml)
+- [Specialist worker 配置](.codex/agents/prove-specialist-worker.toml)
 - [Complex worker 配置](.codex/agents/prove-complex-worker.toml)
 - [Efficient worker 配置](.codex/agents/prove-efficient-worker.toml)
 - [运行表面矩阵](docs/release/runtime-surface-matrix.md)
@@ -473,9 +445,16 @@ python3 scripts/benchmark_ab.py validate tests/fixtures/v100-ab-benchmark.json
 - 精确 custom agent、model、reasoning effort 与权限选择取决于宿主运行表面。
 - 并行能力取决于实时容量和互不重叠的 write scope，不承诺固定 worker 数量。
 - GitHub 托管 Windows runner 证明的是 Windows Server 行为，不等同于物理 Windows 11。
-- Complex worker 是复杂执行层，不是第二 planner 或 controller。
+- Specialist 和 regular worker 都是执行层，不是第二 planner 或 controller。
 - PROVE 表示受证据约束的验证流程，不保证绝对正确。
 - 最终交付依赖真实文件、完整 diff 与新鲜验证；配置标签本身不是运行证据。
+
+## Inspirations / Prior Art
+
+- [Eric Provencher：Rethinking skills and prompts for GPT-6 Astra](https://x.com/pvncher/status/2095991462416490862)：缩短常驻指令、按需读取参考、避免流程压过用户目标。
+- [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail)：理解后再精简，复用现有能力，避免过度实现；保留 MIT 归属，不引入其常驻插件或上游成绩。
+- [近期同类实现复核](docs/research/2026-09-25-peer-orchestration.md)：对照 da34、joserey7、Sol Advisor、Superpowers 等项目的实际规则和验证机制，吸收避免重复劳动、按风险审核与评测校准，不引入固定团队。
+- 更早的编排与证据工作流来源见 [NOTICE](NOTICE)。借鉴思想与实质改写分别记录。
 
 ## 许可证
 

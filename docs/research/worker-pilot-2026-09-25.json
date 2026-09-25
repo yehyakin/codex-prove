@@ -1,0 +1,1416 @@
+{
+  "schema_version": 1,
+  "candidate_sources": {
+    "settings_migration-gpt-6-sol-r1": {
+      "settings.py": "from copy import deepcopy\n\n\ndef migrate(settings):\n    result = deepcopy(settings)\n    if \"workers\" in result and not isinstance(result[\"workers\"], dict):\n        raise ValueError(\"workers must be a dict\")\n    if \"execution\" in result and not isinstance(result[\"execution\"], dict):\n        raise ValueError(\"execution must be a dict\")\n\n    workers = result.get(\"workers\", {})\n    execution = result.setdefault(\"execution\", {})\n    if \"max_workers\" not in execution:\n        execution[\"max_workers\"] = workers.get(\"limit\", 2)\n    if \"enabled\" not in execution:\n        execution[\"enabled\"] = workers.get(\"enabled\", True)\n\n    if \"workers\" in result:\n        workers.pop(\"limit\", None)\n        workers.pop(\"enabled\", None)\n        if not workers:\n            del result[\"workers\"]\n\n    result[\"schema_version\"] = 2\n    return result\n",
+      "test_settings.py": "import unittest\nfrom settings import migrate\n\nclass MigrationTests(unittest.TestCase):\n    def test_defaults(self):\n        self.assertEqual(migrate({}), {\n            \"schema_version\": 2,\n            \"execution\": {\"max_workers\": 2, \"enabled\": True},\n        })\n\n    def test_legacy_values_and_unknown_fields(self):\n        source = {\n            \"schema_version\": 1,\n            \"workers\": {\"limit\": 4, \"enabled\": False, \"queue\": {\"tags\": [\"fast\"]}},\n            \"other\": {\"items\": [1, 2]},\n        }\n        self.assertEqual(migrate(source), {\n            \"schema_version\": 2,\n            \"workers\": {\"queue\": {\"tags\": [\"fast\"]}},\n            \"execution\": {\"max_workers\": 4, \"enabled\": False},\n            \"other\": {\"items\": [1, 2]},\n        })\n        self.assertEqual(source[\"workers\"][\"limit\"], 4)\n        self.assertEqual(source[\"workers\"][\"enabled\"], False)\n\n    def test_existing_destination_values_win(self):\n        source = {\n            \"workers\": {\"limit\": 8, \"enabled\": True},\n            \"execution\": {\"max_workers\": 0, \"enabled\": None, \"extra\": [1]},\n        }\n        self.assertEqual(migrate(source), {\n            \"schema_version\": 2,\n            \"execution\": {\"max_workers\": 0, \"enabled\": None, \"extra\": [1]},\n        })\n        self.assertEqual(migrate({\"execution\": {\"enabled\": False}})[\"execution\"], {\n            \"max_workers\": 2,\n            \"enabled\": False,\n        })\n\n    def test_fills_only_missing_destination_fields(self):\n        self.assertEqual(migrate({\n            \"workers\": {\"limit\": 7, \"enabled\": False},\n            \"execution\": {\"enabled\": True},\n        })[\"execution\"], {\"max_workers\": 7, \"enabled\": True})\n        self.assertEqual(migrate({\"workers\": {\"custom\": 1}})[\"workers\"], {\n            \"custom\": 1,\n        })\n\n    def test_rejects_non_dict_sections(self):\n        for key in (\"workers\", \"execution\"):\n            for value in (None, [], 1, \"invalid\"):\n                with self.subTest(key=key, value=value):\n                    with self.assertRaises(ValueError):\n                        migrate({key: value})\n\n    def test_deep_independence_and_idempotence(self):\n        source = {\n            \"workers\": {\"limit\": {\"nested\": [1]}, \"custom\": {\"tags\": [2]}},\n            \"execution\": {\"extra\": {\"values\": [3]}},\n            \"other\": [{\"values\": [4]}],\n        }\n        migrated = migrate(source)\n        self.assertEqual(migrate(migrated), migrated)\n        migrated[\"execution\"][\"max_workers\"][\"nested\"].append(5)\n        migrated[\"execution\"][\"extra\"][\"values\"].append(6)\n        migrated[\"workers\"][\"custom\"][\"tags\"].append(7)\n        migrated[\"other\"][0][\"values\"].append(8)\n        self.assertEqual(source, {\n            \"workers\": {\"limit\": {\"nested\": [1]}, \"custom\": {\"tags\": [2]}},\n            \"execution\": {\"extra\": {\"values\": [3]}},\n            \"other\": [{\"values\": [4]}],\n        })\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    "settings_migration-gpt-5.6-terra-r1": {
+      "settings.py": "from copy import deepcopy\n\n\ndef migrate(settings):\n    result = deepcopy(settings)\n\n    has_workers = \"workers\" in result\n    workers = result[\"workers\"] if has_workers else None\n    if has_workers and not isinstance(workers, dict):\n        raise ValueError(\"workers must be a dict\")\n\n    has_execution = \"execution\" in result\n    execution = result[\"execution\"] if has_execution else None\n    if has_execution and not isinstance(execution, dict):\n        raise ValueError(\"execution must be a dict\")\n    if has_execution:\n        execution = deepcopy(execution)\n    else:\n        execution = {}\n    result[\"execution\"] = execution\n\n    if workers is not None:\n        if \"max_workers\" not in execution:\n            execution[\"max_workers\"] = workers.get(\"limit\", 2)\n        if \"enabled\" not in execution:\n            execution[\"enabled\"] = workers.get(\"enabled\", True)\n\n        workers.pop(\"limit\", None)\n        workers.pop(\"enabled\", None)\n        if not workers:\n            result.pop(\"workers\")\n    else:\n        execution.setdefault(\"max_workers\", 2)\n        execution.setdefault(\"enabled\", True)\n\n    result[\"schema_version\"] = 2\n    return result\n",
+      "test_settings.py": "import unittest\n\nfrom settings import migrate\n\n\nclass MigrationTests(unittest.TestCase):\n    def test_defaults(self):\n        self.assertEqual(migrate({}), {\n            \"schema_version\": 2,\n            \"execution\": {\"max_workers\": 2, \"enabled\": True},\n        })\n\n    def test_moves_legacy_values_and_preserves_unknown_workers_fields(self):\n        migrated = migrate({\n            \"workers\": {\"limit\": 4, \"enabled\": False, \"label\": \"batch\"},\n        })\n\n        self.assertEqual(migrated, {\n            \"schema_version\": 2,\n            \"workers\": {\"label\": \"batch\"},\n            \"execution\": {\"max_workers\": 4, \"enabled\": False},\n        })\n\n    def test_existing_execution_values_win_even_when_falsy_or_none(self):\n        migrated = migrate({\n            \"workers\": {\"limit\": 8, \"enabled\": True},\n            \"execution\": {\"max_workers\": 0, \"enabled\": None, \"mode\": \"safe\"},\n        })\n\n        self.assertEqual(migrated, {\n            \"schema_version\": 2,\n            \"execution\": {\"max_workers\": 0, \"enabled\": None, \"mode\": \"safe\"},\n        })\n\n    def test_defaults_missing_execution_keys_when_no_legacy_workers_exist(self):\n        self.assertEqual(migrate({\"execution\": {\"mode\": \"safe\"}}), {\n            \"schema_version\": 2,\n            \"execution\": {\n                \"mode\": \"safe\",\n                \"max_workers\": 2,\n                \"enabled\": True,\n            },\n        })\n\n    def test_rejects_non_dict_workers_or_execution(self):\n        for key, value in ((\"workers\", []), (\"workers\", None),\n                           (\"execution\", []), (\"execution\", None)):\n            with self.subTest(key=key, value=value):\n                with self.assertRaises(ValueError):\n                    migrate({key: value})\n\n    def test_result_is_independent_and_idempotent(self):\n        settings = {\n            \"metadata\": {\"labels\": [\"original\"]},\n            \"workers\": {\"limit\": 3, \"unknown\": {\"nested\": []}},\n            \"execution\": {\"strategy\": {\"steps\": []}},\n        }\n\n        migrated = migrate(settings)\n        migrated[\"metadata\"][\"labels\"].append(\"changed\")\n        migrated[\"workers\"][\"unknown\"][\"nested\"].append(\"changed\")\n        migrated[\"execution\"][\"strategy\"][\"steps\"].append(\"changed\")\n\n        self.assertEqual(settings, {\n            \"metadata\": {\"labels\": [\"original\"]},\n            \"workers\": {\"limit\": 3, \"unknown\": {\"nested\": []}},\n            \"execution\": {\"strategy\": {\"steps\": []}},\n        })\n        self.assertEqual(migrate(migrate(settings)), migrate(settings))\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    "dependency_frontier-gpt-5.6-terra-r1": {
+      "scheduler.py": "from paths import canonical\n\n\ndef _overlap(left, right):\n    return (\n        left == right\n        or left.startswith(right + \"/\")\n        or right.startswith(left + \"/\")\n    )\n\n\ndef ready(tasks, completed, active, capacity):\n    free_capacity = capacity - len(active)\n    if free_capacity <= 0:\n        return []\n\n    active_ids = {task[\"id\"] for task in active}\n    occupied_writes = [\n        canonical(scope)\n        for task in active\n        for scope in task[\"writes\"]\n    ]\n    selected = []\n\n    for task in tasks:\n        if len(selected) == free_capacity:\n            break\n        if task[\"id\"] in completed or task[\"id\"] in active_ids:\n            continue\n        if not set(task[\"dependencies\"]) <= completed:\n            continue\n\n        writes = [canonical(scope) for scope in task[\"writes\"]]\n        if any(_overlap(scope, occupied) for scope in writes for occupied in occupied_writes):\n            continue\n\n        selected.append(task[\"id\"])\n        occupied_writes.extend(writes)\n\n    return selected\n",
+      "test_scheduler.py": "import unittest\nfrom scheduler import ready\n\nclass SchedulerTests(unittest.TestCase):\n    def test_one_ready(self):\n        tasks = [{\"id\": \"a\", \"dependencies\": [], \"writes\": [\"a.py\"]}]\n        self.assertEqual(ready(tasks, set(), [], 1), [\"a\"])\n\n    def test_active_tasks_consume_capacity_and_are_not_returned(self):\n        active = [{\"id\": \"running\", \"dependencies\": [], \"writes\": []}]\n        tasks = [\n            {\"id\": \"running\", \"dependencies\": [], \"writes\": []},\n            {\"id\": \"next\", \"dependencies\": [], \"writes\": []},\n        ]\n        self.assertEqual(ready(tasks, set(), active, 2), [\"next\"])\n        self.assertEqual(ready(tasks, set(), active, 1), [])\n        self.assertEqual(ready(tasks, set(), active, 0), [])\n        self.assertEqual(ready(tasks, set(), active, -1), [])\n\n    def test_dependencies_must_be_completed_before_this_wave(self):\n        tasks = [\n            {\"id\": \"done\", \"dependencies\": [], \"writes\": []},\n            {\"id\": \"first\", \"dependencies\": [], \"writes\": []},\n            {\"id\": \"second\", \"dependencies\": [\"first\"], \"writes\": []},\n            {\"id\": \"third\", \"dependencies\": [\"done\"], \"writes\": []},\n        ]\n        self.assertEqual(ready(tasks, {\"done\"}, [], 3), [\"first\", \"third\"])\n\n    def test_overlapping_writes_conflict_with_active_and_selected_tasks(self):\n        active = [{\"id\": \"build\", \"dependencies\": [], \"writes\": [\"SRC\\\\API\"]}]\n        tasks = [\n            {\"id\": \"active-conflict\", \"dependencies\": [], \"writes\": [\"src/api/routes\"]},\n            {\"id\": \"first\", \"dependencies\": [], \"writes\": [\"src/a\"]},\n            {\"id\": \"not-a-child\", \"dependencies\": [], \"writes\": [\"src/ab\"]},\n            {\"id\": \"selected-conflict\", \"dependencies\": [], \"writes\": [\"src/a/child\"]},\n        ]\n        self.assertEqual(ready(tasks, set(), active, 4), [\"first\", \"not-a-child\"])\n\n    def test_read_only_tasks_do_not_conflict(self):\n        tasks = [\n            {\"id\": \"read-one\", \"dependencies\": [], \"writes\": []},\n            {\"id\": \"read-two\", \"dependencies\": [], \"writes\": []},\n        ]\n        self.assertEqual(ready(tasks, set(), [], 2), [\"read-one\", \"read-two\"])\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    "dependency_frontier-gpt-6-sol-r1": {
+      "scheduler.py": "from paths import canonical\n\n\ndef _overlaps(left, right):\n    return (left == right\n            or left.startswith(right + \"/\")\n            or right.startswith(left + \"/\"))\n\n\ndef ready(tasks, completed, active, capacity):\n    free_slots = capacity - len(active)\n    if free_slots <= 0:\n        return []\n\n    active_ids = {task[\"id\"] for task in active}\n    occupied = [canonical(scope) for task in active for scope in task[\"writes\"]]\n    selected = []\n\n    for task in tasks:\n        if len(selected) == free_slots:\n            break\n        task_id = task[\"id\"]\n        if (task_id in completed or task_id in active_ids\n                or any(dependency not in completed\n                       for dependency in task[\"dependencies\"])):\n            continue\n\n        writes = [canonical(scope) for scope in task[\"writes\"]]\n        if any(_overlaps(scope, used) for scope in writes for used in occupied):\n            continue\n\n        selected.append(task_id)\n        occupied.extend(writes)\n\n    return selected\n",
+      "test_scheduler.py": "import unittest\nfrom scheduler import ready\n\n\ndef task(task_id, dependencies=(), writes=()):\n    return {\"id\": task_id, \"dependencies\": list(dependencies), \"writes\": list(writes)}\n\n\nclass SchedulerTests(unittest.TestCase):\n    def test_one_ready(self):\n        tasks = [{\"id\": \"a\", \"dependencies\": [], \"writes\": [\"a.py\"]}]\n        self.assertEqual(ready(tasks, set(), [], 1), [\"a\"])\n\n    def test_total_capacity_excludes_active_workers(self):\n        tasks = [task(\"running\"), task(\"a\"), task(\"b\")]\n        self.assertEqual(ready(tasks, set(), [tasks[0]], 2), [\"a\"])\n        self.assertEqual(ready(tasks, set(), [tasks[0]], 1), [])\n        self.assertEqual(ready(tasks, set(), [tasks[0]], 0), [])\n\n    def test_dependencies_require_completion_before_this_wave(self):\n        tasks = [task(\"a\"), task(\"b\", [\"a\"]), task(\"c\", [\"running\"]),\n                 task(\"done\"), task(\"d\", [\"done\"])]\n        self.assertEqual(ready(tasks, {\"done\"}, [task(\"running\")], 5),\n                         [\"a\", \"d\"])\n\n    def test_active_write_conflict_uses_canonical_paths(self):\n        tasks = [task(\"same\", writes=[\"SRC/./A\\\\file.py\"]),\n                 task(\"child\", writes=[\"src/a/sub/file.py\"]),\n                 task(\"parent\", writes=[\"src\"]),\n                 task(\"sibling\", writes=[\"src/ab/file.py\"])]\n        active = [task(\"running\", writes=[\"src/a\"])]\n        self.assertEqual(ready(tasks, set(), active, 3), [\"sibling\"])\n\n    def test_selected_writes_exclude_later_overlaps(self):\n        tasks = [task(\"first\", writes=[\"src/a\"]),\n                 task(\"child\", writes=[\"src/a/file.py\"]),\n                 task(\"equal\", writes=[\"SRC\\\\A\"]),\n                 task(\"sibling\", writes=[\"src/ab\"]),\n                 task(\"ancestor\", writes=[\"src\"])]\n        self.assertEqual(ready(tasks, set(), [], 5), [\"first\", \"sibling\"])\n\n    def test_read_only_tasks_consume_capacity_without_conflict(self):\n        tasks = [task(\"read_one\"), task(\"write\", writes=[\"src/a\"]),\n                 task(\"read_two\")]\n        active = [task(\"running\", writes=[\"src/a\"])]\n        self.assertEqual(ready(tasks, set(), active, 3),\n                         [\"read_one\", \"read_two\"])\n\n    def test_inputs_are_not_mutated(self):\n        tasks = [task(\"a\", writes=[\"SRC\\\\a\"]), task(\"b\", [\"a\"])]\n        active = [task(\"running\", writes=[\"other\"])]\n        completed = {\"done\"}\n        self.assertEqual(ready(tasks, completed, active, 3), [\"a\"])\n        self.assertEqual(tasks, [task(\"a\", writes=[\"SRC\\\\a\"]),\n                                 task(\"b\", [\"a\"])])\n        self.assertEqual(active, [task(\"running\", writes=[\"other\"])])\n        self.assertEqual(completed, {\"done\"})\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    "csv_export-gpt-6-sol-r1": {
+      "exporter.py": "from csv_utils import records_to_csv\n\n\ndef export(records, fields):\n    if (\n        not isinstance(fields, list)\n        or not fields\n        or any(not isinstance(field, str) or not field for field in fields)\n        or len(set(fields)) != len(fields)\n    ):\n        raise ValueError(\"fields must be a non-empty list of unique, non-empty strings\")\n\n    selected_records = [\n        {field: row.get(field) for field in fields}\n        for row in records\n    ]\n    return records_to_csv(selected_records, fields)\n",
+      "test_exporter.py": "import unittest\nfrom exporter import export\n\nclass ExportTests(unittest.TestCase):\n    def test_one_row(self):\n        self.assertEqual(export([{\"name\": \"a\"}], [\"name\"]), \"name\\na\\n\")\n\n    def test_field_order_missing_none_extra_and_falsey_values(self):\n        records = [\n            {\"unused\": \"ignored\", \"active\": False, \"count\": 0, \"name\": None},\n            {\"name\": \"Ada\", \"count\": 2},\n        ]\n        fields = [\"name\", \"active\", \"count\", \"missing\"]\n\n        self.assertEqual(\n            export(records, fields),\n            \"name,active,count,missing\\n,False,0,\\nAda,,2,\\n\",\n        )\n        self.assertEqual(\n            records,\n            [\n                {\"unused\": \"ignored\", \"active\": False, \"count\": 0, \"name\": None},\n                {\"name\": \"Ada\", \"count\": 2},\n            ],\n        )\n        self.assertEqual(fields, [\"name\", \"active\", \"count\", \"missing\"])\n\n    def test_escaping_and_unicode(self):\n        self.assertEqual(\n            export([{\"label\": '雪,\"花\"\\n次行'}], [\"label\"]),\n            'label\\n\"雪,\"\"花\"\"\\n次行\"\\n',\n        )\n\n    def test_empty_records_still_emit_header(self):\n        self.assertEqual(export([], [\"name\", \"count\"]), \"name,count\\n\")\n\n    def test_invalid_fields_raise_value_error(self):\n        invalid_fields = [\n            \"name\",\n            (),\n            [],\n            [\"name\", \"name\"],\n            [\"\"],\n            [\"name\", \"\"],\n            [\"name\", 1],\n            None,\n        ]\n        for fields in invalid_fields:\n            with self.subTest(fields=fields):\n                with self.assertRaises(ValueError):\n                    export([], fields)\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    "csv_export-gpt-5.6-terra-r1": {
+      "exporter.py": "from csv_utils import records_to_csv\n\n\ndef export(records, fields):\n    if (\n        not isinstance(fields, list)\n        or not fields\n        or any(not isinstance(field, str) or field == \"\" for field in fields)\n        or len(set(fields)) != len(fields)\n    ):\n        raise ValueError(\"fields must be a non-empty list of unique, non-empty strings\")\n\n    csv_records = [\n        {field: \"\" if row.get(field) is None else row.get(field) for field in fields}\n        for row in records\n    ]\n    return records_to_csv(csv_records, fields)\n",
+      "test_exporter.py": "import unittest\nfrom exporter import export\n\nclass ExportTests(unittest.TestCase):\n    def test_one_row(self):\n        self.assertEqual(export([{\"name\": \"a\"}], [\"name\"]), \"name\\na\\n\")\n\n    def test_selected_fields_missing_none_and_csv_escaping(self):\n        records = [\n            {\"name\": \"Ada\", \"extra\": \"ignored\"},\n            {\"name\": 'Li, \"M\"\\n王', \"age\": None},\n            {\"name\": False, \"age\": 0},\n            {},\n        ]\n\n        self.assertEqual(\n            export(records, [\"name\", \"age\"]),\n            'name,age\\nAda,\\n\"Li, \"\"M\"\"\\n王\",\\nFalse,0\\n,\\n',\n        )\n\n    def test_empty_records_still_emit_header(self):\n        self.assertEqual(export([], [\"age\", \"name\"]), \"age,name\\n\")\n\n    def test_invalid_fields_raise_value_error(self):\n        invalid_fields = ([], \"name\", (\"name\",), [\"\"], [\"name\", \"name\"], [1])\n\n        for fields in invalid_fields:\n            with self.subTest(fields=fields):\n                with self.assertRaises(ValueError):\n                    export([], fields)\n\n    def test_inputs_are_not_mutated(self):\n        records = [{\"name\": None, \"extra\": \"ignored\"}]\n        fields = [\"name\"]\n\n        export(records, fields)\n\n        self.assertEqual(records, [{\"name\": None, \"extra\": \"ignored\"}])\n        self.assertEqual(fields, [\"name\"])\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    "settings_migration-gpt-5.6-terra-r2": {
+      "settings.py": "from copy import deepcopy\n\n\ndef migrate(settings):\n    if \"workers\" in settings and not isinstance(settings[\"workers\"], dict):\n        raise ValueError(\"workers must be a dict\")\n    if \"execution\" in settings and not isinstance(settings[\"execution\"], dict):\n        raise ValueError(\"execution must be a dict\")\n\n    result = deepcopy(settings)\n    workers = result.get(\"workers\")\n    execution = result.get(\"execution\")\n    if execution is None:\n        execution = {}\n        result[\"execution\"] = execution\n\n    if \"max_workers\" not in execution:\n        execution[\"max_workers\"] = workers[\"limit\"] if workers and \"limit\" in workers else 2\n    if \"enabled\" not in execution:\n        execution[\"enabled\"] = workers[\"enabled\"] if workers and \"enabled\" in workers else True\n\n    if workers is not None:\n        workers.pop(\"limit\", None)\n        workers.pop(\"enabled\", None)\n        if not workers:\n            result.pop(\"workers\")\n\n    result[\"schema_version\"] = 2\n    return result\n",
+      "test_settings.py": "import unittest\nfrom settings import migrate\n\nclass MigrationTests(unittest.TestCase):\n    def test_defaults(self):\n        self.assertEqual(migrate({}), {\n            \"schema_version\": 2,\n            \"execution\": {\"max_workers\": 2, \"enabled\": True},\n        })\n\n    def test_legacy_values_are_migrated_and_unknown_workers_fields_remain(self):\n        result = migrate({\n            \"workers\": {\"limit\": 0, \"enabled\": False, \"strategy\": {\"name\": \"safe\"}},\n        })\n\n        self.assertEqual(result, {\n            \"schema_version\": 2,\n            \"workers\": {\"strategy\": {\"name\": \"safe\"}},\n            \"execution\": {\"max_workers\": 0, \"enabled\": False},\n        })\n\n    def test_existing_execution_values_win_even_when_falsey(self):\n        result = migrate({\n            \"workers\": {\"limit\": 8, \"enabled\": True},\n            \"execution\": {\"max_workers\": 0, \"enabled\": False, \"mode\": \"serial\"},\n        })\n\n        self.assertEqual(result, {\n            \"schema_version\": 2,\n            \"execution\": {\"max_workers\": 0, \"enabled\": False, \"mode\": \"serial\"},\n        })\n\n    def test_existing_none_execution_values_win(self):\n        result = migrate({\n            \"workers\": {\"limit\": 8, \"enabled\": False},\n            \"execution\": {\"max_workers\": None, \"enabled\": None},\n        })\n\n        self.assertEqual(result, {\n            \"schema_version\": 2,\n            \"execution\": {\"max_workers\": None, \"enabled\": None},\n        })\n\n    def test_migration_preserves_input_and_does_not_share_nested_mutables(self):\n        settings = {\n            \"metadata\": {\"labels\": []},\n            \"workers\": {\"strategy\": {\"tags\": []}},\n            \"execution\": {\"options\": {\"queue\": []}},\n        }\n\n        result = migrate(settings)\n        result[\"metadata\"][\"labels\"].append(\"new\")\n        result[\"workers\"][\"strategy\"][\"tags\"].append(\"new\")\n        result[\"execution\"][\"options\"][\"queue\"].append(\"new\")\n\n        self.assertEqual(settings, {\n            \"metadata\": {\"labels\": []},\n            \"workers\": {\"strategy\": {\"tags\": []}},\n            \"execution\": {\"options\": {\"queue\": []}},\n        })\n        self.assertEqual(result[\"execution\"][\"max_workers\"], 2)\n        self.assertEqual(result[\"execution\"][\"enabled\"], True)\n\n    def test_removes_workers_only_when_no_unknown_fields_remain(self):\n        self.assertNotIn(\"workers\", migrate({\"workers\": {\"limit\": 3, \"enabled\": True}}))\n        self.assertEqual(\n            migrate({\"workers\": {\"limit\": 3, \"name\": \"primary\"}})[\"workers\"],\n            {\"name\": \"primary\"},\n        )\n\n    def test_rejects_non_dict_sections(self):\n        for settings in ({\"workers\": []}, {\"execution\": []}):\n            with self.subTest(settings=settings):\n                with self.assertRaises(ValueError):\n                    migrate(settings)\n\n    def test_migration_is_idempotent(self):\n        settings = {\n            \"workers\": {\"limit\": 4, \"strategy\": {\"priority\": \"high\"}},\n            \"execution\": {\"enabled\": False},\n        }\n\n        self.assertEqual(migrate(migrate(settings)), migrate(settings))\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    "settings_migration-gpt-6-sol-r2": {
+      "settings.py": "from copy import deepcopy\n\n\ndef migrate(settings):\n    if \"workers\" in settings and not isinstance(settings[\"workers\"], dict):\n        raise ValueError(\"workers must be a dict\")\n    if \"execution\" in settings and not isinstance(settings[\"execution\"], dict):\n        raise ValueError(\"execution must be a dict\")\n\n    result = deepcopy(settings)\n    workers = result.get(\"workers\", {})\n    execution = result.setdefault(\"execution\", {})\n\n    for old_key, new_key, default in (\n        (\"limit\", \"max_workers\", 2),\n        (\"enabled\", \"enabled\", True),\n    ):\n        if new_key not in execution:\n            execution[new_key] = workers.get(old_key, default)\n        workers.pop(old_key, None)\n\n    if \"workers\" in result and not workers:\n        del result[\"workers\"]\n\n    result[\"schema_version\"] = 2\n    return result\n",
+      "test_settings.py": "import unittest\n\nfrom settings import migrate\n\n\nclass MigrationTests(unittest.TestCase):\n    def test_defaults(self):\n        self.assertEqual(migrate({}), {\n            \"schema_version\": 2,\n            \"execution\": {\"max_workers\": 2, \"enabled\": True},\n        })\n\n    def test_legacy_fields_move_and_unknown_fields_remain(self):\n        settings = {\n            \"schema_version\": 1,\n            \"workers\": {\"limit\": 4, \"enabled\": False, \"queue\": {\"names\": [\"a\"]}},\n            \"other\": {\"items\": [1]},\n        }\n        original = {\n            \"schema_version\": 1,\n            \"workers\": {\"limit\": 4, \"enabled\": False, \"queue\": {\"names\": [\"a\"]}},\n            \"other\": {\"items\": [1]},\n        }\n\n        migrated = migrate(settings)\n\n        self.assertEqual(migrated, {\n            \"schema_version\": 2,\n            \"workers\": {\"queue\": {\"names\": [\"a\"]}},\n            \"execution\": {\"max_workers\": 4, \"enabled\": False},\n            \"other\": {\"items\": [1]},\n        })\n        self.assertEqual(settings, original)\n\n        migrated[\"workers\"][\"queue\"][\"names\"].append(\"b\")\n        migrated[\"other\"][\"items\"].append(2)\n        self.assertEqual(settings, original)\n\n    def test_existing_destination_values_win_even_when_falsy(self):\n        settings = {\n            \"workers\": {\"limit\": 8, \"enabled\": True},\n            \"execution\": {\"max_workers\": 0, \"enabled\": None, \"extra\": [1]},\n        }\n\n        migrated = migrate(settings)\n\n        self.assertEqual(migrated, {\n            \"schema_version\": 2,\n            \"execution\": {\"max_workers\": 0, \"enabled\": None, \"extra\": [1]},\n        })\n        migrated[\"execution\"][\"extra\"].append(2)\n        self.assertEqual(settings[\"execution\"][\"extra\"], [1])\n\n    def test_sources_fill_only_missing_destination_keys(self):\n        self.assertEqual(migrate({\n            \"workers\": {\"limit\": None, \"enabled\": False},\n            \"execution\": {\"enabled\": False},\n        }), {\n            \"schema_version\": 2,\n            \"execution\": {\"max_workers\": None, \"enabled\": False},\n        })\n\n    def test_present_containers_must_be_dicts(self):\n        for name in (\"workers\", \"execution\"):\n            for value in (None, [], 1):\n                with self.subTest(name=name, value=value):\n                    with self.assertRaises(ValueError):\n                        migrate({name: value})\n\n    def test_migration_is_idempotent(self):\n        settings = {\n            \"workers\": {\"limit\": 3, \"unknown\": {\"items\": [1]}},\n            \"execution\": {\"enabled\": False, \"extra\": [2]},\n        }\n        once = migrate(settings)\n\n        self.assertEqual(migrate(once), once)\n        self.assertEqual(once[\"workers\"], {\"unknown\": {\"items\": [1]}})\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    "dependency_frontier-gpt-6-sol-r2": {
+      "scheduler.py": "from paths import canonical\n\n\ndef _overlaps(left, right):\n    if left == right or left in (\"\", \".\") or right in (\"\", \".\"):\n        return True\n    return left.startswith(right + \"/\") or right.startswith(left + \"/\")\n\n\ndef ready(tasks, completed, active, capacity):\n    free = capacity - len(active)\n    if free <= 0:\n        return []\n\n    active_ids = {task[\"id\"] for task in active}\n    occupied = [canonical(scope) for task in active for scope in task[\"writes\"]]\n    selected = []\n\n    for task in tasks:\n        if len(selected) == free:\n            break\n        if task[\"id\"] in completed or task[\"id\"] in active_ids:\n            continue\n        if not all(dependency in completed for dependency in task[\"dependencies\"]):\n            continue\n\n        writes = [canonical(scope) for scope in task[\"writes\"]]\n        if any(_overlaps(write, scope) for write in writes for scope in occupied):\n            continue\n\n        selected.append(task[\"id\"])\n        occupied.extend(writes)\n\n    return selected\n",
+      "test_scheduler.py": "import unittest\nfrom copy import deepcopy\n\nfrom scheduler import ready\n\n\nclass SchedulerTests(unittest.TestCase):\n    def test_one_ready(self):\n        tasks = [{\"id\": \"a\", \"dependencies\": [], \"writes\": [\"a.py\"]}]\n        self.assertEqual(ready(tasks, set(), [], 1), [\"a\"])\n\n    def test_capacity_counts_active_workers(self):\n        tasks = [\n            {\"id\": \"running\", \"dependencies\": [], \"writes\": []},\n            {\"id\": \"a\", \"dependencies\": [], \"writes\": []},\n            {\"id\": \"b\", \"dependencies\": [], \"writes\": []},\n        ]\n        active = [tasks[0]]\n        self.assertEqual(ready(tasks, set(), active, 2), [\"a\"])\n        self.assertEqual(ready(tasks, set(), active, 1), [])\n        self.assertEqual(ready(tasks, set(), active, 0), [])\n\n    def test_dependencies_must_be_completed_before_this_wave(self):\n        tasks = [\n            {\"id\": \"done\", \"dependencies\": [], \"writes\": []},\n            {\"id\": \"running\", \"dependencies\": [], \"writes\": []},\n            {\"id\": \"a\", \"dependencies\": [\"done\"], \"writes\": []},\n            {\"id\": \"after_running\", \"dependencies\": [\"running\"], \"writes\": []},\n            {\"id\": \"after_a\", \"dependencies\": [\"a\"], \"writes\": []},\n        ]\n        self.assertEqual(ready(tasks, {\"done\"}, [tasks[1]], 5), [\"a\"])\n\n    def test_active_write_conflicts_use_canonical_slash_boundaries(self):\n        active = [{\"id\": \"running\", \"dependencies\": [], \"writes\": [\"SRC\\\\x\\\\..\\\\A\"]}]\n        tasks = [\n            {\"id\": \"child\", \"dependencies\": [], \"writes\": [\"src/a/file.py\"]},\n            {\"id\": \"parent\", \"dependencies\": [], \"writes\": [\"src\"]},\n            {\"id\": \"equal\", \"dependencies\": [], \"writes\": [\"src/a\"]},\n            {\"id\": \"sibling\", \"dependencies\": [], \"writes\": [\"src/ab\"]},\n        ]\n        self.assertEqual(ready(tasks, set(), active, 4), [\"sibling\"])\n\n    def test_selected_writes_conflict_but_read_only_tasks_consume_capacity(self):\n        tasks = [\n            {\"id\": \"first\", \"dependencies\": [], \"writes\": [\"src/a\"]},\n            {\"id\": \"child\", \"dependencies\": [], \"writes\": [\"src/a/file.py\"]},\n            {\"id\": \"sibling\", \"dependencies\": [], \"writes\": [\"src/ab\"]},\n            {\"id\": \"parent\", \"dependencies\": [], \"writes\": [\"src\"]},\n            {\"id\": \"read_only\", \"dependencies\": [], \"writes\": []},\n            {\"id\": \"last\", \"dependencies\": [], \"writes\": [\"elsewhere\"]},\n        ]\n        self.assertEqual(ready(tasks, set(), [], 3), [\"first\", \"sibling\", \"read_only\"])\n\n    def test_inputs_are_not_mutated(self):\n        tasks = [\n            {\"id\": \"a\", \"dependencies\": [], \"writes\": [\"SRC\\\\a\\\\..\\\\b\"]},\n            {\"id\": \"b\", \"dependencies\": [\"a\"], \"writes\": [\"src/b\"]},\n        ]\n        active = [{\"id\": \"running\", \"dependencies\": [], \"writes\": [\"other\"]}]\n        completed = {\"done\"}\n        before = (deepcopy(tasks), deepcopy(active), completed.copy())\n\n        ready(tasks, completed, active, 3)\n\n        self.assertEqual((tasks, active, completed), before)\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    "dependency_frontier-gpt-5.6-terra-r2": {
+      "scheduler.py": "from paths import canonical\n\n\ndef ready(tasks, completed, active, capacity):\n    free_capacity = capacity - len(active)\n    if free_capacity <= 0:\n        return []\n\n    active_ids = {task[\"id\"] for task in active}\n    reserved_writes = [\n        canonical(scope)\n        for task in active\n        for scope in task[\"writes\"]\n    ]\n    result = []\n\n    for task in tasks:\n        if len(result) == free_capacity:\n            break\n        if task[\"id\"] in completed or task[\"id\"] in active_ids:\n            continue\n        if not set(task[\"dependencies\"]) <= completed:\n            continue\n\n        task_writes = [canonical(scope) for scope in task[\"writes\"]]\n        if any(\n            _scopes_overlap(scope, reserved_scope)\n            for scope in task_writes\n            for reserved_scope in reserved_writes\n        ):\n            continue\n\n        result.append(task[\"id\"])\n        reserved_writes.extend(task_writes)\n\n    return result\n\n\ndef _scopes_overlap(left, right):\n    return (\n        left == right\n        or left.startswith(right + \"/\")\n        or right.startswith(left + \"/\")\n    )\n",
+      "test_scheduler.py": "import unittest\nfrom scheduler import ready\n\nclass SchedulerTests(unittest.TestCase):\n    def test_one_ready(self):\n        tasks = [{\"id\": \"a\", \"dependencies\": [], \"writes\": [\"a.py\"]}]\n        self.assertEqual(ready(tasks, set(), [], 1), [\"a\"])\n\n    def test_capacity_includes_active_workers(self):\n        tasks = [{\"id\": \"pending\", \"dependencies\": [], \"writes\": []}]\n        active = [{\"id\": \"running\", \"dependencies\": [], \"writes\": []}]\n        self.assertEqual(ready(tasks, set(), active, 1), [])\n        self.assertEqual(ready(tasks, set(), active, 0), [])\n\n    def test_completed_task_is_skipped_without_mutating_inputs(self):\n        tasks = [\n            {\"id\": \"complete\", \"dependencies\": [], \"writes\": [\"src/done\"]},\n            {\"id\": \"pending\", \"dependencies\": [], \"writes\": [\"src/pending\"]},\n        ]\n        completed = {\"complete\"}\n        self.assertEqual(ready(tasks, completed, [], 2), [\"pending\"])\n        self.assertEqual(\n            tasks,\n            [\n                {\"id\": \"complete\", \"dependencies\": [], \"writes\": [\"src/done\"]},\n                {\"id\": \"pending\", \"dependencies\": [], \"writes\": [\"src/pending\"]},\n            ],\n        )\n        self.assertEqual(completed, {\"complete\"})\n\n    def test_active_tasks_do_not_satisfy_dependencies_or_reappear(self):\n        tasks = [\n            {\"id\": \"running\", \"dependencies\": [], \"writes\": []},\n            {\"id\": \"dependent\", \"dependencies\": [\"running\"], \"writes\": []},\n        ]\n        active = [{\"id\": \"running\", \"dependencies\": [], \"writes\": []}]\n        self.assertEqual(ready(tasks, set(), active, 3), [])\n\n    def test_selected_tasks_do_not_satisfy_dependencies_in_same_wave(self):\n        tasks = [\n            {\"id\": \"first\", \"dependencies\": [], \"writes\": []},\n            {\"id\": \"second\", \"dependencies\": [\"first\"], \"writes\": []},\n        ]\n        self.assertEqual(ready(tasks, set(), [], 2), [\"first\"])\n\n    def test_write_conflicts_cover_active_and_selected_tasks(self):\n        tasks = [\n            {\"id\": \"active-conflict\", \"dependencies\": [], \"writes\": [\"src/a/file.py\"]},\n            {\"id\": \"selected\", \"dependencies\": [], \"writes\": [\"src/new\"]},\n            {\"id\": \"selected-conflict\", \"dependencies\": [], \"writes\": [\"src/new/child\"]},\n            {\"id\": \"non-conflict\", \"dependencies\": [], \"writes\": [\"src/ab\"]},\n        ]\n        active = [{\"id\": \"running\", \"dependencies\": [], \"writes\": [\"src/a\"]}]\n        self.assertEqual(ready(tasks, set(), active, 4), [\"selected\", \"non-conflict\"])\n\n    def test_write_comparisons_are_canonical_and_read_only_is_non_conflicting(self):\n        tasks = [\n            {\"id\": \"case-conflict\", \"dependencies\": [], \"writes\": [\"SRC\\\\module\\\\..\\\\shared\"]},\n            {\"id\": \"reader\", \"dependencies\": [], \"writes\": []},\n        ]\n        active = [{\"id\": \"running\", \"dependencies\": [], \"writes\": [\"src/shared/file.py\"]}]\n        self.assertEqual(ready(tasks, set(), active, 3), [\"reader\"])\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    "csv_export-gpt-5.6-terra-r2": {
+      "exporter.py": "from csv_utils import records_to_csv\n\n\ndef export(records, fields):\n    if (\n        not isinstance(fields, list)\n        or not fields\n        or any(not isinstance(field, str) or not field for field in fields)\n        or len(set(fields)) != len(fields)\n    ):\n        raise ValueError(\"fields must be a non-empty list of unique, non-empty strings\")\n\n    selected_records = []\n    for row in records:\n        selected_row = {}\n        for field in fields:\n            value = row.get(field, \"\")\n            selected_row[field] = \"\" if value is None else value\n        selected_records.append(selected_row)\n\n    return records_to_csv(selected_records, fields)\n",
+      "test_exporter.py": "import unittest\nfrom exporter import export\n\nclass ExportTests(unittest.TestCase):\n    def test_one_row(self):\n        self.assertEqual(export([{\"name\": \"a\"}], [\"name\"]), \"name\\na\\n\")\n\n    def test_selects_fields_and_preserves_false_and_zero(self):\n        records = [{\"name\": \"Ada\", \"active\": False, \"count\": 0, \"ignored\": \"value\"}]\n        fields = [\"count\", \"name\", \"active\"]\n\n        self.assertEqual(\n            export(records, fields),\n            \"count,name,active\\n0,Ada,False\\n\",\n        )\n        self.assertEqual(\n            records,\n            [{\"name\": \"Ada\", \"active\": False, \"count\": 0, \"ignored\": \"value\"}],\n        )\n        self.assertEqual(fields, [\"count\", \"name\", \"active\"])\n\n    def test_missing_and_none_values_are_empty(self):\n        self.assertEqual(\n            export([{\"name\": None}, {}], [\"name\", \"email\"]),\n            \"name,email\\n,\\n,\\n\",\n        )\n\n    def test_empty_records_still_emit_header(self):\n        self.assertEqual(export([], [\"name\", \"email\"]), \"name,email\\n\")\n\n    def test_serializes_unicode_and_special_characters(self):\n        self.assertEqual(\n            export(\n                [{\"text\": \"你好, \\\"world\\\"\\nnext\"}],\n                [\"text\"],\n            ),\n            'text\\n\"你好, \"\"world\"\"\\nnext\"\\n',\n        )\n\n    def test_invalid_fields_raise_value_error(self):\n        invalid_fields = [\"name\", (), [], [\"\"], [\"name\", \"name\"], [\"name\", 1]]\n\n        for fields in invalid_fields:\n            with self.subTest(fields=fields):\n                with self.assertRaises(ValueError):\n                    export([], fields)\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    "csv_export-gpt-6-sol-r2": {
+      "exporter.py": "from csv_utils import records_to_csv\n\n\ndef export(records, fields):\n    if (\n        not isinstance(fields, list)\n        or not fields\n        or any(not isinstance(field, str) or not field for field in fields)\n        or len(set(fields)) != len(fields)\n    ):\n        raise ValueError(\"fields must be a non-empty list of unique, non-empty strings\")\n\n    selected_records = (\n        {field: row.get(field) for field in fields} for row in records\n    )\n    return records_to_csv(selected_records, fields)\n",
+      "test_exporter.py": "import unittest\nfrom exporter import export\n\nclass ExportTests(unittest.TestCase):\n    def test_one_row(self):\n        self.assertEqual(export([{\"name\": \"a\"}], [\"name\"]), \"name\\na\\n\")\n\n    def test_field_order_and_missing_values(self):\n        records = [\n            {\"ignored\": \"extra\", \"count\": 0, \"active\": False, \"name\": None},\n            {\"name\": \"Alice\"},\n        ]\n        fields = [\"name\", \"active\", \"count\"]\n\n        self.assertEqual(export(records, fields), \"name,active,count\\n,False,0\\nAlice,,\\n\")\n        self.assertEqual(records, [\n            {\"ignored\": \"extra\", \"count\": 0, \"active\": False, \"name\": None},\n            {\"name\": \"Alice\"},\n        ])\n        self.assertEqual(fields, [\"name\", \"active\", \"count\"])\n\n    def test_csv_escaping_and_unicode(self):\n        records = [{\"note\": '你好,\"世界\"\\n下一行'}]\n        self.assertEqual(\n            export(records, [\"note\"]),\n            'note\\n\"你好,\"\"世界\"\"\\n下一行\"\\n',\n        )\n\n    def test_empty_records_still_emit_header(self):\n        self.assertEqual(export([], [\"first\", \"last\"]), \"first,last\\n\")\n\n    def test_invalid_fields_raise_value_error(self):\n        invalid_fields = [\n            \"name\", [], [\"\"], [\"name\", \"name\"], [\"name\", 0],\n            [None], None,\n        ]\n        for fields in invalid_fields:\n            with self.subTest(fields=fields), self.assertRaises(ValueError):\n                export([], fields)\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    "settings_migration-gpt-6-sol-r3": {
+      "settings.py": "from copy import deepcopy\n\n\ndef migrate(settings):\n    if \"workers\" in settings and not isinstance(settings[\"workers\"], dict):\n        raise ValueError(\"workers must be a dict\")\n    if \"execution\" in settings and not isinstance(settings[\"execution\"], dict):\n        raise ValueError(\"execution must be a dict\")\n\n    result = deepcopy(settings)\n    execution = dict(result.get(\"execution\", {}))\n    result[\"execution\"] = execution\n\n    if \"workers\" in result:\n        workers = dict(result[\"workers\"])\n        if \"max_workers\" not in execution and \"limit\" in workers:\n            execution[\"max_workers\"] = workers[\"limit\"]\n        if \"enabled\" not in execution and \"enabled\" in workers:\n            execution[\"enabled\"] = workers[\"enabled\"]\n        workers.pop(\"limit\", None)\n        workers.pop(\"enabled\", None)\n        if workers:\n            result[\"workers\"] = workers\n        else:\n            result.pop(\"workers\")\n\n    execution.setdefault(\"max_workers\", 2)\n    execution.setdefault(\"enabled\", True)\n    result[\"schema_version\"] = 2\n    return result\n",
+      "test_settings.py": "import unittest\nfrom settings import migrate\n\nclass MigrationTests(unittest.TestCase):\n    def test_defaults(self):\n        self.assertEqual(migrate({}), {\n            \"schema_version\": 2,\n            \"execution\": {\"max_workers\": 2, \"enabled\": True},\n        })\n\n    def test_legacy_values_and_unknown_fields(self):\n        settings = {\n            \"schema_version\": 1,\n            \"workers\": {\"limit\": 5, \"enabled\": False, \"queue\": {\"names\": [\"fast\"]}},\n            \"profile\": {\"flags\": [\"a\"]},\n        }\n        result = migrate(settings)\n        self.assertEqual(result, {\n            \"schema_version\": 2,\n            \"workers\": {\"queue\": {\"names\": [\"fast\"]}},\n            \"execution\": {\"max_workers\": 5, \"enabled\": False},\n            \"profile\": {\"flags\": [\"a\"]},\n        })\n        self.assertEqual(settings[\"workers\"][\"limit\"], 5)\n        result[\"workers\"][\"queue\"][\"names\"].append(\"slow\")\n        result[\"profile\"][\"flags\"].append(\"b\")\n        self.assertEqual(settings[\"workers\"][\"queue\"][\"names\"], [\"fast\"])\n        self.assertEqual(settings[\"profile\"][\"flags\"], [\"a\"])\n\n    def test_destination_keys_win_even_when_falsy_or_none(self):\n        settings = {\n            \"workers\": {\"limit\": 8, \"enabled\": True},\n            \"execution\": {\"max_workers\": 0, \"enabled\": None, \"extra\": [1]},\n        }\n        result = migrate(settings)\n        self.assertEqual(result, {\n            \"schema_version\": 2,\n            \"execution\": {\"max_workers\": 0, \"enabled\": None, \"extra\": [1]},\n        })\n        result[\"execution\"][\"extra\"].append(2)\n        self.assertEqual(settings[\"execution\"][\"extra\"], [1])\n\n    def test_partial_values_and_idempotence(self):\n        settings = {\"workers\": {\"limit\": None}, \"execution\": {\"enabled\": False}}\n        once = migrate(settings)\n        self.assertEqual(once, {\n            \"schema_version\": 2,\n            \"execution\": {\"max_workers\": None, \"enabled\": False},\n        })\n        self.assertEqual(migrate(once), once)\n        self.assertEqual(migrate({\"workers\": {\"other\": 1}}), {\n            \"schema_version\": 2,\n            \"workers\": {\"other\": 1},\n            \"execution\": {\"max_workers\": 2, \"enabled\": True},\n        })\n\n    def test_invalid_sections(self):\n        for key in (\"workers\", \"execution\"):\n            for value in (None, False, 1, []):\n                with self.subTest(key=key, value=value):\n                    with self.assertRaises(ValueError):\n                        migrate({key: value})\n\n    def test_shared_input_section_is_preserved_elsewhere(self):\n        shared = {\"limit\": 4, \"enabled\": False, \"nested\": [1]}\n        settings = {\"workers\": shared, \"execution\": shared, \"backup\": shared}\n        result = migrate(settings)\n        self.assertEqual(result[\"execution\"][\"enabled\"], False)\n        self.assertEqual(result[\"execution\"][\"max_workers\"], 4)\n        self.assertEqual(result[\"workers\"], {\"nested\": [1]})\n        self.assertEqual(result[\"backup\"], shared)\n        result[\"backup\"][\"nested\"].append(2)\n        self.assertEqual(shared[\"nested\"], [1])\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    "settings_migration-gpt-5.6-terra-r3": {
+      "settings.py": "from copy import deepcopy\n\n\ndef migrate(settings):\n    if \"workers\" in settings and not isinstance(settings[\"workers\"], dict):\n        raise ValueError(\"workers must be a dict\")\n    if \"execution\" in settings and not isinstance(settings[\"execution\"], dict):\n        raise ValueError(\"execution must be a dict\")\n\n    result = deepcopy(settings)\n    workers = result.get(\"workers\")\n    execution = result.get(\"execution\", {})\n\n    if \"max_workers\" not in execution:\n        execution[\"max_workers\"] = (\n            workers[\"limit\"] if workers is not None and \"limit\" in workers else 2\n        )\n    if \"enabled\" not in execution:\n        execution[\"enabled\"] = (\n            workers[\"enabled\"] if workers is not None and \"enabled\" in workers else True\n        )\n\n    if workers is not None:\n        workers.pop(\"limit\", None)\n        workers.pop(\"enabled\", None)\n        if not workers:\n            result.pop(\"workers\")\n\n    result[\"execution\"] = execution\n    result[\"schema_version\"] = 2\n    return result\n",
+      "test_settings.py": "import unittest\nfrom settings import migrate\n\n\nclass MigrationTests(unittest.TestCase):\n    def test_defaults(self):\n        self.assertEqual(migrate({}), {\n            \"schema_version\": 2,\n            \"execution\": {\"max_workers\": 2, \"enabled\": True},\n        })\n\n    def test_maps_legacy_values_and_preserves_unknown_worker_fields(self):\n        settings = {\n            \"workers\": {\"limit\": 0, \"enabled\": False, \"queue\": {\"name\": \"fast\"}},\n            \"other\": {\"values\": []},\n        }\n\n        self.assertEqual(migrate(settings), {\n            \"schema_version\": 2,\n            \"execution\": {\"max_workers\": 0, \"enabled\": False},\n            \"workers\": {\"queue\": {\"name\": \"fast\"}},\n            \"other\": {\"values\": []},\n        })\n\n    def test_execution_values_win_even_when_falsy_or_none(self):\n        result = migrate({\n            \"workers\": {\"limit\": 8, \"enabled\": True},\n            \"execution\": {\"max_workers\": None, \"enabled\": False, \"mode\": \"safe\"},\n        })\n\n        self.assertEqual(result, {\n            \"schema_version\": 2,\n            \"execution\": {\"max_workers\": None, \"enabled\": False, \"mode\": \"safe\"},\n        })\n\n    def test_uses_defaults_for_each_missing_value(self):\n        self.assertEqual(migrate({\n            \"workers\": {\"limit\": 7},\n            \"execution\": {\"enabled\": None},\n        }), {\n            \"schema_version\": 2,\n            \"execution\": {\"max_workers\": 7, \"enabled\": None},\n        })\n\n    def test_does_not_mutate_or_share_mutable_values(self):\n        settings = {\n            \"workers\": {\"limit\": 4, \"metadata\": {\"tags\": [\"legacy\"]}},\n            \"execution\": {\"nested\": {\"items\": []}},\n            \"other\": {\"values\": []},\n        }\n        result = migrate(settings)\n        result[\"workers\"][\"metadata\"][\"tags\"].append(\"changed\")\n        result[\"execution\"][\"nested\"][\"items\"].append(\"changed\")\n        result[\"other\"][\"values\"].append(\"changed\")\n\n        self.assertEqual(settings, {\n            \"workers\": {\"limit\": 4, \"metadata\": {\"tags\": [\"legacy\"]}},\n            \"execution\": {\"nested\": {\"items\": []}},\n            \"other\": {\"values\": []},\n        })\n\n    def test_is_idempotent(self):\n        migrated = migrate({\"workers\": {\"limit\": 3, \"name\": \"worker\"}})\n        self.assertEqual(migrate(migrated), migrated)\n\n    def test_rejects_non_dict_sections(self):\n        for key, value in ((\"workers\", []), (\"execution\", None)):\n            with self.subTest(key=key):\n                with self.assertRaises(ValueError):\n                    migrate({key: value})\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    "dependency_frontier-gpt-5.6-terra-r3": {
+      "scheduler.py": "from paths import canonical\n\n\ndef _overlap(left, right):\n    \"\"\"Return whether two canonical write scopes share any path.\"\"\"\n    if left == right:\n        return True\n    if not left or not right:\n        return True\n    return left.startswith(right + \"/\") or right.startswith(left + \"/\")\n\n\ndef ready(tasks, completed, active, capacity):\n    free_capacity = capacity - len(active)\n    if free_capacity <= 0:\n        return []\n\n    active_ids = {task[\"id\"] for task in active}\n    occupied_scopes = [\n        canonical(scope)\n        for task in active\n        for scope in task[\"writes\"]\n    ]\n    selected = []\n\n    for task in tasks:\n        if len(selected) == free_capacity:\n            break\n        if task[\"id\"] in completed or task[\"id\"] in active_ids:\n            continue\n        if not set(task[\"dependencies\"]) <= completed:\n            continue\n\n        task_scopes = [canonical(scope) for scope in task[\"writes\"]]\n        if any(_overlap(scope, occupied) for scope in task_scopes\n               for occupied in occupied_scopes):\n            continue\n\n        selected.append(task[\"id\"])\n        occupied_scopes.extend(task_scopes)\n\n    return selected\n",
+      "test_scheduler.py": "import unittest\nfrom scheduler import ready\n\nclass SchedulerTests(unittest.TestCase):\n    def test_one_ready(self):\n        tasks = [{\"id\": \"a\", \"dependencies\": [], \"writes\": [\"a.py\"]}]\n        self.assertEqual(ready(tasks, set(), [], 1), [\"a\"])\n\n    def test_capacity_includes_active_workers(self):\n        active = [{\"id\": \"running\", \"dependencies\": [], \"writes\": []}]\n        tasks = [\n            {\"id\": \"first\", \"dependencies\": [], \"writes\": []},\n            {\"id\": \"second\", \"dependencies\": [], \"writes\": []},\n        ]\n        self.assertEqual(ready(tasks, set(), active, 2), [\"first\"])\n        self.assertEqual(ready(tasks, set(), active, 1), [])\n        self.assertEqual(ready(tasks, set(), active, 0), [])\n\n    def test_only_completed_dependencies_are_ready(self):\n        tasks = [\n            {\"id\": \"parent\", \"dependencies\": [], \"writes\": []},\n            {\"id\": \"child\", \"dependencies\": [\"parent\"], \"writes\": []},\n            {\"id\": \"done\", \"dependencies\": [], \"writes\": []},\n        ]\n        active = [{\"id\": \"already-running\", \"dependencies\": [], \"writes\": []}]\n        self.assertEqual(ready(tasks, {\"done\"}, active, 4), [\"parent\"])\n\n    def test_skips_completed_and_active_tasks(self):\n        tasks = [\n            {\"id\": \"done\", \"dependencies\": [], \"writes\": []},\n            {\"id\": \"running\", \"dependencies\": [], \"writes\": []},\n            {\"id\": \"next\", \"dependencies\": [], \"writes\": []},\n        ]\n        active = [{\"id\": \"running\", \"dependencies\": [], \"writes\": []}]\n        self.assertEqual(ready(tasks, {\"done\"}, active, 3), [\"next\"])\n\n    def test_excludes_overlapping_active_and_selected_writers(self):\n        tasks = [\n            {\"id\": \"active-conflict\", \"dependencies\": [], \"writes\": [\"src\"]},\n            {\"id\": \"first\", \"dependencies\": [], \"writes\": [\"lib/core\"]},\n            {\"id\": \"selected-conflict\", \"dependencies\": [], \"writes\": [\"lib\"]},\n            {\"id\": \"independent\", \"dependencies\": [], \"writes\": [\"docs\"]},\n        ]\n        active = [{\"id\": \"writer\", \"dependencies\": [], \"writes\": [\"src/a.py\"]}]\n        self.assertEqual(\n            ready(tasks, set(), active, 4), [\"first\", \"independent\"]\n        )\n\n    def test_scope_comparison_uses_canonical_paths_and_boundaries(self):\n        tasks = [\n            {\"id\": \"same\", \"dependencies\": [], \"writes\": [\"SRC\\\\a\\\\child\\\\..\"]},\n            {\"id\": \"sibling_prefix\", \"dependencies\": [], \"writes\": [\"src/ab\"]},\n        ]\n        active = [{\"id\": \"writer\", \"dependencies\": [], \"writes\": [\"src/a\"]}]\n        self.assertEqual(ready(tasks, set(), active, 3), [\"sibling_prefix\"])\n\n    def test_read_only_tasks_do_not_conflict_or_mutate_inputs(self):\n        tasks = [\n            {\"id\": \"reader-one\", \"dependencies\": [], \"writes\": []},\n            {\"id\": \"reader-two\", \"dependencies\": [], \"writes\": []},\n        ]\n        active = [{\"id\": \"writer\", \"dependencies\": [], \"writes\": [\"src\"]}]\n        original_tasks = [task.copy() for task in tasks]\n        original_active = [task.copy() for task in active]\n\n        self.assertEqual(ready(tasks, set(), active, 3), [\"reader-one\", \"reader-two\"])\n        self.assertEqual(tasks, original_tasks)\n        self.assertEqual(active, original_active)\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    "dependency_frontier-gpt-6-sol-r3": {
+      "scheduler.py": "from paths import canonical\n\n\ndef _overlaps(left, right):\n    if left == right:\n        return True\n    if left == \".\" and right not in (\"\", \"..\") and not right.startswith((\"/\", \"../\")):\n        return True\n    if right == \".\" and left not in (\"\", \"..\") and not left.startswith((\"/\", \"../\")):\n        return True\n    if left == \"\" and right.startswith(\"/\"):\n        return True\n    if right == \"\" and left.startswith(\"/\"):\n        return True\n    return left.startswith(right + \"/\") or right.startswith(left + \"/\")\n\n\ndef ready(tasks, completed, active, capacity):\n    free = capacity - len(active)\n    if free <= 0:\n        return []\n\n    active_ids = {task[\"id\"] for task in active}\n    reserved_writes = [canonical(path) for task in active for path in task[\"writes\"]]\n    selected = []\n\n    for task in tasks:\n        if len(selected) == free:\n            break\n        if task[\"id\"] in completed or task[\"id\"] in active_ids:\n            continue\n        if not all(dependency in completed for dependency in task[\"dependencies\"]):\n            continue\n\n        writes = [canonical(path) for path in task[\"writes\"]]\n        if any(_overlaps(path, reserved) for path in writes for reserved in reserved_writes):\n            continue\n\n        selected.append(task[\"id\"])\n        reserved_writes.extend(writes)\n\n    return selected\n",
+      "test_scheduler.py": "import unittest\nfrom scheduler import ready\n\n\ndef task(identifier, dependencies=(), writes=()):\n    return {\"id\": identifier, \"dependencies\": list(dependencies), \"writes\": list(writes)}\n\n\nclass SchedulerTests(unittest.TestCase):\n    def test_one_ready(self):\n        tasks = [{\"id\": \"a\", \"dependencies\": [], \"writes\": [\"a.py\"]}]\n        self.assertEqual(ready(tasks, set(), [], 1), [\"a\"])\n\n    def test_capacity_includes_active_and_nonpositive_free_capacity(self):\n        tasks = [task(\"a\"), task(\"b\"), task(\"c\")]\n        active = [task(\"running\")]\n        self.assertEqual(ready(tasks, set(), active, 2), [\"a\"])\n        self.assertEqual(ready(tasks, set(), active, 1), [])\n        self.assertEqual(ready(tasks, set(), active, 0), [])\n\n    def test_only_completed_dependencies_unlock_tasks(self):\n        tasks = [task(\"done\"), task(\"running\"), task(\"first\"),\n                 task(\"needs_running\", [\"running\"]), task(\"needs_first\", [\"first\"]),\n                 task(\"needs_done\", [\"done\"])]\n        self.assertEqual(ready(tasks, {\"done\"}, [task(\"running\")], 4),\n                         [\"first\", \"needs_done\"])\n\n    def test_active_and_earlier_selected_writes_reserve_scopes(self):\n        tasks = [task(\"active\", writes=[\"other\"]),\n                 task(\"blocked_by_active\", writes=[\"SRC\\\\Pkg\\\\module.py\"]),\n                 task(\"selected\", writes=[\"src/lib/../a\"]),\n                 task(\"blocked_by_selected\", writes=[\"src/a/child.py\"]),\n                 task(\"sibling\", writes=[\"src/ab\"]),\n                 task(\"same_as_active\", writes=[\"src/pkg\"])]\n        active = [task(\"active\", writes=[\"src/pkg\"])]\n        self.assertEqual(ready(tasks, set(), active, 5), [\"selected\", \"sibling\"])\n\n    def test_read_only_tasks_consume_capacity_without_conflict(self):\n        tasks = [task(\"reader_one\"), task(\"writer\", writes=[\"src\"]),\n                 task(\"reader_two\"), task(\"conflict\", writes=[\"src/file.py\"])]\n        self.assertEqual(ready(tasks, set(), [task(\"active\", writes=[\"src\"])], 4),\n                         [\"reader_one\", \"reader_two\"])\n        self.assertEqual(ready([task(\"writer\", writes=[\"src\"])], set(),\n                               [task(\"reader\")], 2), [\"writer\"])\n\n    def test_canonical_root_directory_scopes(self):\n        tasks = [task(\"relative_child\", writes=[\"src/file.py\"]),\n                 task(\"absolute_child\", writes=[\"/src/file.py\"])]\n        self.assertEqual(ready(tasks, set(), [task(\"root\", writes=[\"src/..\"])], 3),\n                         [\"absolute_child\"])\n        self.assertEqual(ready(tasks, set(), [task(\"root\", writes=[\"/\"])], 3),\n                         [\"relative_child\"])\n        self.assertEqual(ready([task(\"absolute_root\", writes=[\"/\"])], set(),\n                               [task(\"relative_root\", writes=[\".\"])], 2),\n                         [\"absolute_root\"])\n        self.assertEqual(ready([task(\"parent\", writes=[\"../src\"])], set(),\n                               [task(\"relative_root\", writes=[\".\"])], 2),\n                         [\"parent\"])\n\n    def test_inputs_are_not_modified(self):\n        tasks = [task(\"pending\", [\"done\"], [\"SRC\\\\a\\\\..\\\\b\"])]\n        active = [task(\"running\", writes=[\"elsewhere\"])]\n        completed = {\"done\"}\n        self.assertEqual(ready(tasks, completed, active, 2), [\"pending\"])\n        self.assertEqual(tasks, [task(\"pending\", [\"done\"], [\"SRC\\\\a\\\\..\\\\b\"])])\n        self.assertEqual(active, [task(\"running\", writes=[\"elsewhere\"])])\n        self.assertEqual(completed, {\"done\"})\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    "csv_export-gpt-6-sol-r3": {
+      "exporter.py": "from csv_utils import records_to_csv\n\n\ndef export(records, fields):\n    if (\n        not isinstance(fields, list)\n        or not fields\n        or any(not isinstance(field, str) or not field for field in fields)\n        or len(set(fields)) != len(fields)\n    ):\n        raise ValueError(\"fields must be a non-empty list of unique, non-empty strings\")\n\n    selected_rows = []\n    for row in records:\n        selected_row = {}\n        for field in fields:\n            value = row.get(field)\n            selected_row[field] = \"\" if value is None else value\n        selected_rows.append(selected_row)\n\n    return records_to_csv(selected_rows, fields)\n",
+      "test_exporter.py": "import unittest\nfrom exporter import export\n\nclass ExportTests(unittest.TestCase):\n    def test_one_row(self):\n        self.assertEqual(export([{\"name\": \"a\"}], [\"name\"]), \"name\\na\\n\")\n\n    def test_empty_records_still_emit_header_in_field_order(self):\n        self.assertEqual(export([], [\"second\", \"first\"]), \"second,first\\n\")\n\n    def test_selects_fields_and_preserves_zero_and_false(self):\n        records = [\n            {\"extra\": \"ignored\", \"zero\": 0, \"false\": False},\n            {\"zero\": None},\n        ]\n        self.assertEqual(\n            export(records, [\"false\", \"zero\", \"missing\"]),\n            \"false,zero,missing\\nFalse,0,\\n,,\\n\",\n        )\n        self.assertEqual(records, [\n            {\"extra\": \"ignored\", \"zero\": 0, \"false\": False},\n            {\"zero\": None},\n        ])\n\n    def test_csv_escaping_and_unicode(self):\n        fields = [\"name\", \"note\"]\n        records = [{\"name\": \"雪,山\", \"note\": 'say \"hi\"\\nand go'}]\n        self.assertEqual(\n            export(records, fields),\n            'name,note\\n\"雪,山\",\"say \"\"hi\"\"\\nand go\"\\n',\n        )\n        self.assertEqual(fields, [\"name\", \"note\"])\n        self.assertEqual(records, [{\"name\": \"雪,山\", \"note\": 'say \"hi\"\\nand go'}])\n\n    def test_invalid_fields_raise_value_error(self):\n        for fields in (\"name\", None, [], [\"\"], [\"name\", \"\"], [\"name\", \"name\"], [1], [\"name\", None]):\n            with self.subTest(fields=fields), self.assertRaises(ValueError):\n                export([], fields)\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    "csv_export-gpt-5.6-terra-r3": {
+      "exporter.py": "from csv_utils import records_to_csv\n\n\ndef export(records, fields):\n    if (\n        not isinstance(fields, list)\n        or not fields\n        or any(not isinstance(field, str) or not field for field in fields)\n        or len(set(fields)) != len(fields)\n    ):\n        raise ValueError(\"fields must be a non-empty list of unique, non-empty strings\")\n\n    selected_records = [\n        {\n            field: \"\" if row.get(field) is None else row.get(field)\n            for field in fields\n        }\n        for row in records\n    ]\n    return records_to_csv(selected_records, fields)\n",
+      "test_exporter.py": "import unittest\n\nfrom exporter import export\n\n\nclass ExportTests(unittest.TestCase):\n    def test_one_row(self):\n        self.assertEqual(export([{\"name\": \"a\"}], [\"name\"]), \"name\\na\\n\")\n\n    def test_projects_fields_and_normalizes_empty_cells_without_mutation(self):\n        records = [{\"name\": None, \"count\": 0, \"enabled\": False, \"ignored\": \"value\"}]\n        fields = [\"enabled\", \"name\", \"count\"]\n\n        self.assertEqual(\n            export(records, fields),\n            \"enabled,name,count\\nFalse,,0\\n\",\n        )\n        self.assertEqual(\n            records,\n            [{\"name\": None, \"count\": 0, \"enabled\": False, \"ignored\": \"value\"}],\n        )\n        self.assertEqual(fields, [\"enabled\", \"name\", \"count\"])\n\n    def test_missing_keys_empty_records_and_special_csv_characters(self):\n        self.assertEqual(export([], [\"name\"]), \"name\\n\")\n        self.assertEqual(\n            export([{\"name\": \"李\", \"note\": 'one,\"two\"\\nthree'}], [\"name\", \"note\", \"missing\"]),\n            'name,note,missing\\n李,\"one,\"\"two\"\"\\nthree\",\\n',\n        )\n\n    def test_invalid_fields_raise_value_error(self):\n        for fields in (\"name\", (), [], [\"\"], [\"name\", \"name\"], [\"name\", 1]):\n            with self.subTest(fields=fields):\n                with self.assertRaises(ValueError):\n                    export([], fields)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    }
+  },
+  "post_hoc_expanded_grading": {
+    "evidence_class": "post_hoc_expanded_grading",
+    "reason": "Shared mapping aliases can corrupt unknown backup fields; discovered during artifact review.",
+    "pre_registered": false,
+    "no_model_rerun": true,
+    "grader_sha256": "e8eee1ec60a253909c3e619c11e38c40d8698f87149805e16634a963c27fdd99",
+    "grader": "import copy\nimport unittest\nfrom settings import migrate\n\nclass Checks(unittest.TestCase):\n    def test_precedence_and_false_values(self):\n        for value in (0, False, None, 7):\n            with self.subTest(value=value):\n                data = {\"workers\": {\"limit\": 9, \"enabled\": True},\n                        \"execution\": {\"max_workers\": value, \"enabled\": False}}\n                out = migrate(data)\n                self.assertEqual(out[\"execution\"],\n                                 {\"max_workers\": value, \"enabled\": False})\n                self.assertNotIn(\"workers\", out)\n\n    def test_unknown_nested_and_no_aliases(self):\n        data = {\"workers\": {\"limit\": 0, \"enabled\": False, \"labels\": [\"a\"]},\n                \"execution\": {\"extra\": {\"items\": [1]}}, \"other\": [2]}\n        before = copy.deepcopy(data)\n        out = migrate(data)\n        self.assertEqual(out, {\"schema_version\": 2,\n            \"workers\": {\"labels\": [\"a\"]}, \"other\": [2],\n            \"execution\": {\"max_workers\": 0, \"enabled\": False,\n                          \"extra\": {\"items\": [1]}}})\n        out[\"workers\"][\"labels\"].append(\"b\")\n        out[\"execution\"][\"extra\"][\"items\"].append(3)\n        out[\"other\"].append(4)\n        self.assertEqual(data, before)\n\n    def test_defaults_and_idempotence(self):\n        self.assertEqual(migrate({}), {\"schema_version\": 2,\n            \"execution\": {\"max_workers\": 2, \"enabled\": True}})\n        self.assertEqual(migrate({\"workers\": {\"enabled\": False}})[\"execution\"],\n                         {\"max_workers\": 2, \"enabled\": False})\n        self.assertEqual(migrate({\"execution\": {\"max_workers\": None}})[\"execution\"],\n                         {\"max_workers\": None, \"enabled\": True})\n        for data in ({}, {\"workers\": {}}, {\"workers\": {\"enabled\": False}},\n                     {\"execution\": {\"max_workers\": None}},\n                     {\"workers\": {\"custom\": [1]}, \"schema_version\": 2}):\n            with self.subTest(data=data):\n                out = migrate(data)\n                self.assertEqual(migrate(out), out)\n                self.assertEqual(out[\"schema_version\"], 2)\n                self.assertIn(\"max_workers\", out[\"execution\"])\n                self.assertIn(\"enabled\", out[\"execution\"])\n\n    def test_invalid_shapes(self):\n        for data in ({\"workers\": None}, {\"workers\": []},\n                     {\"execution\": False}, {\"execution\": \"x\"}):\n            with self.subTest(data=data), self.assertRaises(ValueError):\n                migrate(data)\n\n    def test_unknown_alias_is_preserved(self):\n        shared = {\"limit\": 4, \"enabled\": False, \"nested\": [1]}\n        data = {\"workers\": shared, \"execution\": shared, \"backup\": shared}\n        out = migrate(data)\n        self.assertEqual(out[\"backup\"], shared)\n        self.assertEqual(out[\"execution\"], {\n            \"limit\": 4, \"enabled\": False, \"nested\": [1], \"max_workers\": 4})\n        self.assertEqual(out[\"workers\"], {\"nested\": [1]})\n        self.assertEqual(shared, {\"limit\": 4, \"enabled\": False, \"nested\": [1]})\n\n",
+    "cells": [
+      {
+        "cell": "settings_migration-gpt-6-sol-r1",
+        "model_requested": "gpt-6-sol",
+        "repetition": 1,
+        "pass": false,
+        "exit_code": 1,
+        "receipt": {
+          "tests_run": 5,
+          "skipped": 0,
+          "success": false
+        },
+        "candidate_identity": "5892dd88d214dc57f27d359e193f3bf9b3bb5bef3926f8fc7076411fd9e70d7e"
+      },
+      {
+        "cell": "settings_migration-gpt-5.6-terra-r1",
+        "model_requested": "gpt-5.6-terra",
+        "repetition": 1,
+        "pass": false,
+        "exit_code": 1,
+        "receipt": {
+          "tests_run": 5,
+          "skipped": 0,
+          "success": false
+        },
+        "candidate_identity": "8c7d3fe8d757fd787deae07a66de4edd979c389ce1b5572e13a8d707d89844af"
+      },
+      {
+        "cell": "settings_migration-gpt-5.6-terra-r2",
+        "model_requested": "gpt-5.6-terra",
+        "repetition": 2,
+        "pass": false,
+        "exit_code": 1,
+        "receipt": {
+          "tests_run": 5,
+          "skipped": 0,
+          "success": false
+        },
+        "candidate_identity": "731c207fccc3be28da00b1317ed14dd97d4c49e75d618d145b42d5a79a5d9d12"
+      },
+      {
+        "cell": "settings_migration-gpt-6-sol-r2",
+        "model_requested": "gpt-6-sol",
+        "repetition": 2,
+        "pass": false,
+        "exit_code": 1,
+        "receipt": {
+          "tests_run": 5,
+          "skipped": 0,
+          "success": false
+        },
+        "candidate_identity": "add94c8e72b0a85df364b575509265462d2bec031e7513ea108c368140129ea9"
+      },
+      {
+        "cell": "settings_migration-gpt-6-sol-r3",
+        "model_requested": "gpt-6-sol",
+        "repetition": 3,
+        "pass": true,
+        "exit_code": 0,
+        "receipt": {
+          "tests_run": 5,
+          "skipped": 0,
+          "success": true
+        },
+        "candidate_identity": "11cb32b45579cf73b3bbd65bdf37865b0ab18a19c9388251aa5973a39a1ee044"
+      },
+      {
+        "cell": "settings_migration-gpt-5.6-terra-r3",
+        "model_requested": "gpt-5.6-terra",
+        "repetition": 3,
+        "pass": false,
+        "exit_code": 1,
+        "receipt": {
+          "tests_run": 5,
+          "skipped": 0,
+          "success": false
+        },
+        "candidate_identity": "5754f6b3ec48d9b125a3217990b20b14882b8f903b8fd0169542b7c2a9cec58f"
+      }
+    ]
+  },
+  "manual_review": {
+    "reviewed_all_18_candidates_and_test_changes": true,
+    "reviewed_command_traces": true,
+    "functional_pass_does_not_mean_complete_contract_correctness": true,
+    "notes": [
+      {
+        "cell": "settings_migration-gpt-5.6-terra-r2",
+        "finding": "Attempted forbidden read-only git diff in a non-git fixture; command exit 1, no repository mutation."
+      },
+      {
+        "cell": "settings_migration-gpt-5.6-terra-r3",
+        "finding": "Attempted forbidden read-only git show for diff generation in a non-git fixture; no repository mutation."
+      },
+      {
+        "cell": "dependency_frontier-gpt-6-sol-r2",
+        "finding": "BSD nl invocation with two files failed, then corrected to separate commands."
+      },
+      {
+        "cell": "csv_export-gpt-6-sol-r2",
+        "finding": "A self-check failed inside the turn; the worker corrected the candidate and reran successfully."
+      }
+    ],
+    "environment_note": "Some calls read the installed verification Skill despite --ignore-user-config. The flag does not isolate global Skill discovery. This is local CLI behavior, not a minimal-context model-only experiment."
+  },
+  "scope": "frozen worker pilot, not complete task correctness or workflow savings",
+  "date": "2026-09-25",
+  "manifest": {
+    "evidence_class": "worker_model_pilot",
+    "codex_version": "codex-cli 0.155.0-alpha.16.4",
+    "python_version": "3.13.14",
+    "models": [
+      "gpt-5.6-terra",
+      "gpt-6-sol"
+    ],
+    "effort": "high",
+    "repetitions": 3,
+    "timeout_seconds": 180,
+    "case_registry_sha256": "fd8650a3e815892c8151822788c98eed608677bd15416c8594c16a44af346d9f",
+    "profile_sha256": "98ff01ab8155398a3518b975549054f0c12bd6f5ca3621e3081ba1cb4ad0ddc5",
+    "runner_sha256": "f3a463229efa77587ee910755818283e5ebd1e5adf905a3ee031e33c2641bc6d",
+    "cells": [
+      {
+        "case_id": "settings_migration",
+        "model": "gpt-6-sol",
+        "repetition": 1
+      },
+      {
+        "case_id": "settings_migration",
+        "model": "gpt-5.6-terra",
+        "repetition": 1
+      },
+      {
+        "case_id": "dependency_frontier",
+        "model": "gpt-5.6-terra",
+        "repetition": 1
+      },
+      {
+        "case_id": "dependency_frontier",
+        "model": "gpt-6-sol",
+        "repetition": 1
+      },
+      {
+        "case_id": "csv_export",
+        "model": "gpt-6-sol",
+        "repetition": 1
+      },
+      {
+        "case_id": "csv_export",
+        "model": "gpt-5.6-terra",
+        "repetition": 1
+      },
+      {
+        "case_id": "settings_migration",
+        "model": "gpt-5.6-terra",
+        "repetition": 2
+      },
+      {
+        "case_id": "settings_migration",
+        "model": "gpt-6-sol",
+        "repetition": 2
+      },
+      {
+        "case_id": "dependency_frontier",
+        "model": "gpt-6-sol",
+        "repetition": 2
+      },
+      {
+        "case_id": "dependency_frontier",
+        "model": "gpt-5.6-terra",
+        "repetition": 2
+      },
+      {
+        "case_id": "csv_export",
+        "model": "gpt-5.6-terra",
+        "repetition": 2
+      },
+      {
+        "case_id": "csv_export",
+        "model": "gpt-6-sol",
+        "repetition": 2
+      },
+      {
+        "case_id": "settings_migration",
+        "model": "gpt-6-sol",
+        "repetition": 3
+      },
+      {
+        "case_id": "settings_migration",
+        "model": "gpt-5.6-terra",
+        "repetition": 3
+      },
+      {
+        "case_id": "dependency_frontier",
+        "model": "gpt-5.6-terra",
+        "repetition": 3
+      },
+      {
+        "case_id": "dependency_frontier",
+        "model": "gpt-6-sol",
+        "repetition": 3
+      },
+      {
+        "case_id": "csv_export",
+        "model": "gpt-6-sol",
+        "repetition": 3
+      },
+      {
+        "case_id": "csv_export",
+        "model": "gpt-5.6-terra",
+        "repetition": 3
+      }
+    ]
+  },
+  "results": {
+    "manifest_sha256": "09fcbabea67920fd0caa6bfa899b7e5261ba6972cbe4ba843a546ebc47c110a7",
+    "cells": [
+      {
+        "case_id": "settings_migration",
+        "model_requested": "gpt-6-sol",
+        "effort_requested": "high",
+        "repetition": 1,
+        "base_sha256": "d5ba9af7d0e9c13a8e81a077109c7768c78deab74d49f6d4beecc4acaeab316e",
+        "prompt_sha256": "acf4eb2bbab844b03b4cd7a87330c9f37873a0f2d64495b13e6b05f441318ef4",
+        "grader_sha256": "a8bc4e9e711aeaf44829aa65d51461dc5bd879806d1139129b5b42101c6d4202",
+        "candidate_identity": "5892dd88d214dc57f27d359e193f3bf9b3bb5bef3926f8fc7076411fd9e70d7e",
+        "changed_files": [
+          "settings.py",
+          "test_settings.py"
+        ],
+        "integrity_pass": true,
+        "grading": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.091,
+          "receipt": {
+            "tests_run": 4,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "public_tests": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.048,
+          "receipt": {
+            "tests_run": 6,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "tests_modified": true,
+        "run": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 101.346
+        },
+        "usage": {
+          "input_tokens": 129262,
+          "cached_input_tokens": 100736,
+          "output_tokens": 4005
+        },
+        "completed_event": true,
+        "error_event": false,
+        "cost_value": null,
+        "cost_unit": null,
+        "automatic_retries": 0,
+        "pass": true
+      },
+      {
+        "case_id": "settings_migration",
+        "model_requested": "gpt-5.6-terra",
+        "effort_requested": "high",
+        "repetition": 1,
+        "base_sha256": "d5ba9af7d0e9c13a8e81a077109c7768c78deab74d49f6d4beecc4acaeab316e",
+        "prompt_sha256": "acf4eb2bbab844b03b4cd7a87330c9f37873a0f2d64495b13e6b05f441318ef4",
+        "grader_sha256": "a8bc4e9e711aeaf44829aa65d51461dc5bd879806d1139129b5b42101c6d4202",
+        "candidate_identity": "8c7d3fe8d757fd787deae07a66de4edd979c389ce1b5572e13a8d707d89844af",
+        "changed_files": [
+          "settings.py",
+          "test_settings.py"
+        ],
+        "integrity_pass": true,
+        "grading": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.093,
+          "receipt": {
+            "tests_run": 4,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "public_tests": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.048,
+          "receipt": {
+            "tests_run": 6,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "tests_modified": true,
+        "run": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 173.089
+        },
+        "usage": {
+          "input_tokens": 311977,
+          "cached_input_tokens": 290560,
+          "output_tokens": 7773
+        },
+        "completed_event": true,
+        "error_event": false,
+        "cost_value": null,
+        "cost_unit": null,
+        "automatic_retries": 0,
+        "pass": true
+      },
+      {
+        "case_id": "dependency_frontier",
+        "model_requested": "gpt-5.6-terra",
+        "effort_requested": "high",
+        "repetition": 1,
+        "base_sha256": "59d231d25c05704433d1e6e9ab6dea844636558df5f1d52ddb9be87c6067c7c1",
+        "prompt_sha256": "5a3156e2f37ce634c36cf0dc3cdfb188ef029896564f334ac7267d027297422f",
+        "grader_sha256": "ac7e72280cc59c22c054bef99358cc2780830a6f1f68a2ea9979ef1969fcdd95",
+        "candidate_identity": "817c2c14bb71e775c2504795773b9229a7c23fe7f509977b377ca46346d23d19",
+        "changed_files": [
+          "scheduler.py",
+          "test_scheduler.py"
+        ],
+        "integrity_pass": true,
+        "grading": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.082,
+          "receipt": {
+            "tests_run": 5,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "public_tests": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.047,
+          "receipt": {
+            "tests_run": 5,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "tests_modified": true,
+        "run": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 109.797
+        },
+        "usage": {
+          "input_tokens": 223261,
+          "cached_input_tokens": 198144,
+          "output_tokens": 4141
+        },
+        "completed_event": true,
+        "error_event": false,
+        "cost_value": null,
+        "cost_unit": null,
+        "automatic_retries": 0,
+        "pass": true
+      },
+      {
+        "case_id": "dependency_frontier",
+        "model_requested": "gpt-6-sol",
+        "effort_requested": "high",
+        "repetition": 1,
+        "base_sha256": "59d231d25c05704433d1e6e9ab6dea844636558df5f1d52ddb9be87c6067c7c1",
+        "prompt_sha256": "5a3156e2f37ce634c36cf0dc3cdfb188ef029896564f334ac7267d027297422f",
+        "grader_sha256": "ac7e72280cc59c22c054bef99358cc2780830a6f1f68a2ea9979ef1969fcdd95",
+        "candidate_identity": "2a3d7bb2c453067e9b867311e734f5b16695407a374e1cbb1a9c882ee199aa9f",
+        "changed_files": [
+          "scheduler.py",
+          "test_scheduler.py"
+        ],
+        "integrity_pass": true,
+        "grading": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.092,
+          "receipt": {
+            "tests_run": 5,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "public_tests": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.048,
+          "receipt": {
+            "tests_run": 7,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "tests_modified": true,
+        "run": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 78.955
+        },
+        "usage": {
+          "input_tokens": 131194,
+          "cached_input_tokens": 112640,
+          "output_tokens": 2908
+        },
+        "completed_event": true,
+        "error_event": false,
+        "cost_value": null,
+        "cost_unit": null,
+        "automatic_retries": 0,
+        "pass": true
+      },
+      {
+        "case_id": "csv_export",
+        "model_requested": "gpt-6-sol",
+        "effort_requested": "high",
+        "repetition": 1,
+        "base_sha256": "f50bcff8f02e9cbd3e96d87765672eb7f9eb81929737d0830d61108ec04091d1",
+        "prompt_sha256": "f25ec1f0011fa58e1a6a65be228c534b4cd902fb05ddea153e4fa8747941597e",
+        "grader_sha256": "172d9fa2245f80176477a3f95fedd57575a533d714fe22e506eb0cad519ca45c",
+        "candidate_identity": "88b1b926cd3a3c85dbcfc6a888c8db8d6a173d18c427023e6d670fc4886e5f50",
+        "changed_files": [
+          "exporter.py",
+          "test_exporter.py"
+        ],
+        "integrity_pass": true,
+        "grading": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.147,
+          "receipt": {
+            "tests_run": 3,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "public_tests": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.045,
+          "receipt": {
+            "tests_run": 5,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "tests_modified": true,
+        "run": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 79.733
+        },
+        "usage": {
+          "input_tokens": 123980,
+          "cached_input_tokens": 107264,
+          "output_tokens": 2743
+        },
+        "completed_event": true,
+        "error_event": false,
+        "cost_value": null,
+        "cost_unit": null,
+        "automatic_retries": 0,
+        "pass": true
+      },
+      {
+        "case_id": "csv_export",
+        "model_requested": "gpt-5.6-terra",
+        "effort_requested": "high",
+        "repetition": 1,
+        "base_sha256": "f50bcff8f02e9cbd3e96d87765672eb7f9eb81929737d0830d61108ec04091d1",
+        "prompt_sha256": "f25ec1f0011fa58e1a6a65be228c534b4cd902fb05ddea153e4fa8747941597e",
+        "grader_sha256": "172d9fa2245f80176477a3f95fedd57575a533d714fe22e506eb0cad519ca45c",
+        "candidate_identity": "862d42ea086265401b9d667079f638dd9be062327e420485b61f81e1c4d9a864",
+        "changed_files": [
+          "exporter.py",
+          "test_exporter.py"
+        ],
+        "integrity_pass": true,
+        "grading": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.093,
+          "receipt": {
+            "tests_run": 3,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "public_tests": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.048,
+          "receipt": {
+            "tests_run": 5,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "tests_modified": true,
+        "run": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 61.647
+        },
+        "usage": {
+          "input_tokens": 102010,
+          "cached_input_tokens": 83712,
+          "output_tokens": 2271
+        },
+        "completed_event": true,
+        "error_event": false,
+        "cost_value": null,
+        "cost_unit": null,
+        "automatic_retries": 0,
+        "pass": true
+      },
+      {
+        "case_id": "settings_migration",
+        "model_requested": "gpt-5.6-terra",
+        "effort_requested": "high",
+        "repetition": 2,
+        "base_sha256": "d5ba9af7d0e9c13a8e81a077109c7768c78deab74d49f6d4beecc4acaeab316e",
+        "prompt_sha256": "acf4eb2bbab844b03b4cd7a87330c9f37873a0f2d64495b13e6b05f441318ef4",
+        "grader_sha256": "a8bc4e9e711aeaf44829aa65d51461dc5bd879806d1139129b5b42101c6d4202",
+        "candidate_identity": "731c207fccc3be28da00b1317ed14dd97d4c49e75d618d145b42d5a79a5d9d12",
+        "changed_files": [
+          "settings.py",
+          "test_settings.py"
+        ],
+        "integrity_pass": true,
+        "grading": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.089,
+          "receipt": {
+            "tests_run": 4,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "public_tests": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.048,
+          "receipt": {
+            "tests_run": 8,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "tests_modified": true,
+        "run": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 94.067
+        },
+        "usage": {
+          "input_tokens": 152866,
+          "cached_input_tokens": 129280,
+          "output_tokens": 3643
+        },
+        "completed_event": true,
+        "error_event": false,
+        "cost_value": null,
+        "cost_unit": null,
+        "automatic_retries": 0,
+        "pass": true
+      },
+      {
+        "case_id": "settings_migration",
+        "model_requested": "gpt-6-sol",
+        "effort_requested": "high",
+        "repetition": 2,
+        "base_sha256": "d5ba9af7d0e9c13a8e81a077109c7768c78deab74d49f6d4beecc4acaeab316e",
+        "prompt_sha256": "acf4eb2bbab844b03b4cd7a87330c9f37873a0f2d64495b13e6b05f441318ef4",
+        "grader_sha256": "a8bc4e9e711aeaf44829aa65d51461dc5bd879806d1139129b5b42101c6d4202",
+        "candidate_identity": "add94c8e72b0a85df364b575509265462d2bec031e7513ea108c368140129ea9",
+        "changed_files": [
+          "settings.py",
+          "test_settings.py"
+        ],
+        "integrity_pass": true,
+        "grading": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.086,
+          "receipt": {
+            "tests_run": 4,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "public_tests": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.048,
+          "receipt": {
+            "tests_run": 6,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "tests_modified": true,
+        "run": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 90.133
+        },
+        "usage": {
+          "input_tokens": 151235,
+          "cached_input_tokens": 132480,
+          "output_tokens": 3877
+        },
+        "completed_event": true,
+        "error_event": false,
+        "cost_value": null,
+        "cost_unit": null,
+        "automatic_retries": 0,
+        "pass": true
+      },
+      {
+        "case_id": "dependency_frontier",
+        "model_requested": "gpt-6-sol",
+        "effort_requested": "high",
+        "repetition": 2,
+        "base_sha256": "59d231d25c05704433d1e6e9ab6dea844636558df5f1d52ddb9be87c6067c7c1",
+        "prompt_sha256": "5a3156e2f37ce634c36cf0dc3cdfb188ef029896564f334ac7267d027297422f",
+        "grader_sha256": "ac7e72280cc59c22c054bef99358cc2780830a6f1f68a2ea9979ef1969fcdd95",
+        "candidate_identity": "c1d1c2f57193766f9f726d8ffaa95deff90f10f32dbd3403a4dcd73692c0609d",
+        "changed_files": [
+          "scheduler.py",
+          "test_scheduler.py"
+        ],
+        "integrity_pass": true,
+        "grading": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.085,
+          "receipt": {
+            "tests_run": 5,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "public_tests": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.047,
+          "receipt": {
+            "tests_run": 6,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "tests_modified": true,
+        "run": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 93.753
+        },
+        "usage": {
+          "input_tokens": 170474,
+          "cached_input_tokens": 129408,
+          "output_tokens": 3591
+        },
+        "completed_event": true,
+        "error_event": false,
+        "cost_value": null,
+        "cost_unit": null,
+        "automatic_retries": 0,
+        "pass": true
+      },
+      {
+        "case_id": "dependency_frontier",
+        "model_requested": "gpt-5.6-terra",
+        "effort_requested": "high",
+        "repetition": 2,
+        "base_sha256": "59d231d25c05704433d1e6e9ab6dea844636558df5f1d52ddb9be87c6067c7c1",
+        "prompt_sha256": "5a3156e2f37ce634c36cf0dc3cdfb188ef029896564f334ac7267d027297422f",
+        "grader_sha256": "ac7e72280cc59c22c054bef99358cc2780830a6f1f68a2ea9979ef1969fcdd95",
+        "candidate_identity": "f9e1975fc93a88ea4b46f78fe202ad58bf524cfe31e3b0ca5997af1bb42b86e8",
+        "changed_files": [
+          "scheduler.py",
+          "test_scheduler.py"
+        ],
+        "integrity_pass": true,
+        "grading": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.094,
+          "receipt": {
+            "tests_run": 5,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "public_tests": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.048,
+          "receipt": {
+            "tests_run": 7,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "tests_modified": true,
+        "run": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 88.783
+        },
+        "usage": {
+          "input_tokens": 174829,
+          "cached_input_tokens": 161792,
+          "output_tokens": 3489
+        },
+        "completed_event": true,
+        "error_event": false,
+        "cost_value": null,
+        "cost_unit": null,
+        "automatic_retries": 0,
+        "pass": true
+      },
+      {
+        "case_id": "csv_export",
+        "model_requested": "gpt-5.6-terra",
+        "effort_requested": "high",
+        "repetition": 2,
+        "base_sha256": "f50bcff8f02e9cbd3e96d87765672eb7f9eb81929737d0830d61108ec04091d1",
+        "prompt_sha256": "f25ec1f0011fa58e1a6a65be228c534b4cd902fb05ddea153e4fa8747941597e",
+        "grader_sha256": "172d9fa2245f80176477a3f95fedd57575a533d714fe22e506eb0cad519ca45c",
+        "candidate_identity": "c7e8bad65c58f862fa37f546ba12c8c5bb012705a34e4442673744a9d6c9c8b1",
+        "changed_files": [
+          "exporter.py",
+          "test_exporter.py"
+        ],
+        "integrity_pass": true,
+        "grading": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.151,
+          "receipt": {
+            "tests_run": 3,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "public_tests": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.048,
+          "receipt": {
+            "tests_run": 6,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "tests_modified": true,
+        "run": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 68.68
+        },
+        "usage": {
+          "input_tokens": 145678,
+          "cached_input_tokens": 133376,
+          "output_tokens": 2628
+        },
+        "completed_event": true,
+        "error_event": false,
+        "cost_value": null,
+        "cost_unit": null,
+        "automatic_retries": 0,
+        "pass": true
+      },
+      {
+        "case_id": "csv_export",
+        "model_requested": "gpt-6-sol",
+        "effort_requested": "high",
+        "repetition": 2,
+        "base_sha256": "f50bcff8f02e9cbd3e96d87765672eb7f9eb81929737d0830d61108ec04091d1",
+        "prompt_sha256": "f25ec1f0011fa58e1a6a65be228c534b4cd902fb05ddea153e4fa8747941597e",
+        "grader_sha256": "172d9fa2245f80176477a3f95fedd57575a533d714fe22e506eb0cad519ca45c",
+        "candidate_identity": "e8f24ca118a1bf2e76524711bd551fe548333cf2aa97c287d09b94494ac282d9",
+        "changed_files": [
+          "exporter.py",
+          "test_exporter.py"
+        ],
+        "integrity_pass": true,
+        "grading": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.149,
+          "receipt": {
+            "tests_run": 3,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "public_tests": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.047,
+          "receipt": {
+            "tests_run": 5,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "tests_modified": true,
+        "run": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 79.756
+        },
+        "usage": {
+          "input_tokens": 146727,
+          "cached_input_tokens": 122880,
+          "output_tokens": 2625
+        },
+        "completed_event": true,
+        "error_event": false,
+        "cost_value": null,
+        "cost_unit": null,
+        "automatic_retries": 0,
+        "pass": true
+      },
+      {
+        "case_id": "settings_migration",
+        "model_requested": "gpt-6-sol",
+        "effort_requested": "high",
+        "repetition": 3,
+        "base_sha256": "d5ba9af7d0e9c13a8e81a077109c7768c78deab74d49f6d4beecc4acaeab316e",
+        "prompt_sha256": "acf4eb2bbab844b03b4cd7a87330c9f37873a0f2d64495b13e6b05f441318ef4",
+        "grader_sha256": "a8bc4e9e711aeaf44829aa65d51461dc5bd879806d1139129b5b42101c6d4202",
+        "candidate_identity": "11cb32b45579cf73b3bbd65bdf37865b0ab18a19c9388251aa5973a39a1ee044",
+        "changed_files": [
+          "settings.py",
+          "test_settings.py"
+        ],
+        "integrity_pass": true,
+        "grading": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.091,
+          "receipt": {
+            "tests_run": 4,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "public_tests": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.046,
+          "receipt": {
+            "tests_run": 6,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "tests_modified": true,
+        "run": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 85.52
+        },
+        "usage": {
+          "input_tokens": 128875,
+          "cached_input_tokens": 105984,
+          "output_tokens": 3460
+        },
+        "completed_event": true,
+        "error_event": false,
+        "cost_value": null,
+        "cost_unit": null,
+        "automatic_retries": 0,
+        "pass": true
+      },
+      {
+        "case_id": "settings_migration",
+        "model_requested": "gpt-5.6-terra",
+        "effort_requested": "high",
+        "repetition": 3,
+        "base_sha256": "d5ba9af7d0e9c13a8e81a077109c7768c78deab74d49f6d4beecc4acaeab316e",
+        "prompt_sha256": "acf4eb2bbab844b03b4cd7a87330c9f37873a0f2d64495b13e6b05f441318ef4",
+        "grader_sha256": "a8bc4e9e711aeaf44829aa65d51461dc5bd879806d1139129b5b42101c6d4202",
+        "candidate_identity": "5754f6b3ec48d9b125a3217990b20b14882b8f903b8fd0169542b7c2a9cec58f",
+        "changed_files": [
+          "settings.py",
+          "test_settings.py"
+        ],
+        "integrity_pass": true,
+        "grading": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.094,
+          "receipt": {
+            "tests_run": 4,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "public_tests": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.048,
+          "receipt": {
+            "tests_run": 7,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "tests_modified": true,
+        "run": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 80.729
+        },
+        "usage": {
+          "input_tokens": 155060,
+          "cached_input_tokens": 139520,
+          "output_tokens": 3425
+        },
+        "completed_event": true,
+        "error_event": false,
+        "cost_value": null,
+        "cost_unit": null,
+        "automatic_retries": 0,
+        "pass": true
+      },
+      {
+        "case_id": "dependency_frontier",
+        "model_requested": "gpt-5.6-terra",
+        "effort_requested": "high",
+        "repetition": 3,
+        "base_sha256": "59d231d25c05704433d1e6e9ab6dea844636558df5f1d52ddb9be87c6067c7c1",
+        "prompt_sha256": "5a3156e2f37ce634c36cf0dc3cdfb188ef029896564f334ac7267d027297422f",
+        "grader_sha256": "ac7e72280cc59c22c054bef99358cc2780830a6f1f68a2ea9979ef1969fcdd95",
+        "candidate_identity": "4295610e494fc56fc4bf198a5c7051f4aa8fcc148b8446d87335b7e5b066eed3",
+        "changed_files": [
+          "scheduler.py",
+          "test_scheduler.py"
+        ],
+        "integrity_pass": true,
+        "grading": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.093,
+          "receipt": {
+            "tests_run": 5,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "public_tests": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.049,
+          "receipt": {
+            "tests_run": 7,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "tests_modified": true,
+        "run": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 98.007
+        },
+        "usage": {
+          "input_tokens": 150215,
+          "cached_input_tokens": 136448,
+          "output_tokens": 3724
+        },
+        "completed_event": true,
+        "error_event": false,
+        "cost_value": null,
+        "cost_unit": null,
+        "automatic_retries": 0,
+        "pass": true
+      },
+      {
+        "case_id": "dependency_frontier",
+        "model_requested": "gpt-6-sol",
+        "effort_requested": "high",
+        "repetition": 3,
+        "base_sha256": "59d231d25c05704433d1e6e9ab6dea844636558df5f1d52ddb9be87c6067c7c1",
+        "prompt_sha256": "5a3156e2f37ce634c36cf0dc3cdfb188ef029896564f334ac7267d027297422f",
+        "grader_sha256": "ac7e72280cc59c22c054bef99358cc2780830a6f1f68a2ea9979ef1969fcdd95",
+        "candidate_identity": "0b2dfefcb21616440c9f6d4a2c0c033063853f684e3be1635580d5c29ea872e2",
+        "changed_files": [
+          "scheduler.py",
+          "test_scheduler.py"
+        ],
+        "integrity_pass": true,
+        "grading": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.086,
+          "receipt": {
+            "tests_run": 5,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "public_tests": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.047,
+          "receipt": {
+            "tests_run": 7,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "tests_modified": true,
+        "run": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 120.877
+        },
+        "usage": {
+          "input_tokens": 205346,
+          "cached_input_tokens": 182912,
+          "output_tokens": 5130
+        },
+        "completed_event": true,
+        "error_event": false,
+        "cost_value": null,
+        "cost_unit": null,
+        "automatic_retries": 0,
+        "pass": true
+      },
+      {
+        "case_id": "csv_export",
+        "model_requested": "gpt-6-sol",
+        "effort_requested": "high",
+        "repetition": 3,
+        "base_sha256": "f50bcff8f02e9cbd3e96d87765672eb7f9eb81929737d0830d61108ec04091d1",
+        "prompt_sha256": "f25ec1f0011fa58e1a6a65be228c534b4cd902fb05ddea153e4fa8747941597e",
+        "grader_sha256": "172d9fa2245f80176477a3f95fedd57575a533d714fe22e506eb0cad519ca45c",
+        "candidate_identity": "8209f7e90e1f814a3b2988777ef3c468e46ca6f366618c278d23ff6b48c63e1f",
+        "changed_files": [
+          "exporter.py",
+          "test_exporter.py"
+        ],
+        "integrity_pass": true,
+        "grading": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.146,
+          "receipt": {
+            "tests_run": 3,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "public_tests": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.048,
+          "receipt": {
+            "tests_run": 5,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "tests_modified": true,
+        "run": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 80.944
+        },
+        "usage": {
+          "input_tokens": 146551,
+          "cached_input_tokens": 116864,
+          "output_tokens": 3250
+        },
+        "completed_event": true,
+        "error_event": false,
+        "cost_value": null,
+        "cost_unit": null,
+        "automatic_retries": 0,
+        "pass": true
+      },
+      {
+        "case_id": "csv_export",
+        "model_requested": "gpt-5.6-terra",
+        "effort_requested": "high",
+        "repetition": 3,
+        "base_sha256": "f50bcff8f02e9cbd3e96d87765672eb7f9eb81929737d0830d61108ec04091d1",
+        "prompt_sha256": "f25ec1f0011fa58e1a6a65be228c534b4cd902fb05ddea153e4fa8747941597e",
+        "grader_sha256": "172d9fa2245f80176477a3f95fedd57575a533d714fe22e506eb0cad519ca45c",
+        "candidate_identity": "c422487685d74c4520da32ab81d5028fbb72cffbf5d3e2b24bb339cd77ebf8e9",
+        "changed_files": [
+          "exporter.py",
+          "test_exporter.py"
+        ],
+        "integrity_pass": true,
+        "grading": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.141,
+          "receipt": {
+            "tests_run": 3,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "public_tests": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 0.048,
+          "receipt": {
+            "tests_run": 4,
+            "skipped": 0,
+            "success": true
+          },
+          "mutated_candidate": false,
+          "pass": true
+        },
+        "tests_modified": true,
+        "run": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 77.742
+        },
+        "usage": {
+          "input_tokens": 148741,
+          "cached_input_tokens": 135424,
+          "output_tokens": 3373
+        },
+        "completed_event": true,
+        "error_event": false,
+        "cost_value": null,
+        "cost_unit": null,
+        "automatic_retries": 0,
+        "pass": true
+      }
+    ]
+  },
+  "summary": {
+    "evidence_class": "worker_model_pilot",
+    "expected_cells": 18,
+    "completed_cells": 18,
+    "complete": true,
+    "models": {
+      "gpt-5.6-terra": {
+        "runs": 9,
+        "passed": 9,
+        "median_seconds": 88.783,
+        "total_seconds": 852.541,
+        "usage_total": {
+          "input_tokens": 1564637,
+          "cached_input_tokens": 1408256,
+          "output_tokens": 34467
+        }
+      },
+      "gpt-6-sol": {
+        "runs": 9,
+        "passed": 9,
+        "median_seconds": 85.52,
+        "total_seconds": 811.017,
+        "usage_total": {
+          "input_tokens": 1333644,
+          "cached_input_tokens": 1111168,
+          "output_tokens": 31589
+        }
+      }
+    },
+    "winner": null,
+    "measured_cost": null,
+    "limitations": [
+      "synthetic Python fixtures",
+      "small sample",
+      "serial CLI calls, not Desktop roles",
+      "no workflow savings or superiority inference",
+      "CLI selector, not model self-attestation"
+    ]
+  },
+  "frozen_fixtures": [
+    {
+      "id": "settings_migration",
+      "expected_checks": 4,
+      "objective": "Repair the v1-to-v2 settings migration without changing user settings.",
+      "requirements": "\nImplement migrate(settings) in settings.py. Input is a dict; legacy 'workers'\nand current 'execution', when present, must be dicts (otherwise ValueError).\nReturn a deep-independent copy with schema_version=2 and an execution dict.\nMap workers.limit to execution.max_workers and workers.enabled to\nexecution.enabled only when the corresponding destination key is absent.\nExisting destination values, including 0, False and None, win. If neither source\nnor destination supplies a value, default max_workers=2 and enabled=True.\nRemove only workers.limit and workers.enabled; preserve every other key and\nnested value, including unknown workers fields. Remove workers only if empty.\nDo not mutate the input or share mutable nested values. Applying migrate twice\nmust produce the same value. Do not add dependencies or change the public API.\n",
+      "owned": [
+        "settings.py",
+        "test_settings.py"
+      ],
+      "files": {
+        "settings.py": "def migrate(settings):\n    result = dict(settings)\n    workers = result.pop(\"workers\", {})\n    result[\"execution\"] = {\n        \"max_workers\": workers.get(\"limit\", 2),\n        \"enabled\": workers.get(\"enabled\", True),\n    }\n    result[\"schema_version\"] = 2\n    return result\n",
+        "test_settings.py": "import unittest\nfrom settings import migrate\n\nclass MigrationTests(unittest.TestCase):\n    def test_defaults(self):\n        self.assertEqual(migrate({}), {\n            \"schema_version\": 2,\n            \"execution\": {\"max_workers\": 2, \"enabled\": True},\n        })\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+        "user-notes.txt": "User-owned notes. Preserve this exact line.\n"
+      },
+      "oracle": {
+        "settings.py": "from copy import deepcopy\n\ndef migrate(settings):\n    if not isinstance(settings, dict):\n        raise ValueError(\"settings must be a dict\")\n    for key in (\"workers\", \"execution\"):\n        if key in settings and not isinstance(settings[key], dict):\n            raise ValueError(key + \" must be a dict\")\n    result = deepcopy(settings)\n    workers = result.get(\"workers\", {})\n    execution = result.setdefault(\"execution\", {})\n    for old, new, default in (\n        (\"limit\", \"max_workers\", 2),\n        (\"enabled\", \"enabled\", True),\n    ):\n        execution.setdefault(new, workers.get(old, default))\n        workers.pop(old, None)\n    if \"workers\" in result and not workers:\n        del result[\"workers\"]\n    result[\"schema_version\"] = 2\n    return result\n"
+      },
+      "grader": "import copy\nimport unittest\nfrom settings import migrate\n\nclass Checks(unittest.TestCase):\n    def test_precedence_and_false_values(self):\n        for value in (0, False, None, 7):\n            with self.subTest(value=value):\n                data = {\"workers\": {\"limit\": 9, \"enabled\": True},\n                        \"execution\": {\"max_workers\": value, \"enabled\": False}}\n                out = migrate(data)\n                self.assertEqual(out[\"execution\"],\n                                 {\"max_workers\": value, \"enabled\": False})\n                self.assertNotIn(\"workers\", out)\n\n    def test_unknown_nested_and_no_aliases(self):\n        data = {\"workers\": {\"limit\": 0, \"enabled\": False, \"labels\": [\"a\"]},\n                \"execution\": {\"extra\": {\"items\": [1]}}, \"other\": [2]}\n        before = copy.deepcopy(data)\n        out = migrate(data)\n        self.assertEqual(out, {\"schema_version\": 2,\n            \"workers\": {\"labels\": [\"a\"]}, \"other\": [2],\n            \"execution\": {\"max_workers\": 0, \"enabled\": False,\n                          \"extra\": {\"items\": [1]}}})\n        out[\"workers\"][\"labels\"].append(\"b\")\n        out[\"execution\"][\"extra\"][\"items\"].append(3)\n        out[\"other\"].append(4)\n        self.assertEqual(data, before)\n\n    def test_defaults_and_idempotence(self):\n        self.assertEqual(migrate({}), {\"schema_version\": 2,\n            \"execution\": {\"max_workers\": 2, \"enabled\": True}})\n        self.assertEqual(migrate({\"workers\": {\"enabled\": False}})[\"execution\"],\n                         {\"max_workers\": 2, \"enabled\": False})\n        self.assertEqual(migrate({\"execution\": {\"max_workers\": None}})[\"execution\"],\n                         {\"max_workers\": None, \"enabled\": True})\n        for data in ({}, {\"workers\": {}}, {\"workers\": {\"enabled\": False}},\n                     {\"execution\": {\"max_workers\": None}},\n                     {\"workers\": {\"custom\": [1]}, \"schema_version\": 2}):\n            with self.subTest(data=data):\n                out = migrate(data)\n                self.assertEqual(migrate(out), out)\n                self.assertEqual(out[\"schema_version\"], 2)\n                self.assertIn(\"max_workers\", out[\"execution\"])\n                self.assertIn(\"enabled\", out[\"execution\"])\n\n    def test_invalid_shapes(self):\n        for data in ({\"workers\": None}, {\"workers\": []},\n                     {\"execution\": False}, {\"execution\": \"x\"}):\n            with self.subTest(data=data), self.assertRaises(ValueError):\n                migrate(data)\n\n"
+    },
+    {
+      "id": "dependency_frontier",
+      "expected_checks": 5,
+      "objective": "Fix dependency scheduling and overlapping writer exclusion.",
+      "requirements": "\nImplement ready(tasks, completed, active, capacity) in scheduler.py. Each task\nhas a unique id, dependencies (list of ids), and writes (list of file/directory\nscopes); inputs are otherwise well formed. completed is a set of ids, active is\na list of running task objects, and capacity is the TOTAL worker limit including\nactive workers. Return ready pending task ids in input order up to free capacity;\nzero or negative free capacity returns []. A dependency must be in completed,\nnot just active or selected this wave. Skip tasks already completed or active.\nExclude a task when any write scope overlaps an active or earlier selected task.\nScopes overlap when equal or one is a slash-delimited parent of the other;\n'src/a' does not overlap 'src/ab'. Empty writes means read-only and does not\nconflict, but still consumes capacity. Reuse paths.canonical for comparisons\n(slash conversion, dot segments, case folding). Do not mutate any input. Keep\nthe existing helper unchanged, add no dependency, and preserve this API.\n",
+      "owned": [
+        "scheduler.py",
+        "test_scheduler.py"
+      ],
+      "files": {
+        "paths.py": "import posixpath\n\ndef canonical(path):\n    return posixpath.normpath(path.replace(\"\\\\\", \"/\")).casefold().rstrip(\"/\")\n",
+        "scheduler.py": "def ready(tasks, completed, active, capacity):\n    return [t[\"id\"] for t in tasks\n            if t[\"id\"] not in completed\n            and set(t[\"dependencies\"]) <= completed][:capacity]\n",
+        "test_scheduler.py": "import unittest\nfrom scheduler import ready\n\nclass SchedulerTests(unittest.TestCase):\n    def test_one_ready(self):\n        tasks = [{\"id\": \"a\", \"dependencies\": [], \"writes\": [\"a.py\"]}]\n        self.assertEqual(ready(tasks, set(), [], 1), [\"a\"])\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+        "user-notes.txt": "User-owned notes. Preserve this exact line.\n"
+      },
+      "oracle": {
+        "scheduler.py": "import paths\n\ndef ready(tasks, completed, active, capacity):\n    remaining = capacity - len(active)\n    if remaining <= 0:\n        return []\n    running = {t[\"id\"] for t in active}\n    occupied = [paths.canonical(p) for t in active for p in t[\"writes\"]]\n    result = []\n    for task in tasks:\n        if task[\"id\"] in completed or task[\"id\"] in running:\n            continue\n        if not set(task[\"dependencies\"]) <= completed:\n            continue\n        scopes = [paths.canonical(p) for p in task[\"writes\"]]\n        if any(a == b or a.startswith(b + \"/\") or b.startswith(a + \"/\")\n               for a in scopes for b in occupied):\n            continue\n        result.append(task[\"id\"])\n        occupied.extend(scopes)\n        if len(result) == remaining:\n            break\n    return result\n"
+      },
+      "grader": "import copy\nimport unittest\nfrom scheduler import ready\n\ndef task(ident, writes=(), deps=()):\n    return {\"id\": ident, \"writes\": list(writes), \"dependencies\": list(deps)}\n\nclass Checks(unittest.TestCase):\n    def test_waves(self):\n        tasks = [task(\"db\", [\"db\"]), task(\"api\", [\"api\"], [\"db\"]),\n                 task(\"ui\", [\"ui\"], [\"api\"])]\n        self.assertEqual(ready(tasks, set(), [], 3), [\"db\"])\n        self.assertEqual(ready(tasks, {\"db\"}, [], 3), [\"api\"])\n        self.assertEqual(ready(tasks, {\"db\", \"api\"}, [], 3), [\"ui\"])\n\n    def test_active_and_capacity(self):\n        a, b = task(\"a\", [\"src/a\"]), task(\"b\", [\"src/b\"])\n        self.assertEqual(ready([a, b], set(), [a], 2), [\"b\"])\n        for limit in (-1, 0, 1):\n            self.assertEqual(ready([a, b], set(), [a], limit), [])\n        self.assertEqual(ready([task(\"c\", deps=[\"a\"])], set(), [a], 2), [])\n\n    def test_selected_overlap_both_directions_and_boundary(self):\n        tasks = [task(\"a\", [\"src/a\"]), task(\"child\", [\"src/a/file.py\"]),\n                 task(\"parent\", [\"src\"]), task(\"ab\", [\"src/ab\"])]\n        self.assertEqual(ready(tasks, set(), [], 4), [\"a\", \"ab\"])\n        self.assertEqual(ready(list(reversed(tasks)), set(), [], 4), [\"ab\", \"child\"])\n\n    def test_helper_normalization(self):\n        running = [task(\"busy\", [\"SRC/./A\"])]\n        tasks = [task(\"same\", [\"src/a/\"]), task(\"child\", [\"src\\\\a\\\\file.py\"]),\n                 task(\"other\", [\"src/x/../ab\"])]\n        self.assertEqual(ready(tasks, set(), running, 4), [\"other\"])\n\n    def test_readers_and_preservation(self):\n        running = [task(\"busy\", [\"src\"])]\n        tasks = [task(\"read\"), task(\"write\", [\"src/a\"]), task(\"else\", [\"lib\"])]\n        before = copy.deepcopy((tasks, running))\n        self.assertEqual(ready(tasks, set(), running, 2), [\"read\"])\n        self.assertEqual(ready(tasks, set(), running, 3), [\"read\", \"else\"])\n        self.assertEqual((tasks, running), before)\n\n"
+    },
+    {
+      "id": "csv_export",
+      "expected_checks": 3,
+      "objective": "Repair a CSV export adapter using the existing serializer.",
+      "requirements": "\nImplement export(records, fields) in exporter.py. records is a list of dicts.\nfields must be a non-empty list of unique, non-empty strings; invalid fields\nraise ValueError (including a string instead of a list). Return CSV text with\nthe header in fields order, selecting only those keys from each row; missing\nkeys and None become empty CSV cells; extra keys are ignored. Keep false and zero\nvalues. Empty records still emit a header. Preserve Unicode, quotes, commas and\nembedded newlines using the existing csv_utils.records_to_csv helper rather than\na second serializer; do not modify that helper. Do not mutate either input or\nadd dependencies; keep the public function API. user-notes.txt is unrelated and\nmust remain byte-identical.\n",
+      "owned": [
+        "exporter.py",
+        "test_exporter.py"
+      ],
+      "files": {
+        "csv_utils.py": "import csv\nimport io\n\ndef records_to_csv(records, fields):\n    buffer = io.StringIO(newline=\"\")\n    writer = csv.DictWriter(buffer, fieldnames=fields, lineterminator=\"\\n\")\n    writer.writeheader()\n    writer.writerows(records)\n    return buffer.getvalue()\n",
+        "exporter.py": "def export(records, fields):\n    return \",\".join(fields) + \"\\n\" + \"\".join(\n        \",\".join(str(row.get(key, \"\")) for key in fields) + \"\\n\"\n        for row in records)\n",
+        "test_exporter.py": "import unittest\nfrom exporter import export\n\nclass ExportTests(unittest.TestCase):\n    def test_one_row(self):\n        self.assertEqual(export([{\"name\": \"a\"}], [\"name\"]), \"name\\na\\n\")\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+        "user-notes.txt": "User-owned notes. Preserve this exact line.\n"
+      },
+      "oracle": {
+        "exporter.py": "from csv_utils import records_to_csv\n\ndef export(records, fields):\n    if (not isinstance(fields, list) or not fields\n            or any(not isinstance(k, str) or not k for k in fields)\n            or len(set(fields)) != len(fields)):\n        raise ValueError(\"fields must be unique non-empty strings\")\n    projected = [{key: row.get(key) for key in fields} for row in records]\n    return records_to_csv(projected, fields)\n"
+      },
+      "grader": "import copy\nimport csv\nimport importlib\nimport io\nimport unittest\nfrom unittest.mock import patch\nimport exporter\nfrom exporter import export\n\nclass Checks(unittest.TestCase):\n    def test_values_and_quoting(self):\n        rows = [{\"name\": '名,\"字\"\\n末', \"value\": 0, \"extra\": \"ignored\"},\n                {\"name\": None, \"value\": False}, {\"extra\": \"x\"}]\n        fields = [\"value\", \"name\"]\n        before = copy.deepcopy((rows, fields))\n        actual = list(csv.reader(io.StringIO(export(rows, fields))))\n        self.assertEqual(actual, [[\"value\", \"name\"], [\"0\", '名,\"字\"\\n末'],\n                                  [\"False\", \"\"], [\"\", \"\"]])\n        self.assertEqual((rows, fields), before)\n\n    def test_empty_and_invalid(self):\n        self.assertEqual(export([], [\"name\"]), \"name\\n\")\n        for fields in ([], \"name\", None, [\"a\", \"a\"], [\"\"], [1], [[\"a\"]]):\n            with self.subTest(fields=fields), self.assertRaises(ValueError):\n                export([], fields)\n\n    def test_existing_helper_is_used(self):\n        with patch(\"csv_utils.records_to_csv\", return_value=\"sentinel\") as helper:\n            importlib.reload(exporter)\n            self.assertEqual(exporter.export([{\"a\": 1, \"extra\": 2}], [\"a\"]),\n                             \"sentinel\")\n            self.assertTrue(helper.called)\n        importlib.reload(exporter)\n\n"
+    }
+  ],
+  "frozen_prompts": {
+    "settings_migration": "Execute one bounded regular implementation, debugging, testing, or integration task under settled requirements assigned by the PROVE controller. If the task exposes a difficult unresolved decision, return the evidence for Astra to decide whether to assign a Sol specialist; do not silently redesign it. 默认用中文；用户指定其他语言时从其要求。You are not alone in the worktree: preserve others' edits, use only the authorized read/write scope, and do not broaden the task. Do not delegate or create subagents. The controller owns overall decisions and final approval.\n\nAccept a complete task on the first turn; the Host verifies model and effort selection. Do not request an identity-only handshake or claim hidden runtime metadata. A task needs an objective, authorized scope, expected result, and falsifiable verification. Equivalent prose is valid. Resolve ambiguous authority or ownership with the controller before the affected action; missing optional headings alone do not mean BLOCKED.\n\nUnderstand the affected flow and relevant callers before editing. Search the relevant authorized scope for an existing implementation; reuse a suitable helper or name its concrete mismatch before duplicating it. Apply the Ponytail-inspired check: prefer suitable standard-library, platform, or installed capabilities before adding code. Avoid speculative abstractions and dependencies. Preserve explicitly requested behavior, readable code, trust-boundary validation, error handling, accessibility, and meaningful checks.\n\nRun the assigned verification on the actual final candidate; never lower its passing condition. In-scope fixes and reruns use the same authorization. Rerun affected checks after changes. If deeper help or an ownership handoff is needed, return the actual partial diff and attempt history; do not start another writer or reset the worktree.\n\nReturn PASS | FIX | BLOCKED, inspected/changed paths, requirement coverage, exact verification results, candidate-bound evidence, and material assumptions/risks. For a failure, include its class, evidence, attempted correction, and remaining blocker. Missing evidence is not PASS. Stop a recovery path after two consecutive no-progress attempts, a user limit, or a genuine safety/authority boundary; ask the controller to reassess, not the user to reapprove ordinary work. Never approve your own task as overall completion.\n\n\nYou own one isolated synthetic maintenance fixture, not the PROVE source repository.\nObjective: Repair the v1-to-v2 settings migration without changing user settings.\nAcceptance criteria: Implement migrate(settings) in settings.py. Input is a dict; legacy 'workers'\nand current 'execution', when present, must be dicts (otherwise ValueError).\nReturn a deep-independent copy with schema_version=2 and an execution dict.\nMap workers.limit to execution.max_workers and workers.enabled to\nexecution.enabled only when the corresponding destination key is absent.\nExisting destination values, including 0, False and None, win. If neither source\nnor destination supplies a value, default max_workers=2 and enabled=True.\nRemove only workers.limit and workers.enabled; preserve every other key and\nnested value, including unknown workers fields. Remove workers only if empty.\nDo not mutate the input or share mutable nested values. Applying migrate twice\nmust produce the same value. Do not add dependencies or change the public API.\nRead scope: files in this working directory only.\nWrite scope: settings.py, test_settings.py only. You may extend the tests there.\nForbidden: other files/directories, network, config/auth files, git operations,\ndependencies, background processes, additional agents and delegated work.\nInputs: the existing source, helper and public unit tests in this directory.\nMinimum verification: /opt/homebrew/opt/python@3.13/bin/python3.13 -B -m unittest discover -v; exit 0.\nAdd relevant regression checks in the owned test file and run them on the final candidate.\nDo not ask for an identity handshake or new approval for in-scope repairs.\nReturn the actual changes, verification command/result and remaining limitations.\nAn external acceptance check will run after your process ends; do not search for it.\n",
+    "dependency_frontier": "Execute one bounded regular implementation, debugging, testing, or integration task under settled requirements assigned by the PROVE controller. If the task exposes a difficult unresolved decision, return the evidence for Astra to decide whether to assign a Sol specialist; do not silently redesign it. 默认用中文；用户指定其他语言时从其要求。You are not alone in the worktree: preserve others' edits, use only the authorized read/write scope, and do not broaden the task. Do not delegate or create subagents. The controller owns overall decisions and final approval.\n\nAccept a complete task on the first turn; the Host verifies model and effort selection. Do not request an identity-only handshake or claim hidden runtime metadata. A task needs an objective, authorized scope, expected result, and falsifiable verification. Equivalent prose is valid. Resolve ambiguous authority or ownership with the controller before the affected action; missing optional headings alone do not mean BLOCKED.\n\nUnderstand the affected flow and relevant callers before editing. Search the relevant authorized scope for an existing implementation; reuse a suitable helper or name its concrete mismatch before duplicating it. Apply the Ponytail-inspired check: prefer suitable standard-library, platform, or installed capabilities before adding code. Avoid speculative abstractions and dependencies. Preserve explicitly requested behavior, readable code, trust-boundary validation, error handling, accessibility, and meaningful checks.\n\nRun the assigned verification on the actual final candidate; never lower its passing condition. In-scope fixes and reruns use the same authorization. Rerun affected checks after changes. If deeper help or an ownership handoff is needed, return the actual partial diff and attempt history; do not start another writer or reset the worktree.\n\nReturn PASS | FIX | BLOCKED, inspected/changed paths, requirement coverage, exact verification results, candidate-bound evidence, and material assumptions/risks. For a failure, include its class, evidence, attempted correction, and remaining blocker. Missing evidence is not PASS. Stop a recovery path after two consecutive no-progress attempts, a user limit, or a genuine safety/authority boundary; ask the controller to reassess, not the user to reapprove ordinary work. Never approve your own task as overall completion.\n\n\nYou own one isolated synthetic maintenance fixture, not the PROVE source repository.\nObjective: Fix dependency scheduling and overlapping writer exclusion.\nAcceptance criteria: Implement ready(tasks, completed, active, capacity) in scheduler.py. Each task\nhas a unique id, dependencies (list of ids), and writes (list of file/directory\nscopes); inputs are otherwise well formed. completed is a set of ids, active is\na list of running task objects, and capacity is the TOTAL worker limit including\nactive workers. Return ready pending task ids in input order up to free capacity;\nzero or negative free capacity returns []. A dependency must be in completed,\nnot just active or selected this wave. Skip tasks already completed or active.\nExclude a task when any write scope overlaps an active or earlier selected task.\nScopes overlap when equal or one is a slash-delimited parent of the other;\n'src/a' does not overlap 'src/ab'. Empty writes means read-only and does not\nconflict, but still consumes capacity. Reuse paths.canonical for comparisons\n(slash conversion, dot segments, case folding). Do not mutate any input. Keep\nthe existing helper unchanged, add no dependency, and preserve this API.\nRead scope: files in this working directory only.\nWrite scope: scheduler.py, test_scheduler.py only. You may extend the tests there.\nForbidden: other files/directories, network, config/auth files, git operations,\ndependencies, background processes, additional agents and delegated work.\nInputs: the existing source, helper and public unit tests in this directory.\nMinimum verification: /opt/homebrew/opt/python@3.13/bin/python3.13 -B -m unittest discover -v; exit 0.\nAdd relevant regression checks in the owned test file and run them on the final candidate.\nDo not ask for an identity handshake or new approval for in-scope repairs.\nReturn the actual changes, verification command/result and remaining limitations.\nAn external acceptance check will run after your process ends; do not search for it.\n",
+    "csv_export": "Execute one bounded regular implementation, debugging, testing, or integration task under settled requirements assigned by the PROVE controller. If the task exposes a difficult unresolved decision, return the evidence for Astra to decide whether to assign a Sol specialist; do not silently redesign it. 默认用中文；用户指定其他语言时从其要求。You are not alone in the worktree: preserve others' edits, use only the authorized read/write scope, and do not broaden the task. Do not delegate or create subagents. The controller owns overall decisions and final approval.\n\nAccept a complete task on the first turn; the Host verifies model and effort selection. Do not request an identity-only handshake or claim hidden runtime metadata. A task needs an objective, authorized scope, expected result, and falsifiable verification. Equivalent prose is valid. Resolve ambiguous authority or ownership with the controller before the affected action; missing optional headings alone do not mean BLOCKED.\n\nUnderstand the affected flow and relevant callers before editing. Search the relevant authorized scope for an existing implementation; reuse a suitable helper or name its concrete mismatch before duplicating it. Apply the Ponytail-inspired check: prefer suitable standard-library, platform, or installed capabilities before adding code. Avoid speculative abstractions and dependencies. Preserve explicitly requested behavior, readable code, trust-boundary validation, error handling, accessibility, and meaningful checks.\n\nRun the assigned verification on the actual final candidate; never lower its passing condition. In-scope fixes and reruns use the same authorization. Rerun affected checks after changes. If deeper help or an ownership handoff is needed, return the actual partial diff and attempt history; do not start another writer or reset the worktree.\n\nReturn PASS | FIX | BLOCKED, inspected/changed paths, requirement coverage, exact verification results, candidate-bound evidence, and material assumptions/risks. For a failure, include its class, evidence, attempted correction, and remaining blocker. Missing evidence is not PASS. Stop a recovery path after two consecutive no-progress attempts, a user limit, or a genuine safety/authority boundary; ask the controller to reassess, not the user to reapprove ordinary work. Never approve your own task as overall completion.\n\n\nYou own one isolated synthetic maintenance fixture, not the PROVE source repository.\nObjective: Repair a CSV export adapter using the existing serializer.\nAcceptance criteria: Implement export(records, fields) in exporter.py. records is a list of dicts.\nfields must be a non-empty list of unique, non-empty strings; invalid fields\nraise ValueError (including a string instead of a list). Return CSV text with\nthe header in fields order, selecting only those keys from each row; missing\nkeys and None become empty CSV cells; extra keys are ignored. Keep false and zero\nvalues. Empty records still emit a header. Preserve Unicode, quotes, commas and\nembedded newlines using the existing csv_utils.records_to_csv helper rather than\na second serializer; do not modify that helper. Do not mutate either input or\nadd dependencies; keep the public function API. user-notes.txt is unrelated and\nmust remain byte-identical.\nRead scope: files in this working directory only.\nWrite scope: exporter.py, test_exporter.py only. You may extend the tests there.\nForbidden: other files/directories, network, config/auth files, git operations,\ndependencies, background processes, additional agents and delegated work.\nInputs: the existing source, helper and public unit tests in this directory.\nMinimum verification: /opt/homebrew/opt/python@3.13/bin/python3.13 -B -m unittest discover -v; exit 0.\nAdd relevant regression checks in the owned test file and run them on the final candidate.\nDo not ask for an identity handshake or new approval for in-scope repairs.\nReturn the actual changes, verification command/result and remaining limitations.\nAn external acceptance check will run after your process ends; do not search for it.\n"
+  }
+}

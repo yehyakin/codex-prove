@@ -1,103 +1,98 @@
-# Tiered-routing Forward Tests
+# Forward validation
 
-Date: 2026-08-20
+Date: 2026-09-05. Candidate: v1.1 development.
 
-Scope: routing-contract fixtures plus isolated installer roots. No business
-repository, global agent file, or live production system is read or modified.
+## Separate specifications from execution evidence
 
-## Method
+`fixtures/forward-cases.json` contains **49 scenario specifications**. Unit tests
+check their structure and selected contract invariants; they do not execute 49
+model conversations. Do not publish that count as 49 live-model passes.
 
-- The thirty-nine scenarios are defined in `tests/fixtures/forward-cases.json`.
-- Each case describes the expected route without exposing internal runtime
-  mechanics as a public mode or fixed worker-count promise.
-- Contract tests check explicit invocation, direct handling of ordinary simple
-  work, Controller-only planning, complete efficient-worker packets/results,
-  ownership, dynamic live-capacity batching, exact selection proof, and focused
-  review fixes.
-- Tiered-routing cases pin the efficient profile to clear, low-ambiguity,
-  falsifiable small-context work; route the complex profile to cross-module,
-  long-context, ambiguous-debugging, shared-interface, and high-risk work; and
-  keep the Controller as the only controller and final reviewer.
-- Four reliability cases add final-candidate evidence binding, transport/spawn
-  completion separation, no-delta retry blocking, and long-task-only resume.
-- Seven continuity cases add authorized-plan continuation, status-inquiry
-  continuity, planning convergence, partial-stage delivery, one-time
-  result-only recovery after transport completion, safe blocking after failed
-  recovery, and urgency-invariant evidence thresholds.
-- One steering case ensures explicit user cancellation, replacement, or
-  redirection stops the old plan and triggers re-planning, while ordinary status
-  inquiries still continue the authorized work.
-- Ownership-transfer cases distinguish the only allowed upgrade from the
-  forbidden handoff: only when the efficient worker's first failure happens
-  before it writes any owned file may the Controller forward the same task and
-  unchanged scope to the complex profile once. After any owned write, the
-  efficient worker retains ownership; only that original owner may receive one
-  focused fix, otherwise return `BLOCKED`. The complex worker's write state is
-  never the escalation gate.
-- Eight evidence-first cases cover stable Requirement IDs, artifact-first Controller
-  review, wrong-scope verifier rejection, high-risk selective challenge,
-  zero-challenge standard work, idempotent resume, timeout-after-write
-  ownership, and residual suggestions outside the closed verdict.
-- Two runtime-boundary cases distinguish technical capability from task
-  authorization: reversible workspace work may continue with narrow scope and
-  Host-owned snapshots, while destructive or irreversible external work still
-  fails closed without an enforceable boundary or explicit broader approval.
-- Installer tests use a temporary `ORCHESTRATE_HOME`, synthesize a v0.5
-  installation with checksums, and exercise migration, modified-target
-  preservation, rollback, uninstall, restore, unrelated files, and
-  `config.toml` integrity. All three v1 capability-role targets are covered by
-  ownership state and checksums, including exact uninstall and restore behavior.
+The automated suite also runs actual isolated installer transactions, migration,
+rollback, uninstall/restore, and preservation of unrelated files/configuration.
+POSIX tests use temporary `ORCHESTRATE_HOME` roots. Windows execution belongs to
+the existing PowerShell CI matrix, not a macOS structural check.
 
-## Scenario matrix
+Live model probes and their limitations are recorded in
+[the v1.1 audit](../docs/release/v1.1-gpt6-audit.md). They use disposable fixtures,
+fresh agent contexts, exact model/effort selection, real outputs, and actual
+candidate inspection. No business repository or production system is modified.
 
-| Case | Expected route | Worker expectation | Review expectation |
-| --- | --- | --- | --- |
-| Ordinary simple work | `direct` | none | not applicable |
-| Explicit `$codex-prove` execution | `controller_then_efficient` | required | PASS |
-| Plan-only request | `controller` | optional, including zero | not applicable |
-| Single-file execution | `controller_then_efficient` | required | PASS |
-| Changing live capacity | `controller_then_efficient` | required, dynamically batched | PASS |
-| Shared integration file | `controller_then_efficient` | one owner for the shared file | PASS |
-| Incomplete efficient-worker packet | `controller_then_efficient` | BLOCKED before write | BLOCKED |
-| Unprovable exact selection | `blocked` | BLOCKED | BLOCKED |
-| One missed criterion | `controller_then_efficient` | one focused fix at most | FIX |
-| Dirty worktree | `controller_then_efficient` | scoped writes only | PASS |
-| Stale evidence after candidate change | `controller_then_efficient` | BLOCKED until affected verification reruns | BLOCKED |
-| Transport/spawn `completed` | `controller_then_efficient` | delivery only; structured result required | BLOCKED |
-| Identical retry with no Delta | `controller_then_efficient` | no relaunch without new evidence | BLOCKED |
-| Long-task resume | `controller_then_efficient` | minimal resume packet required | PASS |
-| Authorized plan is not a stop point | `controller_then_efficient` | execution continues unless a real gate appears | PASS |
-| Status inquiry during authorized work | `controller_then_efficient` | no pause or new permission required | PASS |
-| Planning timebox convergence | `controller` | plan, determination, or evidence gap | not applicable |
-| Later-stage blocker with earlier evidence | `controller_then_efficient` | completed earlier stage is delivered | BLOCKED |
-| Completed without structured result | `controller_then_efficient` | one same-worker result-only recovery | PASS |
-| Recovery still has no bound result | `controller_then_efficient` | no second recovery or re-execution | BLOCKED |
-| Urgency does not lower evidence | `blocked` | safety threshold unchanged | BLOCKED |
-| Explicit user steering | `controller` | old plan stops and the Controller re-plans | not applicable |
-| Efficient: low-ambiguity, falsifiable, small context | `controller_then_efficient` | required; complex worker not selected | PASS |
-| Complex: cross-module and long context | `controller_then_complex` | no efficient worker; complex worker required | PASS |
-| Model identity unavailable | `blocked` | efficient and complex workers BLOCKED; no substitution | BLOCKED |
-| Runtime capability broader than a read-only audit | `controller_then_efficient` | empty write scope plus Host-owned before/after snapshot | PASS |
-| Irreversible work without an enforceable boundary | `blocked` | no worker execution or external side effect | BLOCKED |
-| Efficient worker first classification failure before any write | `controller_then_complex` | same task/scope upgraded once only after zero efficient-worker-owned writes | PASS |
-| Efficient worker first failure after an owned write | `controller_then_efficient` | efficient worker retains scope; one focused fix or `BLOCKED`; complex worker blocked | FIX/BLOCKED |
-| Shared file unique owner with complex route | `controller_then_complex` | exact write scope; one owner | PASS |
-| Missing Requirement evidence | `controller_then_efficient` | REQ gap remains visible | FIX |
-| Worker PASS treated as a claim | `controller_then_efficient` | artifact-first evidence review | PASS |
-| Verifier targets the wrong scope | `controller_then_efficient` | `evidence_quality` failure | FIX |
-| High-risk selective challenge | `controller_then_complex` | one read-only challenge at most | PASS |
-| Standard task | `controller_then_efficient` | zero challenge calls | PASS |
-| Resume after interruption | `controller_then_efficient` | no duplicate dispatch or attempt reset | PASS |
-| Timeout after an owned write | `controller_then_efficient` | efficient worker retains ownership; complex worker blocked | BLOCKED |
-| Residual suggestion after full coverage | `controller_then_efficient` | suggestion remains non-gating | PASS |
+## Scenario coverage
 
-## Reliability guard status
+| Area | Required outcome |
+| --- | --- |
+| Ordinary or explicitly invoked tiny edit | Direct, zero child-agent delegation |
+| Difficult indivisible analysis | Controller Assist, workers optional |
+| Difficult independent unit | Sol specialist, no required lower-tier failure |
+| Regular implementation with settled interfaces | Terra, no routine extra reviewer |
+| Large mechanical batch with explicit rules | Luna when delegation helps; one cheap command may stay Direct |
+| Specialist review-only request | Empty write scope, no implementation of its own findings |
+| Independent modules | Smallest useful ready frontier within live capacity |
+| Capacity full, worker still verifying, user wants speed | Wait for completion; no duplicate writer or renewed approval |
+| Many same-rule edits | One useful batch, not an agent per file |
+| Tiny change with serious security consequences | Risk-sensitive evidence; fresh read-only context if independent review is needed |
+| Shared file/configuration | One active writer; serialize overlap |
+| Database → API → UI | Dependencies determine waves |
+| Packet heading missing but scope/check already known | Repair metadata internally |
+| Scope or new authority genuinely unknown | Hold the affected action; resolve safely |
+| Worker PASS without evidence | FIX; inspect artifacts or run missing verification |
+| Candidate changed after verification | Rerun affected checks, retain unaffected evidence |
+| Host selection known, child metadata hidden | First-turn task allowed; no self-attestation gate |
+| Stale custom role, exact generic selection available | Record explicit-profile launch, not custom-role success |
+| Required exact model cannot be selected | No impersonation or hidden substitution |
+| Nested dispatch unavailable | Host-mediated Compatibility |
+| Partial edit needs a different executor | Stop old worker and mutating processes, preserve diff/history, then hand off |
+| Timed-out writer may still mutate | Do not start a racing replacement |
+| A useful second correction | Continue inside existing authorization |
+| Repeated no-progress or exhausted user budget | Stop that path and reassess; do not reset attempts |
+| Missing original requirement | Controller finds the gap in real candidate evidence |
+| Ponytail-inspired implementation | Inspect scoped existing capabilities before adding code |
+| Minimality conflicts with security or explicit behavior | Keep the guard and required behavior |
+| User changes and interrupted work | Preserve edits, reconcile state, do not repeat completed work |
+| Explicit cancellation or redirection | Stop/replan; a status question alone does not pause |
 
-The ownership-transfer tests preserve a pre-fix RED proof and a post-fix GREEN
-regression: the allowed case has zero efficient-worker-owned writes before the first
-failure, while the forbidden case has at least one write and keeps ownership
-with the efficient worker. Syntax and environment failures are not an acceptable substitute.
-The earlier v0.4 RED evidence remains in `tests/fixtures/v040-baseline-red.md`.
+## Live-probe method
 
-No public runtime-mode enumeration or fixed worker-count taxonomy is part of
-this forward contract.
+1. Build a fresh fixture directory with a stub, nearby reusable helper, and
+   falsifiable tests. Keep input fixtures separate from prior generated answers.
+2. Give the evaluator the actual user request, current source Skill/profile,
+   scope, and raw fixture. Do not tell it the intended implementation or prior
+   outcome.
+3. Inspect actual files and test output independently. A successful functional
+   test does not prove the minimal-implementation policy was followed.
+4. For review, supply the complete original requirements plus candidate and
+   worker evidence. A deliberately incomplete worker packet tests whether the
+   controller can find an omitted requirement.
+5. Apply only observed, narrow instruction corrections; run a fresh-context probe
+   and retain the first result as well. Avoid an unbounded prompt-tuning loop.
+6. Treat short probes as behavioral evidence, not matched A/B cost, latency,
+   quality, or general reliability measurements.
+
+## Development-only worker pilot
+
+`worker_model_pilot.py` compares Sol 6 high and Terra 5.6 high using identical
+regular-worker instructions. Three synthetic maintenance fixtures, three repeats
+per model, fresh directories, counterbalanced serial calls, and external checks
+are separate from the full v1.0 A/B benchmark. Graders must reject the known-bad
+baseline and pass the reference implementation before any model call.
+
+Run free calibration with Python 3.11+ and a new output directory outside this
+checkout: `python3 tests/worker_model_pilot.py --output /tmp/prove-pilot-calibration`.
+`--run-models` explicitly enables 18 account-usage calls; `--codex` selects the
+installed CLI path. Logs, commands, hashes, partial failures and candidates stay
+in that directory. No automatic retry or model fallback. Live calls currently
+require macOS: post-run checks deny writes, network and reads under `/Users`,
+without inherited secrets or user Python startup. Offline oracle calibration
+supports POSIX. This pilot is not part of the installed Skill or Windows installer.
+
+Ordinary CI tests only the offline grader controls and evidence handling. Missing
+usage/cost is unknown, not zero; cached input is a subset of input, not additional
+input. CLI elapsed time includes startup and tools. This small pilot cannot
+establish workflow savings, general superiority, or Desktop custom-role behavior.
+
+Historical v1.0 benchmark manifests, release evidence, and the old
+`fixtures/v040-baseline-red.md` remain history. Existing recovery/evidence cases
+may start from an already assigned efficient worker; they are not defaults for
+classifying new tasks. Their immutable-owner and
+one-correction expectations are not the v1.1 recovery contract.

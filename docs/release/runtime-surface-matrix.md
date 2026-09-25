@@ -6,6 +6,10 @@ self-report is not runtime proof. Statuses are `VERIFIED`, `FAILED`, or
 
 Candidate date: 2026-08-20
 
+The v1.1 development candidate is tracked separately in
+[the GPT-6 audit record](v1.1-gpt6-audit.md). The tables below retain historical
+release evidence; they do not certify the new Astra default.
+
 ## v1.0 model-neutral roles
 
 | Surface | Signal | Status | Evidence location | Date |
@@ -17,7 +21,7 @@ Candidate date: 2026-08-20
 | Desktop | Native Nested | UNVERIFIED | Requires a real controller-to-worker launch with the new role names | 2026-08-20 |
 | Desktop | Compatibility | VERIFIED | Fresh session `01a01e7c-477a-7a03-9b74-8a7144d6f958`; Controller plan, Host worker dispatch, same-Controller final verdict `PASS` | 2026-08-20 |
 | Desktop | fresh-session Skill discovery | VERIFIED | Canonical session above; alias session `01a01e81-92bc-7462-bb95-450bc929e971` redirected `$sol-control` to `$codex-prove` | 2026-08-20 |
-| Desktop | transactional global install | VERIFIED | Persistent backup `/Users/kin3/.codex/codex-prove/backups/20260820T092316Z-61245`; installed canonical Skill, alias, and three roles | 2026-08-20 |
+| Desktop | transactional global install | VERIFIED | Persistent backup `~/.codex/codex-prove/backups/20260820T092316Z-61245`; installed canonical Skill, alias, and three roles | 2026-08-20 |
 | POSIX CI | validation and lifecycle | VERIFIED | `main` run [32353507136](https://github.com/yehyakin/codex-prove/actions/runs/32353507136) | 2026-08-20 |
 | Windows CI | install/upgrade/rollback/uninstall | VERIFIED | `main` run [32353507150](https://github.com/yehyakin/codex-prove/actions/runs/32353507150), Windows Server 2022 and `windows-latest`, PowerShell 5.1 and 7 | 2026-08-20 |
 | Physical Windows 11 | Native Nested | UNVERIFIED | No v1.0 physical-device runtime payload captured | 2026-08-20 |

@@ -1,215 +1,211 @@
-# Codex PROVE orchestration contract
+# Orchestration protocol
 
-This reference is the normative execution contract. The controller owns every
-planning, routing, scheduling, ownership, correction, and completion decision.
-Workers own only their bounded task packets.
+Read for Assist planning or coordinated execution, not for ordinary Direct work.
+Use the user's requested outcome as the boundary; a Skill does not add scope.
 
-## Contents
+## Plan and schedule
 
-1. Entry and invariants
-2. Requirement graph
-3. Routing and stages
-4. Ownership
-5. Task and result contracts
-6. Verification and evidence
-7. Review and correction
-8. Failure handling
-9. Continuity
-
-## 1. Entry and invariants
-
-- Enter only through an explicit `$codex-prove` invocation or the temporary
-  explicit `$sol-control` compatibility entry.
-- Start with exactly one controller. Do not create a standing team or a second
-  controller.
-- Allow zero workers for planning-only or review-only work.
-- Keep ordinary small work Direct when the Skill was not explicitly invoked.
-- Use capability roles rather than model brands in plans and task packets.
-- Launch with `fork_turns="none"`, then prove the selected agent, model,
-  reasoning effort, fork mode, and effective boundary before sending any plan
-  or task. Use an identity-only handshake with no planning, execution, write, or
-  subagent activity.
-- Preserve the Host as authorization, workspace-safety, integration, and final
-  user-communication owner.
-
-PROVE is an evidence gate. It reduces unsupported completion claims; it cannot
-guarantee perfect correctness.
-
-## 2. Requirement graph
-
-The controller returns this top-level shape:
+For one decision, return a recommendation and acceptance criteria in prose.
+For coordinated work, use the smallest useful graph. Equivalent concise formats
+are valid; field spelling is not a safety boundary.
 
 ```yaml
-goal: "Concrete outcome"
+goal: "User outcome"
 done_when:
   - id: REQ-1
-    criterion: "Observable criterion"
-    evidence: "Required evidence"
+    criterion: "Observable requirement"
+    evidence: "Falsifiable check"
 tasks:
   - id: task-a
-    task: "One bounded action"
+    task: "Bounded action"
     requirements: [REQ-1]
-    agent_profile: efficient | complex
+    agent_profile: efficient
     dependencies: []
-    read_scope: ["exact/read/path"]
-    write_scope: ["exact/write/path"]
-    do_not_touch: ["excluded/path or side effect"]
+    read_scope: ["needed/path"]
+    write_scope: ["owned/path"]
+    do_not_touch: ["excluded/path and side effects"]
     expected_result: "Observable result"
-    verification: "Exact procedure and passing condition"
-    required_evidence: "Evidence bound to the final candidate"
+    verification: "Procedure and passing condition"
+    required_evidence: "Output or artifact tied to the candidate"
     can_launch: true
     held_reason: null
 stages:
-  - [task-a, task-b]
-  - [task-c]
+  - [task-a]
 integration_owner: host
 ```
 
-Every `done_when` item has a stable `REQ-*` ID. Every task maps to at least one
-Requirement ID, and every Requirement ID has at least one owning task or an
-explicit Host-owned integration check. Reject vague criteria, unowned
-requirements, tasks with no acceptance evidence, and stages that violate a
-dependency or ownership edge.
+Assign each Requirement ID to a task or the Host. Planning may use zero workers.
+Select each worker directly; no task must visit every tier:
 
-The controller states the smallest complete graph. It does not split work by
-file merely to increase agent count.
+| Profile | Default | Assignment boundary |
+| --- | --- | --- |
+| controller | Astra / high | Sole planning, architecture, arbitration, and final review owner; keep hard inseparable decisions here. |
+| specialist | Sol / high | Difficult but independently contractible reasoning, root-cause diagnosis, implementation, or targeted read-only review. |
+| complex | Terra / high | Regular implementation, routine debugging, tests, and integration under settled requirements; the ID is retained for compatibility. |
+| efficient | Luna / max | Mechanical batches with explicit transformation rules, little judgment, and objective checks. |
 
-## 3. Routing and stages
+Terra is the normal implementation choice when delegation helps. A tiny edit or
+one command stays Direct; a large deterministic batch may suit Luna. Sol is not
+a mandatory reviewer or a second scheduler. An unclear overall goal or tightly
+coupled architecture remains with Astra until a useful task can be separated.
+Do not split work simply because there are many files or launch a worker just
+to demonstrate that its model is available.
 
-Choose the **efficient** profile only for clear, low-ambiguity, falsifiable,
-small-context, mechanical, or high-throughput work. Choose the **complex**
-profile for cross-module work, long-context investigation, ambiguous debugging,
-shared-interface judgment, or high-consequence implementation.
+Delegate when a bounded handoff enables useful independent progress, contains
+bulky exploration, or supplies needed independent scrutiny. Complexity alone is
+not a reason. Batch related same-rule edits under one owner. While a worker owns
+a task, the Host does separate integration or prerequisite work, not a duplicate
+implementation or investigation. Inspect the handoff instead of replaying it.
 
-Tasks in one stage may run concurrently only when:
+Launch the minimum sufficient dependency-ready frontier, usually 1–3 workers,
+within **live capacity**, accounting for the Host, controller, and other active
+agents. Queue the remainder. Dependent tasks run sequentially or in waves.
+Parallel writes need disjoint files, components, shared state, and side effects.
+Shared configuration, migrations, generated outputs, and lockfiles need ownership
+too. If an overlap is uncertain, serialize.
 
-- all dependencies are satisfied;
-- their write scopes are disjoint;
-- they do not mutate the same component, generated output, lockfile, shared
-  configuration, migration state, or external resource;
-- their combined launch count fits current live capacity.
+Capacity waiting is not BLOCKED or a new approval gate. When no independent work
+remains, use the runtime's completion wait rather than repeated short polls;
+keep user progress updates separate from worker-status polling. Do not take over
+an active worker's task merely to avoid waiting.
 
-Queue excess ready tasks for the next batch. If dependency order, generated
-effects, or write overlap is uncertain, run sequentially. Later stages wait for
-required earlier evidence.
+## One active owner
 
-Use the minimum sufficient parallelism. One to three workers is the normal
-range, not a hard cap. Never promise a fixed maximum because live capacity is a
-runtime property.
+Take a baseline of the actual worktree, including pre-existing user changes and
+untracked files. Give each write scope one owner at a time. Multiple read-only
+opinions may run concurrently; the controller chooses one implementation.
 
-## 4. Ownership
+Ownership may transfer, even after edits, only when:
 
-Assign each writable file, component, shared interface, migration, generated
-artifact, and external side effect to one owner for the entire run. Multiple
-workers may read the same file. Alternative proposals may be gathered
-read-only, but one selected owner performs the write.
+1. The previous worker is stopped and all its mutating command processes have
+   ended. A timeout or an interrupt request alone does not prove quiescence.
+2. The Host inspects and preserves the actual diff and unrelated user changes.
+3. The new owner receives the current candidate, prior attempts, and exact scope.
+4. Affected verification is rerun on the eventual final candidate.
 
-Before dispatch, reject overlapping or ambiguous write scopes. Before
-integration, compare the Host-owned baseline with actual changed paths and each
-packet. Preserve unrelated user changes.
+Never let a replacement race an old writer. Do not reset, restore, clean, or
+overwrite user changes to make a handoff easier. Stop the affected write path
+when a safe handoff cannot be established; independent safe work can continue.
 
-Never transfer an owned file after its worker writes it. The controller may
-escalate an efficient-profile task once to the complex profile only when the
-first failure occurred before any owned write and the task, requirements, and
-scope remain unchanged. After a write, only the original owner may receive one
-focused correction; otherwise return `BLOCKED`.
+## Worker packet
 
-## 5. Task and result contracts
-
-### Worker task
+Required semantics: objective, authorized read/write boundary, expected result,
+and a falsifiable verification with required evidence. Include dependencies or
+stop conditions when applicable. IDs help multi-part work, but a missing heading
+or optional field is not BLOCKED.
 
 ```text
-Task ID: <stable task id>
-Task: <one bounded action>
-Requirement IDs: <REQ-1, REQ-2>
-Context: <optional minimal task-local input>
-Read scope: <exact readable paths>
-Write scope: <exact writable paths or []>
-Do not touch: <excluded paths and side effects>
-Dependencies: <completed prerequisite IDs or None>
-Expected result: <observable acceptance condition>
-Verification:
-  Procedure: <exact command or procedure>
-  Passing condition: <falsifiable passing condition>
-Required evidence: <diff, output, artifact, or observation>
-Stop conditions: <conditions requiring BLOCKED>
+Task ID / Requirement IDs: task-a / REQ-1
+Task: One bounded objective
+Context: Relevant inputs and prior evidence only
+Read scope: Exact paths needed
+Write scope: Exact owned paths, or [] for read-only work
+Do not touch: Excluded paths, user edits, and side effects
+Dependencies: Completed prerequisite outputs, or None
+Expected result: Observable acceptance condition
+Verification: Command/procedure; passing condition; required evidence
+Stop conditions: Actual scope, safety, or authorization boundary
 ```
 
-`Context` is optional; all other fields are required. The identity-only
-handshake is the sole exception. A worker receiving an incomplete,
-contradictory, unauthorized, or dependency-incomplete packet returns `BLOCKED`
-without guessing.
+Do not copy the full conversation into the packet. Workers preserve others'
+edits, stay inside scope, do not redesign the overall run, and do not delegate.
+Repair missing metadata from existing context. Unclear authority or conflicting
+write ownership must be resolved with the controller before the affected action,
+not guessed. Only the Host asks the user for genuinely missing authority.
 
-### Worker result
+## Minimal implementation — adapted from Ponytail
+
+This is a brief judgment check during existing planning, execution, and review,
+not another phase or a requirement to read the whole repository.
+
+Understand the affected flow and relevant callers first. Then choose the simplest
+approach that meets the complete requirement:
+
+- Search the relevant authorized scope for an existing implementation before
+  writing one. Reuse a suitable helper; if it is unsuitable, name the concrete
+  mismatch instead of quietly duplicating it.
+- Prefer suitable standard-library, platform, or already-installed capabilities.
+- Add only the implementation or dependency genuinely missing; avoid speculative
+  layers, configuration, frameworks, and “for later” abstractions.
+- Fix the cause at the correct boundary, not only one visible symptom.
+- Keep readable code and the necessary validation, error handling, accessibility,
+  compatibility, and regression checks. Do not optimize for one-line code or LOC.
+- A simplification must not silently replace an explicitly requested feature.
+
+The controller can note a concrete unnecessary addition while reviewing the real
+diff; it does not launch a separate simplification reviewer. No sweeping cleanup
+of unrelated existing code. Attribution and the upstream MIT terms are retained
+in [ponytail-license.txt](ponytail-license.txt); upstream benchmark results are not
+PROVE results.
+
+## Results and verification
+
+A worker returns enough to verify the task; equivalent prose is acceptable:
 
 ```text
-Task ID: <task id>
-Status: PASS | BLOCKED
-Summary: <what happened>
-Inspected: <exact files>
-Changed: <exact files, or None>
-Requirement coverage: <each assigned REQ-ID and exact evidence>
-Verification: <procedures and exact results>
-Evidence: <diff, test, build, log, screenshot, or artifact>
-Assumptions: <explicit assumptions or None>
-Risks: <remaining risks or None>
+Task ID: task-a
+Status: PASS | FIX | BLOCKED
+Summary: Result or concrete failure
+Inspected / Changed: Exact paths, or None
+Requirement coverage: Assigned requirements and supporting evidence
+Verification: Actual procedure, output, exit status / observation
+Evidence: Candidate identity and inspectable artifacts
+Assumptions / Risks: Material uncertainty, or None
 Failure class: runtime | timeout | model_identity | permission | dependency | scope | verification | evidence_quality | conflict | none
-Blocker: <None or concrete blocker>
+Blocker: Concrete missing capability/authority, or None
 ```
 
-A worker approves only its task. `completed`, a prose summary, or an agent label
-is not a task `PASS`.
+Transport `completed` is not acceptance. If output is missing, request a
+result-only follow-up (no new writes), inspect actual files, or run the missing
+check inside existing authority. A summary with no evidence is not PASS, but it
+does not automatically block the entire run.
 
-If transport reports `completed` without the structured result, allow exactly
-one result-only follow-up to that same worker. It authorizes no new write or
-re-execution. A second missing or candidate-unbound result is `BLOCKED`.
+Bind evidence to the reviewed candidate (commit plus diff, or an exact relevant
+file snapshot). After a change, invalidate affected evidence only. Inspect the
+actual diff before accepting claimed paths; before/after snapshots show net
+changes, not who wrote them or proof that no temporary write occurred.
 
-## 6. Verification and evidence
+The controller reviews the original request, real files/diff, verification,
+requirement coverage, and finally worker summaries. **Verify the verifier**:
+right candidate, right requirement, meaningful passing condition. File existence,
+tautologies, skipped tests, wrong scope, or unexpected check-induced mutations
+do not justify success. Use focused existing tests; broaden only when risk or
+shared behavior calls for it. Do not add a test framework just to satisfy a form.
 
-The controller defines the minimum falsifiable verification before dispatch.
-The worker may add stronger checks but cannot lower the gate.
+Ordinary work needs no extra challenge call. A specific high-consequence risk,
+uncertain root cause, or conflicting evidence may justify one bounded read-only
+challenge. Judge consequence separately from implementation difficulty: even a
+small authorization change can merit scrutiny. If independent review is needed,
+use a fresh context that did not implement the candidate, supply the original
+requirements and actual diff, and keep the reviewer read-only. It produces
+evidence, not a second controller or automatic approval.
 
-Examples:
+## Recovery and final review
 
-- Code: exact test/build command, expected scope, exit code, and affected tests.
-- Configuration: load with the real parser and assert required fields.
-- UI: start the runnable product, complete the named path, inspect console and
-  visual output, and capture evidence when needed.
-- Documentation/design: render or open the final artifact and inspect required
-  content and layout.
-- Research: cite primary sources, separate fact from inference, and map findings
-  to every Requirement ID.
+Distinguish FIX (work remains) from BLOCKED (no safe next action). A failing
+test, a missing result heading, or a useful second correction is normally FIX.
 
-Evidence must bind to the final candidate through a commit plus complete diff or
-an exact changed-file snapshot. If the candidate changes, affected evidence is
-stale. File existence, successful transport, a disconnected exit code,
-"looks correct," or a worker's confidence is not evidence.
+A Correction Packet can be brief: failed requirement, Failure class, exact
+evidence, same-scope Delta, and the check that must pass. Fix the packet before
+retrying; a new attempt needs a changed hypothesis or meaningful new evidence.
+A worker may repair and rerun within its existing task authorization. The
+controller may reassign a mechanical task to Terra or a difficult independent
+unit to Sol when new evidence warrants it. Skip intermediate tiers when they
+add no value; do not require a failed lower-tier attempt first. Astra retains
+inseparable decisions. Use the safe handoff above, not a new user approval.
 
-The controller verifies the verifier: the check must target the correct final
-candidate, exercise the intended requirement, use the expected scope, retain a
-falsifiable passing condition, and produce the required artifact. Wrong-module,
-tautological, existence-only, skipped, unexpected test/lockfile-mutating, or
-candidate-unbound checks fail under `evidence_quality`.
-
-## 7. Review and correction
-
-Review artifact-first:
-
-1. Original request and `done_when`.
-2. Baseline, dirty-worktree state, and actual changed paths.
-3. Real files and complete diff.
-4. Verification output and artifacts.
-5. Requirement coverage.
-6. Worker summaries and self-assessments.
-
-Return:
+Track consecutive no-progress attempts. Stop that path after two, or earlier
+on a user limit, exhausted budget, safety boundary, or no safe next action.
+The controller can choose a genuinely different safe approach within scope;
+escalation and resume must not erase attempt history or disguise identical retries.
+Report a true blocker only after safe alternatives are exhausted.
 
 ```yaml
 verdict: PASS | FIX | BLOCKED
 requirements_coverage:
   - requirement: REQ-1
     status: satisfied | unsatisfied | blocked
-    evidence: "Exact file, diff, output, or artifact"
+    evidence: "File, diff, command output, or artifact"
 findings: []
 required_fixes: []
 residual_suggestions: []
@@ -217,70 +213,14 @@ evidence_quality: sufficient | insufficient
 remaining_risks: []
 ```
 
-`PASS` requires every Requirement ID to be satisfied and evidenced, no
-out-of-scope write, and verification bound to the final candidate. Optional
-improvements remain residual and do not change a valid `PASS`. Any unsatisfied
-Requirement ID is gating work, not a suggestion.
+PASS requires all requested criteria supported by current evidence. Keep optional
+improvements separate. A plan is not a stop point in authorized implementation.
+A status inquiry does not revoke authorization. New destructive/external actions,
+consequential unresolved choices, or actual permission boundaries still require
+the Host to stop and obtain direction. Cite the specific constraint, not a generic
+“protocol requires approval.”
 
-Issue at most one focused Correction Packet to the original owner. Keep the same
-scope and include:
-
-```text
-Failure class: <non-none allowed class>
-Finding: <specific failed requirement or evidence defect>
-Delta: <changed instruction, narrowed action, or new evidence>
-Verification: <unchanged or stronger falsifiable gate>
-```
-
-Do not relaunch an identical packet without new evidence. Do not use a failed
-task as permission for broader refactoring.
-
-## 8. Failure handling
-
-Classify a failure before retrying:
-
-- `model_identity`: requested profile cannot be proved; fail closed.
-- `permission`: effective boundary cannot safely support the authorized action.
-- `scope`: changed path or side effect exceeded the packet.
-- `verification` or `evidence_quality`: result lacks falsifiable proof.
-- `dependency`: prerequisite or environment is unavailable.
-- `conflict`: worker results or ownership claims disagree.
-- `runtime` or `timeout`: transport/runtime failed.
-
-First inspect whether the packet was ambiguous. Repair the packet when that is
-the cause, then allow at most one narrow retry/fix under the ownership rules.
-Escalate conflicting results to the controller for arbitration; never
-mechanically merge summaries or let a worker approve itself.
-
-## 9. Continuity
-
-After authorization, a plan is not a stop point. Continue through approved
-stages unless a new permission request, irreversible choice, real blocker,
-explicit cancellation, replacement, or redirection appears. A status inquiry
-does not pause work. User urgency does not lower the verification gate.
-
-The Host sets a bounded planning timebox proportional to task risk and size.
-When it expires, the controller returns the smallest executable graph, a
-concrete decision, or the exact missing evidence; it does not continue
-open-ended analysis. If a later stage becomes blocked, deliver any earlier
-stage whose Requirement IDs and final-candidate evidence are complete, and
-label the remaining blocker without upgrading partial evidence into overall
-`PASS`.
-
-For long, interrupted, or context-compressed runs only, persist:
-
-```yaml
-run_id: "stable id"
-goal: "current goal"
-completed: []
-in_flight: []
-ownership: {}
-requirement_coverage: {}
-candidate_identity: "commit+diff or snapshot"
-attempts: {}
-artifact_location: "path or record"
-next_action: "one concrete action"
-```
-
-On resume, rebuild state from real artifacts, do not redispatch completed tasks,
-do not reset attempts, and re-plan or return `BLOCKED` on candidate mismatch.
+For long/interrupted work, a resume packet records goal, completed evidence,
+in-flight tasks, ownership, candidate_identity, attempts, artifact_location, and
+next_action. Reconcile it with the live workspace; never redispatch completed
+work or reset attempt history.

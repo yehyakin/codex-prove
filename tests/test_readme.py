@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import re
+import tomllib
 import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -553,46 +554,29 @@ class ReadmeContractTests(unittest.TestCase):
             for color in CONTROL_ORBIT_PALETTE:
                 self.assertIn(color, source, path.name)
 
-    def test_readmes_publish_role_and_route_hierarchies(self) -> None:
-        documents = self.readme_documents()
-        specs = {
-            CHINESE_README: (
-                "### 角色层级",
-                "### 路由选择",
-                ("**Controller**", "**Complex worker**", "**Efficient worker**"),
-                ("**Direct**", "**Controller-only**", "**Controller → efficient**", "**Controller → complex**"),
-            ),
-            ENGLISH_README: (
-                "### Role hierarchy",
-                "### Route selection",
-                ("**Controller**", "**Complex worker**", "**Efficient worker**"),
-                ("**Direct**", "**Controller-only**", "**Controller → efficient**", "**Controller → complex**"),
-            ),
-        }
-        for path, text in documents.items():
-            role_heading, route_heading, role_order, route_order = specs[path]
-            self.assertIn(role_heading, text, f"{path.name}: missing role hierarchy section")
-            self.assertIn(route_heading, text, f"{path.name}: missing route selection section")
-            role_start = text.index(role_heading)
-            route_start = text.index(route_heading, role_start)
-            next_heading = text.find("\n### ", route_start + len(route_heading))
-            route_end = len(text) if next_heading == -1 else next_heading
-            role_block = text[role_start:route_start]
-            route_block = text[route_start:route_end]
-            for signal in role_order:
-                self.assertIn(signal, role_block, f"{path.name}: role hierarchy missing {signal}")
-            for signal in route_order:
-                self.assertIn(signal, route_block, f"{path.name}: route hierarchy missing {signal}")
-            self.assertEqual(
-                sorted(role_order, key=role_block.index),
-                list(role_order),
-                f"{path.name}: role hierarchy must be Controller -> Complex -> Efficient",
-            )
-            self.assertEqual(
-                sorted(route_order, key=route_block.index),
-                list(route_order),
-                f"{path.name}: route hierarchy must be Direct -> Controller-only -> efficient -> complex",
-            )
+    def test_readmes_publish_the_configured_profiles_without_freezing_layout(self) -> None:
+        # Model, effort, and permission facts must match TOML. Headings and
+        # marketing order are not part of the runtime contract.
+        profiles = [
+            tomllib.loads(path.read_text(encoding="utf-8"))
+            for path in sorted((ROOT / ".codex/agents").glob("prove-*.toml"))
+        ]
+        for path, text in self.readme_documents().items():
+            table_rows = [line for line in text.splitlines() if line.startswith("|")]
+            for profile in profiles:
+                matching = [
+                    line for line in table_rows
+                    if profile["name"] in line and "gpt-" in line
+                ]
+                self.assertEqual(1, len(matching), f"{path.name}: profile row {profile['name']}")
+                for key in ("model", "model_reasoning_effort", "sandbox_mode"):
+                    self.assertIn(profile[key], matching[0], f"{path.name}: {key} drift")
+            for route in ("Direct", "Controller-only", "Efficient worker", "Complex worker"):
+                self.assertIn(route, text, f"{path.name}: route missing {route}")
+            self.assertIn("v1.1", text)
+            self.assertIn("Ponytail", text)
+            self.assertIn("2026-08-04", text)
+            self.assertRegex(text, r"Historical scope|历史口径")
 
     def test_readmes_cover_layout_testing_limitations_prior_art_and_license(self) -> None:
         documents = self.readme_documents()
@@ -610,7 +594,7 @@ class ReadmeContractTests(unittest.TestCase):
             for topic in required_topics:
                 self.assertRegex(text, topic, f"{path.name}: missing final documentation topic {topic}")
 
-    def test_readmes_explain_the_two_role_runtime_and_platform_quickstarts(self) -> None:
+    def test_readmes_explain_worker_profiles_and_platform_quickstarts(self) -> None:
         documents = self.readme_documents()
         signals = (
             "$codex-prove",
@@ -784,8 +768,9 @@ class ReadmeContractTests(unittest.TestCase):
             "prove-controller",
             "prove-efficient-worker",
             "prove-complex-worker",
-            "gpt-5.6-sol",
-            "gpt-5.6-luna",
+            "prove-specialist-worker",
+            "gpt-6-sol",
+            "gpt-6-luna",
             "gpt-5.6-terra",
             "https://developers.openai.com/api/docs/models/compare",
             "https://help.openai.com/en/articles/20001106-codex-rate-card",

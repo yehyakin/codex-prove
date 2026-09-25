@@ -1,0 +1,117 @@
+{
+  "migration_advice": {
+    "model": "jev-1.13.0",
+    "state": {
+      "purpose": "Advisory assessment of a Codex skill model refresh. These are supplied research facts and proposed choices, not measured task outcomes. Jev is not browsing, coding, authorizing actions, or certifying model quality.",
+      "user_priorities": [
+        "Keep Astra as the sole controller for coordinated work.",
+        "Tiny deterministic work stays Direct with zero delegation.",
+        "Reduce maintenance and unnecessary approval pauses without weakening scope, ownership or real verification.",
+        "The user requested research on newly released GPT-6 Sol and Luna, followed by iteration of the skill."
+      ],
+      "current_candidate": {
+        "controller": "gpt-6-astra / high, independent controller is read-only",
+        "specialist": "gpt-5.6-sol / high, difficult separable implementation or targeted review",
+        "regular": "gpt-5.6-terra / high, routine implementation, testing and integration under settled requirements",
+        "efficient": "gpt-5.6-luna / max, mechanical batches with objective verification",
+        "coordination": "Choose only needed workers directly. No mandatory chain through every model. Workers are leaves. One active writer per scope. Missing evidence is usually FIX, not a fresh authorization request.",
+        "validation": "Existing candidate is uninstalled and unpublished. Historical probes exist but there is no matched quality, latency or total-cost comparison using the new Sol and Luna."
+      },
+      "official_evidence": [
+        {
+          "source": "https://developers.openai.com/api/docs/changelog",
+          "retrieved": "2026-09-24",
+          "fact": "GPT-6 Sol and GPT-6 Luna were released on September 22, 2026."
+        },
+        {
+          "source": "https://developers.openai.com/api/docs/models/gpt-6-sol",
+          "retrieved": "2026-09-24",
+          "fact": "GPT-6 Sol is positioned for complex coding and agentic workflows. Supports high reasoning effort and reasoning with tools through Responses. Standard short-context input/output prices are USD 2/10 per million tokens."
+        },
+        {
+          "source": "https://developers.openai.com/api/docs/models/gpt-6-luna",
+          "retrieved": "2026-09-24",
+          "fact": "GPT-6 Luna is positioned for focused high-volume tasks. Supports max reasoning effort and reasoning with tools through Responses. Standard short-context input/output prices are USD 0.10/0.50 per million tokens."
+        },
+        {
+          "source": "https://developers.openai.com/api/docs/pricing",
+          "retrieved": "2026-09-24",
+          "fact": "At the same Standard short-context processing tier, old Sol input/output is USD 4/20, Terra 2/12 and old Luna 0.20/1.20 per million tokens. New Sol has equal input price and lower output price than Terra. These rates alone establish no task-quality, elapsed-time, token-volume or ChatGPT-credit result."
+        },
+        {
+          "source": "https://developers.openai.com/api/docs/guides/latest-model",
+          "retrieved": "2026-09-24",
+          "fact": "Migration guidance says to preserve current effective reasoning effort where supported and compare results on representative tasks when changing it."
+        }
+      ],
+      "options": {
+        "staged_refresh": "Upgrade specialist to GPT-6 Sol high and efficient to GPT-6 Luna max. Keep Astra and Terra and all role IDs/scopes. Validate real calls and current task boundaries. Evaluate merging the two execution tiers separately; do not claim new performance savings yet.",
+        "three_tier_now": "Immediately make Astra controller, GPT-6 Sol the combined routine/difficult executor, and GPT-6 Luna the efficient executor. Retain Terra only as an explicitly selected compatibility option. Fewer default routing distinctions, but routine replacement lacks matched task evidence.",
+        "effort_reduction_now": "Upgrade Sol and Luna and lower Luna's default effort from max to medium immediately to target latency. Current workflow has no comparison showing acceptable quality at the lower effort.",
+        "wait_for_full_benchmark": "Do not change active source defaults until a broad cross-project benchmark is complete. Minimizes default changes but delays narrow, testable adoption."
+      },
+      "representative_cases": [
+        "A one-line button label change: deterministic, no delegation value.",
+        "Mechanical JSON cleanup across many files: remove one exact top-level key while preserving nested content and unrelated fields.",
+        "Routine pagination feature with established interfaces and boundary tests.",
+        "Difficult installer recovery review: a rollback move can fail after a transaction partially changes files; original recoverable copies must survive.",
+        "Two agents request overlapping writes: only one active writer, independent readers may proceed.",
+        "Worker declares PASS but required verification is absent: obtain the missing check within existing authority."
+      ]
+    },
+    "questions": {
+      "first_iteration": {
+        "type": "choice",
+        "instructions": "Which proposed option in `options` is the most defensible next source iteration given `user_priorities`, `current_candidate` and `official_evidence`? Evaluate adoption speed, scope preservation and current evidence together, not just token rates.",
+        "criteria": {
+          "staged_refresh": "Upgrade the two requested model generations in their existing roles, then evaluate broader routing changes.",
+          "three_tier_now": "Consolidate the routine and difficult execution lanes immediately; keep Terra as optional compatibility.",
+          "effort_reduction_now": "Upgrade models and immediately reduce Luna effort to medium.",
+          "wait_for_full_benchmark": "Defer all source default changes until a broad benchmark.",
+          "insufficient_context": "The supplied facts cannot support choosing a next iteration."
+        }
+      },
+      "highest_value_next_comparison": {
+        "type": "choice",
+        "instructions": "Assuming the two new model IDs pass basic real-call checks, which next comparison would best inform reducing default routing complexity for `current_candidate`, using the work in `representative_cases`?",
+        "criteria": {
+          "sol_terra_same_regular_tasks": "Compare GPT-6 Sol high and Terra high on identical routine implementation/debug/test tasks, final correctness, retries, wall time and actual usage.",
+          "luna_effort_same_batches": "Compare GPT-6 Luna max and medium on identical mechanical batches before changing effort.",
+          "astra_sol_controller_swap": "Compare replacing the user-selected Astra controller with Sol.",
+          "new_universal_verifier": "Benchmark adding an external verifier to every task.",
+          "insufficient_context": "No comparison is sufficiently motivated by supplied evidence."
+        }
+      },
+      "ordinary_work_coverage": {
+        "type": "choice",
+        "instructions": "What does `official_evidence` establish about replacing Terra with GPT-6 Sol for the routine tasks in `current_candidate`?",
+        "criteria": {
+          "reasonable_candidate_needs_eval": "Sol's stated positioning and prices make the replacement worth testing; local quality and total cost still need comparison.",
+          "replacement_empirically_proven": "Supplied evidence already contains matched task outcomes proving replacement.",
+          "replacement_contradicted": "Supplied evidence shows Sol is unsuitable for routine execution.",
+          "insufficient_context": "Evidence does not even motivate a candidate replacement."
+        }
+      },
+      "luna_assignment_boundary": {
+        "type": "choice",
+        "instructions": "Which initial assignment boundary for GPT-6 Luna best fits the supplied task examples, documented positioning, and existing verification obligations?",
+        "criteria": {
+          "mechanical_batches_first": "Begin with explicitly defined mechanical batches and objective checks; test broader routine implementation before expanding the lane.",
+          "all_small_changes": "Delegate all small changes, including one-line edits, to Luna.",
+          "all_routine_implementation": "Immediately route every ordinary feature and bug fix to Luna.",
+          "no_supported_assignment": "There is no bounded work in the supplied examples suitable for an initial Luna probe."
+        }
+      },
+      "evidence_claim_boundary": {
+        "type": "choice",
+        "instructions": "Which cost statement is supported by `official_evidence` and `current_candidate.validation`?",
+        "criteria": {
+          "lower_unit_rates_only": "Documented token rates decreased; task-level API spending, ChatGPT allowance and time savings remain unmeasured.",
+          "lower_end_to_end_cost_proven": "The entire orchestration workflow is already proven cheaper.",
+          "lower_time_cost_proven": "New worker wall time is already proven lower.",
+          "insufficient_context": "Even the stated unit-rate comparison is not supported."
+        }
+      }
+    }
+  }
+}

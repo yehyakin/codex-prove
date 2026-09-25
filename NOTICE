@@ -54,6 +54,33 @@ workflow ideas and test patterns were used; no source text or code was copied:
   Apache-2.0
   https://github.com/Danau5tin/multi-agent-coding-system/tree/e71b80329eb9ae718ec20500a3e932ffea5fc9ac
 
-The implementation wording and code in this repository are original unless later
+The v1.1 minimal-implementation guidance is adapted from:
+
+- DietrichGebert/ponytail, commit 974d940a1c5344210874150b98ff0d2c861fab6a:
+  MIT, Copyright (c) 2026 DietrichGebert
+  https://github.com/DietrichGebert/ponytail/tree/974d940a1c5344210874150b98ff0d2c861fab6a
+  The complete MIT notice ships with the installed Skill at
+  .agents/skills/codex-prove/references/ponytail-license.txt.
+  Only the minimal-implementation guidance is adapted. The upstream plugin,
+  activation hooks, persistent modes, and benchmark results are not bundled.
+
+The v1.1 instruction-reduction design also draws on Eric Provencher's
+"Rethinking skills and prompts for GPT-6 Astra" (2026-09-04):
+https://x.com/pvncher/status/2095991462416490862
+Ideas are paraphrased with attribution; no article text or images are copied.
+
+The 2026-09-25 peer review also consulted the following MIT-licensed snapshots
+for ideas and evaluation methods only; no substantive source text or code was
+copied. Exact files, dates, and adopt/reject decisions are recorded in
+docs/research/2026-09-25-peer-orchestration.md:
+
+- da34/codex-orchestrator, df36074b74048cbca9fc987996a1e70403ec70a2
+- joserey7/codex-orchestrator, 8f559d63a67cac4661f66b10dc1f44db5af4ae8b
+- DannyMac180/sol-advisor, 37b75cad535abdd46531f0227483a8842d045ab8
+- obra/superpowers, 5bf4e78011075bcfc0dc295f0724994cd123ee71
+- DietrichGebert/ponytail, e3ba2aa6f1e6f0bc4d69eb09c9f0d0a93af56156
+- joaquinhuigomez/agent-eval, 6d062a2f5cda6ea443bf5d458d361892c04e749b
+
+The implementation wording and code in this repository are original unless
 identified otherwise. This statement does not claim that the underlying
 concepts are original.

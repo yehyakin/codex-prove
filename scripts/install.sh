@@ -98,6 +98,18 @@ assert_plain() {
   fi
 }
 
+assert_safe_directory_chain() {
+  local directory="$1"
+  while :; do
+    [[ "$directory" == "$base_dir" || "$directory" == "$base_dir/"* ]] || die 'a managed parent escapes the install root'
+    if path_exists "$directory"; then
+      [[ ! -L "$directory" && -d "$directory" ]] || die 'a managed parent is unsafe'
+    fi
+    [[ "$directory" != "$base_dir" ]] || break
+    directory=${directory%/*}
+  done
+}
+
 copy_exact() {
   if [[ -d "$1" ]]; then
     cp -a "$1" "$2"
@@ -145,12 +157,13 @@ compat_skill_source="$REPO_ROOT/.agents/skills/sol-control"
 controller_source="$REPO_ROOT/.codex/agents/prove-controller.toml"
 complex_source="$REPO_ROOT/.codex/agents/prove-complex-worker.toml"
 efficient_source="$REPO_ROOT/.codex/agents/prove-efficient-worker.toml"
+specialist_source="$REPO_ROOT/.codex/agents/prove-specialist-worker.toml"
 
 for source_dir in "$canonical_skill_source" "$compat_skill_source"; do
   [[ -d "$source_dir" && ! -L "$source_dir" ]] || die 'a source skill directory is missing or unsafe'
   assert_plain "$source_dir" directory
 done
-for source_file in "$controller_source" "$complex_source" "$efficient_source"; do
+for source_file in "$controller_source" "$complex_source" "$efficient_source" "$specialist_source"; do
   [[ -f "$source_file" && ! -L "$source_file" ]] || die 'a source agent file is missing or unsafe'
   assert_plain "$source_file" file
 done
@@ -182,17 +195,6 @@ else
 fi
 [[ "$base_dir" != / ]] || die 'refusing the filesystem root'
 
-for parent in \
-  "$base_dir/.agents" \
-  "$base_dir/.agents/skills" \
-  "$base_dir/.codex" \
-  "$base_dir/.codex/agents" \
-  "$base_dir/.codex/codex-prove"; do
-  if path_exists "$parent"; then
-    [[ ! -L "$parent" && -d "$parent" ]] || die 'an install parent is unsafe'
-  fi
-done
-
 known_relatives=(
   ".agents/skills/codex-prove"
   ".agents/skills/sol-control"
@@ -209,20 +211,23 @@ known_relatives=(
   ".codex/sol-control/install-state"
   ".codex/sol-luna/install-state"
   ".codex/orchestrate-sol-luna/install-state"
+  ".codex/agents/prove-specialist-worker.toml"
 )
 known_kinds=(
   directory directory directory directory
   file file file file file file file
-  file file file file
+  file file file file file
 )
-owned=(0 0 0 0 0 0 0 0 0 0 0 0 0 0 0)
+owned=(0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0)
 
 for (( index=0; index<${#known_relatives[@]}; index++ )); do
   target="$base_dir/${known_relatives[index]}"
+  assert_safe_directory_chain "${target%/*}"
   if path_exists "$target"; then
     assert_plain "$target" "${known_kinds[index]}"
   fi
 done
+assert_safe_directory_chain "$base_dir/.codex/codex-prove/backups"
 
 state_indexes=(11 12 13 14)
 state_count=0
@@ -249,12 +254,15 @@ if (( active_state_index >= 0 )); then
   active_state="$base_dir/${known_relatives[active_state_index]}"
   state_version=$(state_value "$active_state" version) || die 'install state is incomplete'
   case "$active_state_index:$state_version" in
-    11:5)
+    11:5|11:6)
       verify_owned 0 "$(state_value "$active_state" skill_sha256)"
       verify_owned 1 "$(state_value "$active_state" compat_skill_sha256)"
       verify_owned 4 "$(state_value "$active_state" controller_sha256)"
       verify_owned 5 "$(state_value "$active_state" complex_worker_sha256)"
       verify_owned 6 "$(state_value "$active_state" efficient_worker_sha256)"
+      if [[ "$state_version" == 6 ]]; then
+        verify_owned 15 "$(state_value "$active_state" specialist_worker_sha256)"
+      fi
       owned[11]=1
       ;;
     12:3|12:4)
@@ -318,7 +326,7 @@ fi
 mkdir "$backup_dir" "$backup_dir/entries"
 
 manifest_tmp="$backup_dir/.manifest.tmp"
-printf 'version=5\nentry_count=%s\n' "${#known_relatives[@]}" >"$manifest_tmp"
+printf 'version=6\nentry_count=%s\n' "${#known_relatives[@]}" >"$manifest_tmp"
 for (( index=0; index<${#known_relatives[@]}; index++ )); do
   number=$((index + 1))
   relative=${known_relatives[index]}
@@ -357,23 +365,37 @@ copy_exact "$compat_skill_source" "$transaction_dir/stage/sol-control"
 copy_exact "$controller_source" "$transaction_dir/stage/prove-controller.toml"
 copy_exact "$complex_source" "$transaction_dir/stage/prove-complex-worker.toml"
 copy_exact "$efficient_source" "$transaction_dir/stage/prove-efficient-worker.toml"
+copy_exact "$specialist_source" "$transaction_dir/stage/prove-specialist-worker.toml"
+touched=(0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0)
 
 rollback() {
   local status=$?
+  local recovery_failed=0
   trap - EXIT INT TERM
+  (( status != 0 )) || status=1
   for (( index=${#known_relatives[@]} - 1; index>=0; index-- )); do
+    # A signal can arrive after mv succeeds but before touched is assigned.
+    if (( ! touched[index] )) && ! path_exists "$transaction_dir/old/$index"; then continue; fi
     target="$base_dir/${known_relatives[index]}"
     if path_exists "$target"; then
-      mkdir -p "$transaction_dir/failed/$index"
-      mv "$target" "$transaction_dir/failed/$index/current" 2>/dev/null || true
+      if ! mkdir -p "$transaction_dir/failed/$index" ||
+        ! mv "$target" "$transaction_dir/failed/$index/current"; then
+        recovery_failed=1
+        continue # Never restore over a target that could not be evacuated.
+      fi
     fi
     if path_exists "$transaction_dir/old/$index"; then
-      ensure_dir "${target%/*}"
-      mv "$transaction_dir/old/$index" "$target" 2>/dev/null || true
+      if ! mkdir -p "${target%/*}" || ! mv "$transaction_dir/old/$index" "$target"; then
+        recovery_failed=1
+      fi
     fi
   done
-  rm -rf "$transaction_dir" 2>/dev/null || true
-  cleanup_dirs
+  if (( recovery_failed )); then
+    printf 'install.sh: rollback incomplete. Recovery path: %s\n' "$transaction_dir" >&2
+  else
+    rm -rf "$transaction_dir" 2>/dev/null || true
+    cleanup_dirs
+  fi
   exit "$status"
 }
 trap rollback EXIT INT TERM
@@ -382,14 +404,17 @@ for (( index=0; index<${#known_relatives[@]}; index++ )); do
   target="$base_dir/${known_relatives[index]}"
   if path_exists "$target"; then
     mv "$target" "$transaction_dir/old/$index"
+    touched[index]=1
   fi
 done
 
+for index in 0 1 4 5 6 11 15; do touched[index]=1; done
 mv "$transaction_dir/stage/codex-prove" "$base_dir/.agents/skills/codex-prove"
 mv "$transaction_dir/stage/sol-control" "$base_dir/.agents/skills/sol-control"
 mv "$transaction_dir/stage/prove-controller.toml" "$base_dir/.codex/agents/prove-controller.toml"
 mv "$transaction_dir/stage/prove-complex-worker.toml" "$base_dir/.codex/agents/prove-complex-worker.toml"
 mv "$transaction_dir/stage/prove-efficient-worker.toml" "$base_dir/.codex/agents/prove-efficient-worker.toml"
+mv "$transaction_dir/stage/prove-specialist-worker.toml" "$base_dir/.codex/agents/prove-specialist-worker.toml"
 
 if [[ "${ORCHESTRATE_FAILPOINT:-}" == after-replace ]]; then
   die 'injected failure after replacement'
@@ -400,19 +425,21 @@ compat_hash=$(sha256_tree "$base_dir/.agents/skills/sol-control")
 controller_hash=$(sha256_file "$base_dir/.codex/agents/prove-controller.toml")
 complex_hash=$(sha256_file "$base_dir/.codex/agents/prove-complex-worker.toml")
 efficient_hash=$(sha256_file "$base_dir/.codex/agents/prove-efficient-worker.toml")
-for checksum in "$skill_hash" "$compat_hash" "$controller_hash" "$complex_hash" "$efficient_hash"; do
+specialist_hash=$(sha256_file "$base_dir/.codex/agents/prove-specialist-worker.toml")
+for checksum in "$skill_hash" "$compat_hash" "$controller_hash" "$complex_hash" "$efficient_hash" "$specialist_hash"; do
   valid_hash "$checksum" || die 'an installed checksum is invalid'
 done
 
 state_tmp=$(mktemp "$state_root/.install-state.XXXXXX") || die 'cannot create install state'
 {
-  printf 'version=5\n'
+  printf 'version=6\n'
   printf 'backup_id=%s\n' "$backup_id"
   printf 'skill_sha256=%s\n' "$skill_hash"
   printf 'compat_skill_sha256=%s\n' "$compat_hash"
   printf 'controller_sha256=%s\n' "$controller_hash"
   printf 'complex_worker_sha256=%s\n' "$complex_hash"
   printf 'efficient_worker_sha256=%s\n' "$efficient_hash"
+  printf 'specialist_worker_sha256=%s\n' "$specialist_hash"
 } >"$state_tmp"
 mv "$state_tmp" "$state_root/install-state"
 
@@ -420,13 +447,19 @@ if [[ "${ORCHESTRATE_FAILPOINT:-}" == after-state ]]; then
   die 'injected failure after state'
 fi
 
-rm -rf "$transaction_dir"
-transaction_dir=
+# Commit before destroying recovery data. Cleanup failure is not a rollback.
 trap - EXIT INT TERM
+if ! rm -rf "$transaction_dir"; then
+  printf 'install.sh: installation committed; cleanup incomplete. Recovery path: %s\n' "$transaction_dir" >&2
+  printf 'Install path: %s\nBackup path: %s\n' "$base_dir/.agents/skills/codex-prove" "$backup_dir" >&2
+  exit 1
+fi
+transaction_dir=
 
 printf 'Install path: %s\n' "$base_dir/.agents/skills/codex-prove"
 printf 'Compatibility path: %s\n' "$base_dir/.agents/skills/sol-control"
 printf 'Agent path: %s\n' "$base_dir/.codex/agents/prove-controller.toml"
 printf 'Agent path: %s\n' "$base_dir/.codex/agents/prove-complex-worker.toml"
 printf 'Agent path: %s\n' "$base_dir/.codex/agents/prove-efficient-worker.toml"
+printf 'Agent path: %s\n' "$base_dir/.codex/agents/prove-specialist-worker.toml"
 printf 'Backup path: %s\n' "$backup_dir"

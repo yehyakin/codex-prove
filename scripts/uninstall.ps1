@@ -20,17 +20,31 @@ function Test-ReparsePoint {
 function Assert-PlainPath {
     param(
         [Parameter(Mandatory = $true)][string]$Path,
-        [Parameter(Mandatory = $true)][ValidateSet("Directory", "File")][string]$Kind
+        [Parameter(Mandatory = $true)][ValidateSet("Directory", "File")][string]$Kind,
+        [switch]$Shallow
     )
     if (-not (Test-PathExists $Path)) { throw "managed path is missing" }
     $item = Get-Item -LiteralPath $Path -Force
     if (Test-ReparsePoint $item) { throw "reparse points are not allowed in managed paths" }
     if ($Kind -eq "Directory" -and -not $item.PSIsContainer) { throw "a managed directory has the wrong type" }
     if ($Kind -eq "File" -and $item.PSIsContainer) { throw "a managed file has the wrong type" }
-    if ($item.PSIsContainer) {
+    if ($item.PSIsContainer -and -not $Shallow) {
         Get-ChildItem -LiteralPath $Path -Force -Recurse | ForEach-Object {
             if (Test-ReparsePoint $_) { throw "reparse points are not allowed in managed trees" }
         }
+    }
+}
+
+function Assert-SafeDirectoryChain {
+    param([Parameter(Mandatory = $true)][string]$Path)
+    $directory = [System.IO.Path]::GetFullPath($Path)
+    while ($true) {
+        if ($directory -ne $baseDir -and -not $directory.StartsWith($baseDir + [System.IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase)) {
+            throw "a managed parent escapes the install root"
+        }
+        if (Test-PathExists $directory) { Assert-PlainPath $directory "Directory" -Shallow }
+        if ($directory -eq $baseDir) { break }
+        $directory = Split-Path -Parent $directory
     }
 }
 
@@ -121,7 +135,8 @@ if ([string]::IsNullOrWhiteSpace($rawBase)) { $rawBase = [Environment]::GetFolde
 if ([string]::IsNullOrWhiteSpace($rawBase) -or -not [System.IO.Path]::IsPathRooted($rawBase)) { throw "ORCHESTRATE_HOME must be an absolute path" }
 $baseDir = [System.IO.Path]::GetFullPath($rawBase)
 if ($baseDir -eq [System.IO.Path]::GetPathRoot($baseDir)) { throw "refusing the filesystem root" }
-Assert-PlainPath $baseDir "Directory"
+$baseDir = $baseDir.TrimEnd([char[]]"/\")
+Assert-PlainPath $baseDir "Directory" -Shallow
 
 $relativePaths = @(
     ".agents/skills/codex-prove",
@@ -138,22 +153,32 @@ $relativePaths = @(
     ".codex/codex-prove/install-state",
     ".codex/sol-control/install-state",
     ".codex/sol-luna/install-state",
-    ".codex/orchestrate-sol-luna/install-state"
+    ".codex/orchestrate-sol-luna/install-state",
+    ".codex/agents/prove-specialist-worker.toml"
 )
 $kinds = @(
     "Directory", "Directory", "Directory", "Directory",
     "File", "File", "File", "File", "File", "File", "File",
-    "File", "File", "File", "File"
+    "File", "File", "File", "File", "File"
 )
 $managedIndexes = @(0, 1, 4, 5, 6)
 $managedKeys = @("skill_sha256", "compat_skill_sha256", "controller_sha256", "complex_worker_sha256", "efficient_worker_sha256")
+
+foreach ($relative in $relativePaths) {
+    Assert-SafeDirectoryChain (Split-Path -Parent (Join-Path $baseDir $relative))
+}
 
 $stateRoot = Join-Path $baseDir ".codex/codex-prove"
 $stateFile = Join-Path $stateRoot "install-state"
 $backupRoot = Join-Path $stateRoot "backups"
 Assert-PlainPath $stateFile "File"
 $state = Get-StateMap $stateFile
-if ((Get-StateValue $state "version") -ne "5") { throw "unsupported Codex PROVE install state" }
+$stateVersion = Get-StateValue $state "version"
+if (@("5", "6") -notcontains $stateVersion) { throw "unsupported Codex PROVE install state" }
+if ($stateVersion -eq "6") {
+    $managedIndexes += 15
+    $managedKeys += "specialist_worker_sha256"
+}
 $backupId = Get-StateValue $state "backup_id"
 if ($backupId -notmatch "^[A-Za-z0-9._-]+$" -or $backupId -eq "." -or $backupId -eq "..") { throw "unsafe backup identifier" }
 
@@ -170,11 +195,13 @@ $backupDir = Join-Path $backupRoot $backupId
 $manifestPath = Join-Path $backupDir "manifest"
 $manifest = $null
 if ($RestoreLatest) {
+    Assert-SafeDirectoryChain (Join-Path $backupDir "entries")
     Assert-PlainPath $backupDir "Directory"
     Assert-PlainPath $manifestPath "File"
     $manifest = Get-StateMap $manifestPath
-    if ((Get-StateValue $manifest "version") -ne "5") { throw "unsupported backup manifest" }
-    if ((Get-StateValue $manifest "entry_count") -ne [string]$relativePaths.Count) { throw "backup manifest has the wrong entry count" }
+    $manifestVersion = Get-StateValue $manifest "version"
+    $manifestCount = Get-StateValue $manifest "entry_count"
+    if (@("5:15", "6:16") -notcontains "${manifestVersion}:$manifestCount") { throw "unsupported backup manifest version or entry count" }
 }
 
 $transactionDir = Join-Path $stateRoot (".uninstall." + [Guid]::NewGuid().ToString("N"))
@@ -184,7 +211,7 @@ $failedDir = Join-Path $transactionDir "failed"
 foreach ($directory in @($transactionDir, $currentDir, $stageDir, $failedDir)) { Ensure-Directory $directory }
 
 if ($RestoreLatest) {
-    for ($index = 0; $index -lt $relativePaths.Count; $index++) {
+    for ($index = 0; $index -lt [int]$manifestCount; $index++) {
         $number = $index + 1
         $recordedPath = Get-StateValue $manifest "entry_${number}_path"
         $recordedKind = Get-StateValue $manifest "entry_${number}_kind"
@@ -206,10 +233,12 @@ if ($RestoreLatest) {
     }
 }
 
+$touched = New-Object bool[] $relativePaths.Count
 try {
     foreach ($index in @($managedIndexes + 11)) {
         $target = Join-Path $baseDir $relativePaths[$index]
         Move-Item -LiteralPath $target -Destination (Join-Path $currentDir ([string]$index))
+        $touched[$index] = $true
     }
 
     if ($RestoreLatest) {
@@ -219,6 +248,7 @@ try {
                 $target = Join-Path $baseDir $relativePaths[$index]
                 if (Test-PathExists $target) { throw "restore target unexpectedly exists" }
                 Ensure-Directory (Split-Path -Parent $target)
+                $touched[$index] = $true
                 Move-Item -LiteralPath $source -Destination $target
             }
         }
@@ -227,20 +257,29 @@ try {
     if ($env:ORCHESTRATE_FAILPOINT -eq "after-remove") { throw "injected failure after removal" }
 }
 catch {
+    $originalError = $_
+    $recoveryFailed = $false
     for ($index = $relativePaths.Count - 1; $index -ge 0; $index--) {
-        $target = Join-Path $baseDir $relativePaths[$index]
-        if (Test-PathExists $target) {
-            Ensure-Directory (Join-Path $failedDir ([string]$index))
-            Move-Item -LiteralPath $target -Destination (Join-Path (Join-Path $failedDir ([string]$index)) "current") -ErrorAction SilentlyContinue
-        }
         $current = Join-Path $currentDir ([string]$index)
-        if (Test-PathExists $current) {
-            Ensure-Directory (Split-Path -Parent $target)
-            Move-Item -LiteralPath $current -Destination $target -ErrorAction SilentlyContinue
+        if (-not $touched[$index] -and -not (Test-PathExists $current)) { continue }
+        $target = Join-Path $baseDir $relativePaths[$index]
+        try {
+            if (Test-PathExists $target) {
+                Ensure-Directory (Join-Path $failedDir ([string]$index))
+                Move-Item -LiteralPath $target -Destination (Join-Path (Join-Path $failedDir ([string]$index)) "current") -ErrorAction Stop
+            }
+            if (Test-PathExists $current) {
+                Ensure-Directory (Split-Path -Parent $target)
+                Move-Item -LiteralPath $current -Destination $target -ErrorAction Stop
+            }
+        }
+        catch {
+            $recoveryFailed = $true
         }
     }
-    if (Test-PathExists $transactionDir) { Remove-Item -LiteralPath $transactionDir -Recurse -Force }
-    throw
+    if ($recoveryFailed) { Write-Warning "rollback incomplete. Recovery path: $transactionDir" }
+    elseif (Test-PathExists $transactionDir) { Remove-Item -LiteralPath $transactionDir -Recurse -Force }
+    throw $originalError
 }
 
 Remove-Item -LiteralPath $transactionDir -Recurse -Force

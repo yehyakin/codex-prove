@@ -38,6 +38,7 @@ class RenameMigrationContractTests(unittest.TestCase):
             "prove-controller.toml",
             "prove-complex-worker.toml",
             "prove-efficient-worker.toml",
+            "prove-specialist-worker.toml",
         ):
             self.assertTrue((ROOT / ".codex" / "agents" / name).is_file(), name)
         active_names = {path.name for path in (ROOT / ".codex" / "agents").glob("*.toml")}
@@ -69,18 +70,14 @@ class RenameMigrationContractTests(unittest.TestCase):
             self.assertIn("orchestrate-sol-luna", text, relative)
             self.assertIn("prove-controller", text, relative)
 
-    def test_custom_agent_launch_contract_requires_fresh_context(self) -> None:
-        surfaces = (
-            CANONICAL / "SKILL.md",
-            CANONICAL / "references" / "orchestration.md",
-            CANONICAL / "references" / "runtime-notes.md",
-        )
-        for surface in surfaces:
-            text = read(surface)
-            self.assertIn('fork_turns="none"', text, surface)
-            self.assertIn("identity", text.lower(), surface)
-            self.assertIn("handshake", text.lower(), surface)
-            self.assertIn("BLOCKED", text, surface)
+    def test_custom_agent_launch_contract_has_one_canonical_runtime_reference(self) -> None:
+        entry = read(CANONICAL / "SKILL.md")
+        runtime = read(CANONICAL / "references" / "runtime-notes.md")
+        self.assertIn("references/runtime-notes.md", entry)
+        self.assertIn('fork_turns="none"', runtime)
+        self.assertIn("authoritative", runtime)
+        self.assertIn("Fail Closed", runtime)
+        # Do not require the whole handshake policy to be duplicated in every file.
 
 
 if __name__ == "__main__":

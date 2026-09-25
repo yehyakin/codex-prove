@@ -1,159 +1,93 @@
-# Codex PROVE runtime profiles
+# Runtime selection and recovery
 
-Use this reference for agent selection, identity proof, dispatch mode, capacity,
-model replacement, and runtime failure handling.
+Read only for agent launch or a runtime problem. Direct work needs no agent proof.
+The Host owns authority; runtime capability is not permission.
 
-## Contents
+The source profiles are `.codex/agents/prove-controller.toml`,
+`prove-specialist-worker.toml`, `prove-complex-worker.toml`, and
+`prove-efficient-worker.toml`. Update the
+selected model in these profiles, not the brand, invocation, or role names.
+The stable `prove-complex-worker` ID remains Terra's regular execution lane;
+`prove-specialist-worker` adds Sol without renaming existing installed agents.
 
-1. Stable roles and current defaults
-2. Two-turn launch proof
-3. Native Nested and Compatibility
-4. Capacity and batching
-5. Model replacement
-6. Failure rules
+## Select and record, do not ask for self-attestation
 
-## 1. Stable roles and current defaults
+Use the configured role, model, and reasoning effort. Launch in a fresh context
+with `fork_turns="none"` and the task-local packet. Check the authoritative
+Host/tool role mapping together with the actual launch record once per launch.
+A TOML file or a friendly agent name alone does not prove the selected model.
 
-The role names are deliberately model-neutral:
+The complete task may be sent on the first turn. No identity-only handshake,
+mandatory idle turn, or child self-report of hidden model metadata is required.
+If the runtime does not expose a model field to the child, that absence is not
+a blocker when the Host's authoritative selection is available.
 
-| Agent type | Capability role | Default model | Reasoning | Requested sandbox |
-|---|---|---|---|---|
-| `prove-controller` | planning, routing, ownership, sole final review | `gpt-5.6-sol` | `high` | `read-only` |
-| `prove-complex-worker` | ambiguous, cross-module, long-context, high-consequence execution | `gpt-5.6-terra` | `high` | `workspace-write` |
-| `prove-efficient-worker` | clear, bounded, falsifiable, high-throughput execution | `gpt-5.6-luna` | `max` | `workspace-write` |
+A matching current Host may act as controller if its model and effort are
+authoritatively known and match the selected controller profile. Do not spawn a
+duplicate controller just to satisfy a ritual. If the Host also implements, say
+so; its own review is not an independent reviewer.
 
-These values are the v1.0 default profile, not the product identity. Plans use
-`complex` and `efficient`; they do not hard-code a model brand. Never silently
-replace a configured model, reasoning effort, agent type, or permission
-boundary.
+If custom-agent selection is unavailable or its mapping is stale but the runtime
+supports explicit model and effort selection, use a fresh generic agent with
+those exact settings and the same profile instructions and task boundary.
+Record this as an explicit-profile launch, not a successfully selected custom
+agent. Do not assume its sandbox matches the profile.
 
-## 2. Two-turn launch proof
+## Native Nested / Compatibility
 
-Launch each custom agent with `fork_turns="none"`.
+Use **Native Nested** (Host → controller → workers) only when custom or explicit
+model selection is supported, nesting depth permits it, capacity is available,
+and a real launch has demonstrated it. Configuration intent alone is not proof.
+The controller must pass along the same task, ownership, and permission bounds.
 
-### Turn 1: identity and capability only
+Otherwise use **Compatibility**: the controller returns the graph, the Host
+launches workers, and the controller reviews their real artifacts. Missing
+nesting depth does not block this mode. Both modes use the same evidence gate.
 
-The Host records:
+Respect the runtime's live capacity; configured maxima are ceilings, not free
+slots. Unknown capacity means launch conservatively and queue, not invent a
+thread count or repeatedly ask the user. Workers do not create subagents.
 
-- requested `agent_type`;
-- authoritative role-to-model and role-to-reasoning mapping exposed by the
-  current collaboration tool/runtime;
-- `fork_turns="none"`;
-- requested sandbox or operational boundary.
+## Capability and authorization
 
-The child reports only:
+The separate controller's configured sandbox is read-only. Workers normally use
+workspace-write, strictly inside the inherited authorized scope. Some Desktop
+runtimes expose broader technical capabilities than their TOML sandbox suggests;
+record this difference and enforce operational scope without calling it isolation.
 
-- effective technical capability it can observe;
-- operational constraint it will follow;
-- zero task activity;
-- zero repository writes;
-- zero subagent launches.
+For reversible local work, inspect actual paths and diffs and preserve user edits.
+Do not claim net-change snapshots prove zero writes or process quiescence.
+When an enforceable boundary is necessary for destructive, production, credential,
+privacy-sensitive, or irreversible work, do not launch with a weaker boundary.
+A worker cannot acquire permission the Host lacks. Never route around a denied
+action through another agent, tool, or purported fallback.
 
-Do not ask the child to self-report model or reasoning metadata its surface does
-not expose. Do not inspect the repository or plan during the handshake.
+## Fail Closed on false identity, not on missing paperwork
 
-The Host combines its authoritative launch record with the child's
-no-side-effect statement. TOML contents or the child's name alone are not proof.
-If selected identity, model, reasoning effort, or fork mode cannot be proved,
-stop before sending work and return `BLOCKED`.
+Never silently substitute the model, reasoning effort, type, or permission scope.
+If authoritative selection is missing or contradictory, do not claim exact-profile
+execution or launch under an unproved identity. Correct the selection or explain
+the real capability gap. If the user requires that exact model or an independent
+review, keep that requirement blocked until it can be met.
 
-### Turn 2: bounded work
+Where the task permits it, disclose a Direct/Host continuation instead of claiming
+the unavailable profile ran. Such a change cannot satisfy an explicit exact-model
+requirement or widen authorization. A model error, quota limit, or capacity queue
+is not permission for a hidden fallback or unlimited paid retries.
 
-Send the complete controller request or worker task packet to the same verified
-agent. Reusing the verified agent preserves the identity proof without leaking
-the parent conversation. Workers must not create subagents.
+Repair non-security omissions from existing evidence without repeated user
+approval. BLOCKED is reserved for absent required capability, irreconcilable
+ownership, missing authority, or no safe remaining action. Preserve verified
+partial results and identify exactly what remains unavailable.
 
-The controller remains operationally read-only. Prefer an enforced read-only
-sandbox. When the runtime exposes broader access, use Host-owned before/after
-changed-path snapshots to prove zero controller writes.
+## Lifecycle
 
-## 3. Native Nested and Compatibility
+A timeout is an observation, not proof a worker or command stopped. Inspect
+lifecycle and mutating processes before replacement, ownership handoff, or reusing
+that scope. Do not launch a racing writer. Capture usable artifacts, repair the
+packet, and follow the progress-based recovery limit in the orchestration protocol.
 
-Both modes use the same requirement graph, task packet, role profiles, ownership
-rules, verification threshold, result schema, and final review.
-
-### Native Nested
-
-Use only when the current runtime proves all of the following:
-
-- custom agent selection works;
-- effective `max_depth >= 2`;
-- the controller can launch workers;
-- each model and reasoning selection is proven by the Host/tool contract;
-- required permission and changed-path controls are available.
-
-Flow:
-
-```text
-Host -> prove-controller -> prove-complex-worker / prove-efficient-worker
-                         -> prove-controller review -> Host delivery
-```
-
-The controller may create only the minimum ready workers from its plan and must
-respect live capacity. Workers cannot recurse.
-
-### Compatibility
-
-Use when nesting is unavailable, unstable, over capacity, or unproven:
-
-```text
-Host -> prove-controller plan
-Host -> workers from that plan
-Host -> prove-controller final review
-Host -> delivery
-```
-
-The Host is a dispatcher, not a second controller: it follows the controller's
-task graph, preserves ownership, supplies worker results plus real artifacts,
-and returns the review packet to the same verified controller when possible.
-
-Never claim Native Nested succeeded without a real nested launch record.
-Compatibility is a first-class mode, not an unreported downgrade.
-
-## 4. Capacity and batching
-
-Capacity is runtime state. Read the current collaboration limit before launch.
-Do not encode a universal worker maximum in the Skill.
-
-- Default to one to three workers when that is sufficient.
-- Launch only dependency-ready tasks whose write scopes are disjoint.
-- If the ready frontier exceeds available slots, dispatch it in batches.
-- Keep one slot for the Host/controller relationship when the runtime requires
-  it.
-- Do not create agents to demonstrate parallelism or duplicate the same fact.
-
-Report the observed limit when it materially constrains the plan.
-
-## 5. Model replacement
-
-When OpenAI publishes a better model, keep the brand, invocation, role names,
-task schema, and evidence gates stable. Change only the capability profile after
-verification:
-
-1. Establish a matched evaluation against the current profile.
-2. Check model availability and exact runtime selection.
-3. Update the relevant `.codex/agents/prove-*.toml` model and reasoning fields.
-4. Update this default-profile table, validators, and release notes.
-5. Run static, lifecycle, routing, fail-closed, and fresh-session tests.
-6. Publish the profile change with measured limitations.
-
-Do not rename Codex PROVE for a model generation. Do not infer that a newer or
-more expensive model is automatically the right controller or worker.
-
-## 6. Failure rules
-
-- **Agent/model/reasoning unprovable:** `BLOCKED`, never label-based
-  impersonation.
-- **Requested custom role unavailable:** report the unavailable role and stop or
-  use Compatibility only if the exact configured role can still be proven.
-- **Broader capability than authorization:** record it; for reversible workspace
-  work use Host-owned scope checks. For destructive/external work require an
-  enforceable boundary or explicit broader authorization.
-- **Worker timeout or missing result:** one result-only recovery; then one narrow
-  correction only when ownership rules permit; otherwise `BLOCKED`.
-- **Conflicting worker evidence:** send real artifacts to the controller for
-  arbitration; never merge summaries mechanically.
-- **Controller writes:** fail the run, preserve evidence, and report the exact
-  changed paths.
-- **Candidate changed after verification:** mark evidence stale and rerun the
-  affected checks.
+Release idle agents when the runtime exposes that capability. Otherwise mark them
+idle, reuse compatible contexts for follow-ups, and account for occupied slots.
+No new task/thread, permanent hook, or background job is needed for ordinary
+orchestration. Keep a resume packet only when interruption or duration warrants it.

@@ -1,0 +1,135 @@
+{
+  "date": "2026-09-26",
+  "kind": "live_read_only_routing_simulation",
+  "launch": {
+    "task_name": "/root/four_role_routing_check",
+    "agent_type": "default",
+    "model": "gpt-6-astra",
+    "reasoning_effort": "high",
+    "fork_turns": "none",
+    "scope": "Read only the candidate Skill, its two protocol references, and four source Agent profiles. No edits, real workers, external API calls, tests, research notes, or README.",
+    "evidence_boundary": "Host explicitly selected model and effort. Not a custom-role discovery test, enforced sandbox proof, or an actual worker execution graph."
+  },
+  "candidate": {
+    "branch": "codex/gpt6-lean-v1.1",
+    "base_commit": "805a236335f44b703d417545dee3cc718e7127fb",
+    "uncommitted": true,
+    "sha256": {
+      ".agents/skills/codex-prove/SKILL.md": "13ca8f28ba4b7e29325049d95e3b9a158b2e5d9074bb5ecb2d2a6c0ef19d33bf",
+      ".agents/skills/codex-prove/references/orchestration.md": "fcda53853671128585127496829c5de2a21b905f114ec586a30f0b8dad47ccfc",
+      ".agents/skills/codex-prove/references/runtime-notes.md": "e97d0ebba68dfb0fdb38b8d4b5081bdea8597687f5bfc7a625d34ee1b8722b32",
+      ".codex/agents/prove-controller.toml": "db0c32b5c18bc6218db5e12b936495230bb600ea941adec57830c0e3e6751567",
+      ".codex/agents/prove-specialist-worker.toml": "99813cb41fd86f77b3a09335a6e06d16c650e54f3b5c7de1891fc95abc0d716c",
+      ".codex/agents/prove-complex-worker.toml": "98ff01ab8155398a3518b975549054f0c12bd6f5ca3621e3081ba1cb4ad0ddc5",
+      ".codex/agents/prove-efficient-worker.toml": "99c6bf16c7538add2f20ab748cc16cb1f1776098d30fb909b9ee0927d0a401e3"
+    }
+  },
+  "requests": {
+    "A": "$codex-prove: Change the literal button text Save to Save changes in the named file settings.html. No behavior change. The exact matching line is supplied, and a one-line diff check suffices.",
+    "B": "$codex-prove: In our already approved multi-module implementation plan, add routine pagination to two independent repository adapters. The shared interface and cursor format are settled, the existing helper handles cursor parsing, each adapter has a separate file and contract tests, and no shared config changes are required. Implement both; I have authorized scoped local changes and tests.",
+    "C": "$codex-prove: Diagnose and fix a sporadic lock-order inversion in an isolated scheduler with five interacting locks. Captured traces and a deterministic interleaving harness are provided, but the root cause is unknown. Its public contract and the surrounding architecture must not change. Other modules can progress independently.",
+    "D": "$codex-prove: As one task in the approved execution plan, convert 600 JSON fixture files using this exact rule: remove only the top-level deprecated_hint key; preserve every other value and nested same-name keys. A repository helper already performs that transformation and a checker validates all records and idempotence. No domain or design decisions are missing.",
+    "E": "$codex-prove: Compare system-wide consistency strategies for a tightly coupled redesign. All subsystem choices depend on this one unresolved decision, and useful independent implementation units cannot yet be defined. Return an analysis and recommendation only; do not implement anything."
+  },
+  "response": {
+    "cases": [
+      {
+        "case_id": "A",
+        "route": "Direct",
+        "controller_needed": false,
+        "worker_profiles": [],
+        "write_ownership": {"Host": ["settings.html: supplied matching line"]},
+        "dependency_waves": [["Host edits literal text and inspects one-line diff"]],
+        "next_action": "In actual execution, make the specified replacement and verify that the final diff contains only that change.",
+        "rationale": "Routing inputs are sufficient. Explicit invocation does not turn a tiny, fully specified edit into delegated work."
+      },
+      {
+        "case_id": "B",
+        "route": "Coordinated",
+        "controller_needed": true,
+        "controller_profile": "prove-controller / gpt-6-astra / high",
+        "worker_profiles": [
+          {"profile": "prove-complex-worker", "model": "gpt-5.6-terra", "effort": "high", "count": 2}
+        ],
+        "write_ownership": {
+          "worker-1": ["adapter 1 file and its contract tests"],
+          "worker-2": ["adapter 2 file and its contract tests"],
+          "Host": ["integration after worker completion; no duplicate adapter implementation"]
+        },
+        "dependency_waves": [
+          ["controller confirms settled contracts, exact ownership, baseline, and checks"],
+          ["worker-1 implements/tests adapter 1", "worker-2 implements/tests adapter 2"],
+          ["Host integrates; controller reviews actual diff and candidate-bound evidence"]
+        ],
+        "next_action": "Prepare two bounded Terra packets; launch together only if live capacity and disjoint side effects permit, otherwise queue.",
+        "rationale": "Routing inputs are sufficient. Routine implementation under settled requirements belongs to Terra; independent adapters justify two owners. Resolve actual paths from the approved plan before launch."
+      },
+      {
+        "case_id": "C",
+        "route": "Coordinated",
+        "controller_needed": true,
+        "controller_profile": "prove-controller / gpt-6-astra / high",
+        "worker_profiles": [
+          {"profile": "prove-specialist-worker", "model": "gpt-6-sol", "effort": "high", "count": 1}
+        ],
+        "write_ownership": {
+          "specialist": ["isolated scheduler implementation and scoped regression tests"],
+          "controller": [],
+          "Host": ["separate integration or prerequisite work only"]
+        },
+        "dependency_waves": [
+          ["controller bounds scheduler scope and defines harness-based acceptance"],
+          ["specialist analyzes traces, establishes root cause, fixes, and verifies"],
+          ["controller reviews cause, actual diff, preserved contract, and final-candidate evidence"]
+        ],
+        "next_action": "Prepare one Sol packet using the traces and deterministic harness, preserving the public contract and surrounding architecture.",
+        "rationale": "Routing inputs are sufficient. Unknown root cause across five locks requires difficult reasoning, but the isolated scheduler is independently contractible. Do not require a failed Terra attempt first or add a mandatory second reviewer."
+      },
+      {
+        "case_id": "D",
+        "route": "Coordinated",
+        "controller_needed": true,
+        "controller_profile": "prove-controller / gpt-6-astra / high",
+        "worker_profiles": [
+          {"profile": "prove-efficient-worker", "model": "gpt-6-luna", "effort": "max", "count": 1}
+        ],
+        "write_ownership": {
+          "efficient-worker": ["the exact 600-file fixture set"],
+          "controller": [],
+          "Host": ["integration outside the active fixture scope"]
+        },
+        "dependency_waves": [
+          ["controller confirms fixture manifest, helper, checker, and baseline"],
+          ["one efficient worker runs the existing transformation and complete validation"],
+          ["controller reviews the actual diff and checker/idempotence evidence"]
+        ],
+        "next_action": "Batch all same-rule files under one Luna owner; reuse the existing helper and validate preserved values, nested keys, and idempotence.",
+        "rationale": "Inputs support this routing choice without missing domain decisions. This is a mechanical batch within an approved plan, not 600 independent tasks. Exact file/helper/checker paths are execution details to recover before launch."
+      },
+      {
+        "case_id": "E",
+        "route": "Assist",
+        "controller_needed": true,
+        "controller_profile": "prove-controller / gpt-6-astra / high",
+        "worker_profiles": [],
+        "write_ownership": {},
+        "dependency_waves": [["controller analyzes coupled alternatives and returns recommendation with acceptance criteria"]],
+        "next_action": "Keep analysis with Astra; establish the system constraints and consistency requirements needed to compare alternatives. Do not implement or manufacture worker tasks.",
+        "rationale": "Inputs are sufficient for routing, but not for a substantive technical recommendation: system invariants and operational constraints remain unspecified. The inseparable decision belongs to the controller."
+      }
+    ],
+    "ambiguities": [
+      "D is not uniquely forced by the skill: Direct covers a deterministic command, while the orchestration reference says a large deterministic batch may suit Luna. If running the existing helper plus checker is genuinely trivial and delegation adds no useful independent progress, Direct is also defensible. The skill leaves that tradeoff qualitative.",
+      "controller_needed denotes the controller role, not necessarily a separate agent. A Host authoritatively matching prove-controller / gpt-6-astra / high may fulfill it.",
+      "These are source-profile routing recommendations only. Actual model selection, live capacity, sandbox enforcement, and Native Nested versus Compatibility require launch-time evidence; no execution or verification success is claimed."
+    ]
+  },
+  "host_review": {
+    "verdict": "PASS_FOR_ROUTING_SAMPLE_ONLY",
+    "findings": [
+      "All five recommendations match the candidate's role boundaries; the Direct alternative for a truly trivial batch is intentionally retained.",
+      "No source-instruction change is warranted from this single sample.",
+      "This is one live evaluator pass over five synthetic requests, not five end-to-end jobs, actual parallel worker execution, or a reliability/cost benchmark."
+    ]
+  }
+}

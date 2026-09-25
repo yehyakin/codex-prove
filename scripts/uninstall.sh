@@ -85,6 +85,18 @@ assert_plain() {
   fi
 }
 
+assert_safe_directory_chain() {
+  local directory="$1"
+  while :; do
+    [[ "$directory" == "$base_dir" || "$directory" == "$base_dir/"* ]] || die 'a managed parent escapes the install root'
+    if path_exists "$directory"; then
+      [[ ! -L "$directory" && -d "$directory" ]] || die 'a managed parent is unsafe'
+    fi
+    [[ "$directory" != "$base_dir" ]] || break
+    directory=${directory%/*}
+  done
+}
+
 copy_exact() {
   if [[ -d "$1" ]]; then cp -a "$1" "$2"; else cp -p "$1" "$2"; fi
 }
@@ -100,6 +112,7 @@ raw_home=${ORCHESTRATE_HOME:-${HOME:-}}
 [[ -n "$raw_home" && "$raw_home" == /* && "$raw_home" != / ]] || die 'ORCHESTRATE_HOME must be a non-root absolute path'
 [[ ! -L "$raw_home" && -d "$raw_home" ]] || die 'ORCHESTRATE_HOME is missing or unsafe'
 base_dir=$(CDPATH= cd -- "${raw_home%/}" && pwd -P) || die 'cannot resolve ORCHESTRATE_HOME'
+[[ "$base_dir" != / ]] || die 'refusing the filesystem root'
 
 known_relatives=(
   ".agents/skills/codex-prove"
@@ -117,25 +130,37 @@ known_relatives=(
   ".codex/sol-control/install-state"
   ".codex/sol-luna/install-state"
   ".codex/orchestrate-sol-luna/install-state"
+  ".codex/agents/prove-specialist-worker.toml"
 )
 known_kinds=(
   directory directory directory directory
   file file file file file file file
-  file file file file
+  file file file file file
 )
+
+for relative in "${known_relatives[@]}"; do
+  target="$base_dir/$relative"
+  assert_safe_directory_chain "${target%/*}"
+done
 
 state_root="$base_dir/.codex/codex-prove"
 state_file="$state_root/install-state"
 backup_root="$state_root/backups"
 path_exists "$state_file" || die 'Codex PROVE install state is missing'
 assert_plain "$state_file" file
-[[ "$(state_value "$state_file" version)" == 5 ]] || die 'unsupported Codex PROVE install state'
+state_version=$(state_value "$state_file" version) || die 'install state is incomplete'
+[[ "$state_version" == 5 || "$state_version" == 6 ]] || die 'unsupported Codex PROVE install state'
 
 backup_id=$(state_value "$state_file" backup_id) || die 'install state is incomplete'
 [[ "$backup_id" =~ ^[A-Za-z0-9._-]+$ ]] || die 'install state has an unsafe backup identifier'
+[[ "$backup_id" != . && "$backup_id" != .. ]] || die 'install state has an unsafe backup identifier'
 
 managed_indexes=(0 1 4 5 6)
 managed_keys=(skill_sha256 compat_skill_sha256 controller_sha256 complex_worker_sha256 efficient_worker_sha256)
+if [[ "$state_version" == 6 ]]; then
+  managed_indexes+=(15)
+  managed_keys+=(specialist_worker_sha256)
+fi
 for (( item=0; item<${#managed_indexes[@]}; item++ )); do
   index=${managed_indexes[item]}
   target="$base_dir/${known_relatives[index]}"
@@ -149,36 +174,53 @@ done
 backup_dir="$backup_root/$backup_id"
 manifest="$backup_dir/manifest"
 if (( restore_latest )); then
+  assert_safe_directory_chain "$backup_dir/entries"
   [[ -d "$backup_dir" && ! -L "$backup_dir" ]] || die 'latest backup directory is missing or unsafe'
   [[ -f "$manifest" && ! -L "$manifest" ]] || die 'latest backup manifest is missing or unsafe'
-  [[ "$(state_value "$manifest" version)" == 5 ]] || die 'latest backup manifest has an unsupported version'
-  [[ "$(state_value "$manifest" entry_count)" == "${#known_relatives[@]}" ]] || die 'latest backup manifest has the wrong entry count'
+  manifest_version=$(state_value "$manifest" version) || die 'latest backup manifest is incomplete'
+  manifest_count=$(state_value "$manifest" entry_count) || die 'latest backup manifest is incomplete'
+  case "$manifest_version:$manifest_count" in
+    5:15|6:16) ;;
+    *) die 'latest backup manifest has an unsupported version or entry count' ;;
+  esac
 fi
 
 transaction_dir=$(mktemp -d "$state_root/.uninstall.XXXXXX") || die 'cannot create uninstall transaction'
 mkdir "$transaction_dir/current" "$transaction_dir/stage" "$transaction_dir/failed"
+touched=(0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0)
 
 rollback() {
   local status=$?
+  local recovery_failed=0
   trap - EXIT INT TERM
+  (( status != 0 )) || status=1
   for (( index=${#known_relatives[@]} - 1; index>=0; index-- )); do
+    if (( ! touched[index] )) && ! path_exists "$transaction_dir/current/$index"; then continue; fi
     target="$base_dir/${known_relatives[index]}"
     if path_exists "$target"; then
-      mkdir -p "$transaction_dir/failed/$index"
-      mv "$target" "$transaction_dir/failed/$index/current" 2>/dev/null || true
+      if ! mkdir -p "$transaction_dir/failed/$index" ||
+        ! mv "$target" "$transaction_dir/failed/$index/current"; then
+        recovery_failed=1
+        continue # Keep both versions when the destination cannot be cleared.
+      fi
     fi
     if path_exists "$transaction_dir/current/$index"; then
-      mkdir -p "${target%/*}"
-      mv "$transaction_dir/current/$index" "$target" 2>/dev/null || true
+      if ! mkdir -p "${target%/*}" || ! mv "$transaction_dir/current/$index" "$target"; then
+        recovery_failed=1
+      fi
     fi
   done
-  rm -rf "$transaction_dir" 2>/dev/null || true
+  if (( recovery_failed )); then
+    printf 'uninstall.sh: rollback incomplete. Recovery path: %s\n' "$transaction_dir" >&2
+  else
+    rm -rf "$transaction_dir" 2>/dev/null || true
+  fi
   exit "$status"
 }
 trap rollback EXIT INT TERM
 
 if (( restore_latest )); then
-  for (( index=0; index<${#known_relatives[@]}; index++ )); do
+  for (( index=0; index<manifest_count; index++ )); do
     number=$((index + 1))
     recorded_path=$(state_value "$manifest" "entry_${number}_path") || die 'backup manifest is incomplete'
     recorded_kind=$(state_value "$manifest" "entry_${number}_kind") || die 'backup manifest is incomplete'
@@ -204,6 +246,7 @@ fi
 for index in "${managed_indexes[@]}" 11; do
   target="$base_dir/${known_relatives[index]}"
   mv "$target" "$transaction_dir/current/$index"
+  touched[index]=1
 done
 
 if (( restore_latest )); then
@@ -212,6 +255,7 @@ if (( restore_latest )); then
       target="$base_dir/${known_relatives[index]}"
       ! path_exists "$target" || die 'a restore target unexpectedly exists'
       mkdir -p "${target%/*}"
+      touched[index]=1
       mv "$transaction_dir/stage/$index" "$target"
     fi
   done
@@ -221,15 +265,22 @@ if [[ "${ORCHESTRATE_FAILPOINT:-}" == after-remove ]]; then
   die 'injected failure after removal'
 fi
 
-rm -rf "$transaction_dir"
-transaction_dir=
+# Once cleanup starts, the completed removal/restoration must not be rolled back.
 trap - EXIT INT TERM
+if ! rm -rf "$transaction_dir"; then
+  printf 'uninstall.sh: uninstall/restore committed; cleanup incomplete. Recovery path: %s\n' "$transaction_dir" >&2
+  exit 1
+fi
+transaction_dir=
 
 printf 'Removed path: %s\n' "$base_dir/.agents/skills/codex-prove"
 printf 'Removed path: %s\n' "$base_dir/.agents/skills/sol-control"
 printf 'Removed path: %s\n' "$base_dir/.codex/agents/prove-controller.toml"
 printf 'Removed path: %s\n' "$base_dir/.codex/agents/prove-complex-worker.toml"
 printf 'Removed path: %s\n' "$base_dir/.codex/agents/prove-efficient-worker.toml"
+if [[ "$state_version" == 6 ]]; then
+  printf 'Removed path: %s\n' "$base_dir/.codex/agents/prove-specialist-worker.toml"
+fi
 if (( restore_latest )); then
   printf 'Restored backup: %s\n' "$backup_dir"
 fi

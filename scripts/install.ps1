@@ -20,24 +20,38 @@ function Test-ReparsePoint {
 function Assert-PlainPath {
     param(
         [Parameter(Mandatory = $true)][string]$Path,
-        [Parameter(Mandatory = $true)][ValidateSet("Directory", "File")][string]$Kind
+        [Parameter(Mandatory = $true)][ValidateSet("Directory", "File")][string]$Kind,
+        [switch]$Shallow
     )
     if (-not (Test-PathExists $Path)) { return }
     $item = Get-Item -LiteralPath $Path -Force
     if (Test-ReparsePoint $item) { throw "reparse points are not allowed in managed paths" }
     if ($Kind -eq "Directory" -and -not $item.PSIsContainer) { throw "a managed directory has the wrong type" }
     if ($Kind -eq "File" -and $item.PSIsContainer) { throw "a managed file has the wrong type" }
-    if ($item.PSIsContainer) {
+    if ($item.PSIsContainer -and -not $Shallow) {
         Get-ChildItem -LiteralPath $Path -Force -Recurse | ForEach-Object {
             if (Test-ReparsePoint $_) { throw "reparse points are not allowed in managed trees" }
         }
     }
 }
 
+function Assert-SafeDirectoryChain {
+    param([Parameter(Mandatory = $true)][string]$Path)
+    $directory = [System.IO.Path]::GetFullPath($Path)
+    while ($true) {
+        if ($directory -ne $baseDir -and -not $directory.StartsWith($baseDir + [System.IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase)) {
+            throw "a managed parent escapes the install root"
+        }
+        if (Test-PathExists $directory) { Assert-PlainPath $directory "Directory" -Shallow }
+        if ($directory -eq $baseDir) { break }
+        $directory = Split-Path -Parent $directory
+    }
+}
+
 function Ensure-Directory {
     param([Parameter(Mandatory = $true)][string]$Path)
     if (Test-PathExists $Path) {
-        Assert-PlainPath $Path "Directory"
+        Assert-PlainPath $Path "Directory" -Shallow
         return
     }
     $parent = Split-Path -Parent $Path
@@ -155,24 +169,17 @@ $compatSkillSource = Join-Path $repoRoot ".agents/skills/sol-control"
 $controllerSource = Join-Path $repoRoot ".codex/agents/prove-controller.toml"
 $complexSource = Join-Path $repoRoot ".codex/agents/prove-complex-worker.toml"
 $efficientSource = Join-Path $repoRoot ".codex/agents/prove-efficient-worker.toml"
+$specialistSource = Join-Path $repoRoot ".codex/agents/prove-specialist-worker.toml"
 foreach ($path in @($canonicalSkillSource, $compatSkillSource)) { Assert-PlainPath $path "Directory" }
-foreach ($path in @($controllerSource, $complexSource, $efficientSource)) { Assert-PlainPath $path "File" }
+foreach ($path in @($controllerSource, $complexSource, $efficientSource, $specialistSource)) { Assert-PlainPath $path "File" }
 
 $rawBase = $env:ORCHESTRATE_HOME
 if ([string]::IsNullOrWhiteSpace($rawBase)) { $rawBase = [Environment]::GetFolderPath("UserProfile") }
 if ([string]::IsNullOrWhiteSpace($rawBase) -or -not [System.IO.Path]::IsPathRooted($rawBase)) { throw "ORCHESTRATE_HOME must be an absolute path" }
 $baseDir = [System.IO.Path]::GetFullPath($rawBase)
 if ($baseDir -eq [System.IO.Path]::GetPathRoot($baseDir)) { throw "refusing the filesystem root as ORCHESTRATE_HOME" }
-if (Test-PathExists $baseDir) { Assert-PlainPath $baseDir "Directory" }
-foreach ($parent in @(
-    (Join-Path $baseDir ".agents"),
-    (Join-Path $baseDir ".agents/skills"),
-    (Join-Path $baseDir ".codex"),
-    (Join-Path $baseDir ".codex/agents"),
-    (Join-Path $baseDir ".codex/codex-prove")
-)) {
-    if (Test-PathExists $parent) { Assert-PlainPath $parent "Directory" }
-}
+$baseDir = $baseDir.TrimEnd([char[]]"/\")
+if (Test-PathExists $baseDir) { Assert-PlainPath $baseDir "Directory" -Shallow }
 
 $relativePaths = @(
     ".agents/skills/codex-prove",
@@ -189,19 +196,22 @@ $relativePaths = @(
     ".codex/codex-prove/install-state",
     ".codex/sol-control/install-state",
     ".codex/sol-luna/install-state",
-    ".codex/orchestrate-sol-luna/install-state"
+    ".codex/orchestrate-sol-luna/install-state",
+    ".codex/agents/prove-specialist-worker.toml"
 )
 $kinds = @(
     "Directory", "Directory", "Directory", "Directory",
     "File", "File", "File", "File", "File", "File", "File",
-    "File", "File", "File", "File"
+    "File", "File", "File", "File", "File"
 )
 $owned = New-Object bool[] $relativePaths.Count
 
 for ($index = 0; $index -lt $relativePaths.Count; $index++) {
     $target = Join-Path $baseDir $relativePaths[$index]
+    Assert-SafeDirectoryChain (Split-Path -Parent $target)
     if (Test-PathExists $target) { Assert-PlainPath $target $kinds[$index] }
 }
+Assert-SafeDirectoryChain (Join-Path $baseDir ".codex/codex-prove/backups")
 
 $stateIndexes = @(11, 12, 13, 14)
 $activeStateIndex = -1
@@ -228,12 +238,13 @@ if ($activeStateIndex -ge 0) {
     $activeStatePath = Join-Path $baseDir $relativePaths[$activeStateIndex]
     $state = Get-StateMap $activeStatePath
     $version = Get-StateValue $state "version"
-    if ($activeStateIndex -eq 11 -and $version -eq "5") {
+    if ($activeStateIndex -eq 11 -and @("5", "6") -contains $version) {
         Set-OwnedTarget 0 (Get-StateValue $state "skill_sha256")
         Set-OwnedTarget 1 (Get-StateValue $state "compat_skill_sha256")
         Set-OwnedTarget 4 (Get-StateValue $state "controller_sha256")
         Set-OwnedTarget 5 (Get-StateValue $state "complex_worker_sha256")
         Set-OwnedTarget 6 (Get-StateValue $state "efficient_worker_sha256")
+        if ($version -eq "6") { Set-OwnedTarget 15 (Get-StateValue $state "specialist_worker_sha256") }
         $owned[11] = $true
     }
     elseif ($activeStateIndex -eq 12 -and @("3", "4") -contains $version) {
@@ -294,7 +305,7 @@ $entriesDir = Join-Path $backupDir "entries"
 Ensure-Directory $entriesDir
 
 $manifestLines = New-Object System.Collections.Generic.List[string]
-$manifestLines.Add("version=5")
+$manifestLines.Add("version=6")
 $manifestLines.Add("entry_count=$($relativePaths.Count)")
 for ($index = 0; $index -lt $relativePaths.Count; $index++) {
     $number = $index + 1
@@ -336,18 +347,25 @@ Copy-Exact $compatSkillSource (Join-Path $stageDir "sol-control")
 Copy-Exact $controllerSource (Join-Path $stageDir "prove-controller.toml")
 Copy-Exact $complexSource (Join-Path $stageDir "prove-complex-worker.toml")
 Copy-Exact $efficientSource (Join-Path $stageDir "prove-efficient-worker.toml")
+Copy-Exact $specialistSource (Join-Path $stageDir "prove-specialist-worker.toml")
+$touched = New-Object bool[] $relativePaths.Count
 
 try {
     for ($index = 0; $index -lt $relativePaths.Count; $index++) {
         $target = Join-Path $baseDir $relativePaths[$index]
-        if (Test-PathExists $target) { Move-Item -LiteralPath $target -Destination (Join-Path $oldDir ([string]$index)) }
+        if (Test-PathExists $target) {
+            Move-Item -LiteralPath $target -Destination (Join-Path $oldDir ([string]$index))
+            $touched[$index] = $true
+        }
     }
 
+    foreach ($index in @(0, 1, 4, 5, 6, 11, 15)) { $touched[$index] = $true }
     Move-Item -LiteralPath (Join-Path $stageDir "codex-prove") -Destination (Join-Path $baseDir $relativePaths[0])
     Move-Item -LiteralPath (Join-Path $stageDir "sol-control") -Destination (Join-Path $baseDir $relativePaths[1])
     Move-Item -LiteralPath (Join-Path $stageDir "prove-controller.toml") -Destination (Join-Path $baseDir $relativePaths[4])
     Move-Item -LiteralPath (Join-Path $stageDir "prove-complex-worker.toml") -Destination (Join-Path $baseDir $relativePaths[5])
     Move-Item -LiteralPath (Join-Path $stageDir "prove-efficient-worker.toml") -Destination (Join-Path $baseDir $relativePaths[6])
+    Move-Item -LiteralPath (Join-Path $stageDir "prove-specialist-worker.toml") -Destination (Join-Path $baseDir $relativePaths[15])
 
     if ($env:ORCHESTRATE_FAILPOINT -eq "after-replace") { throw "injected failure after replacement" }
 
@@ -356,16 +374,18 @@ try {
     $controllerHash = Get-FileDigest (Join-Path $baseDir $relativePaths[4])
     $complexHash = Get-FileDigest (Join-Path $baseDir $relativePaths[5])
     $efficientHash = Get-FileDigest (Join-Path $baseDir $relativePaths[6])
-    foreach ($digest in @($skillHash, $compatHash, $controllerHash, $complexHash, $efficientHash)) { Assert-Hash $digest }
+    $specialistHash = Get-FileDigest (Join-Path $baseDir $relativePaths[15])
+    foreach ($digest in @($skillHash, $compatHash, $controllerHash, $complexHash, $efficientHash, $specialistHash)) { Assert-Hash $digest }
 
     $stateText = @(
-        "version=5",
+        "version=6",
         "backup_id=$backupId",
         "skill_sha256=$skillHash",
         "compat_skill_sha256=$compatHash",
         "controller_sha256=$controllerHash",
         "complex_worker_sha256=$complexHash",
-        "efficient_worker_sha256=$efficientHash"
+        "efficient_worker_sha256=$efficientHash",
+        "specialist_worker_sha256=$specialistHash"
     ) -join "`n"
     $stateTemp = Join-Path $stateRoot (".install-state." + [Guid]::NewGuid().ToString("N"))
     Write-Utf8Text $stateTemp ($stateText + "`n")
@@ -374,20 +394,31 @@ try {
     if ($env:ORCHESTRATE_FAILPOINT -eq "after-state") { throw "injected failure after state" }
 }
 catch {
+    $originalError = $_
+    $recoveryFailed = $false
     for ($index = $relativePaths.Count - 1; $index -ge 0; $index--) {
-        $target = Join-Path $baseDir $relativePaths[$index]
-        if (Test-PathExists $target) {
-            Ensure-Directory (Join-Path $failedDir ([string]$index))
-            Move-Item -LiteralPath $target -Destination (Join-Path (Join-Path $failedDir ([string]$index)) "current") -ErrorAction SilentlyContinue
-        }
         $old = Join-Path $oldDir ([string]$index)
-        if (Test-PathExists $old) {
-            Ensure-Directory (Split-Path -Parent $target)
-            Move-Item -LiteralPath $old -Destination $target -ErrorAction SilentlyContinue
+        # A move can finish before an exception prevents the touched assignment.
+        if (-not $touched[$index] -and -not (Test-PathExists $old)) { continue }
+        $target = Join-Path $baseDir $relativePaths[$index]
+        try {
+            if (Test-PathExists $target) {
+                Ensure-Directory (Join-Path $failedDir ([string]$index))
+                Move-Item -LiteralPath $target -Destination (Join-Path (Join-Path $failedDir ([string]$index)) "current") -ErrorAction Stop
+            }
+            if (Test-PathExists $old) {
+                Ensure-Directory (Split-Path -Parent $target)
+                Move-Item -LiteralPath $old -Destination $target -ErrorAction Stop
+            }
+        }
+        catch {
+            # Keep both copies after failed evacuation; do not overwrite the target.
+            $recoveryFailed = $true
         }
     }
-    if (Test-PathExists $transactionDir) { Remove-Item -LiteralPath $transactionDir -Recurse -Force }
-    throw
+    if ($recoveryFailed) { Write-Warning "rollback incomplete. Recovery path: $transactionDir" }
+    elseif (Test-PathExists $transactionDir) { Remove-Item -LiteralPath $transactionDir -Recurse -Force }
+    throw $originalError
 }
 
 Remove-Item -LiteralPath $transactionDir -Recurse -Force
@@ -396,4 +427,5 @@ Write-Output "Compatibility path: $(Join-Path $baseDir $relativePaths[1])"
 Write-Output "Agent path: $(Join-Path $baseDir $relativePaths[4])"
 Write-Output "Agent path: $(Join-Path $baseDir $relativePaths[5])"
 Write-Output "Agent path: $(Join-Path $baseDir $relativePaths[6])"
+Write-Output "Agent path: $(Join-Path $baseDir $relativePaths[15])"
 Write-Output "Backup path: $backupDir"

@@ -15,6 +15,7 @@ COMPAT_OPENAI_FILE="$COMPAT_ROOT/agents/openai.yaml"
 CONTROLLER_FILE="$ROOT_DIR/.codex/agents/prove-controller.toml"
 COMPLEX_FILE="$ROOT_DIR/.codex/agents/prove-complex-worker.toml"
 EFFICIENT_FILE="$ROOT_DIR/.codex/agents/prove-efficient-worker.toml"
+SPECIALIST_FILE="$ROOT_DIR/.codex/agents/prove-specialist-worker.toml"
 WINDOWS_LIFECYCLE_FILE="$ROOT_DIR/tests/windows-lifecycle.ps1"
 WINDOWS_WORKFLOW_FILE="$ROOT_DIR/.github/workflows/windows-validation.yml"
 POSIX_WORKFLOW_FILE="$ROOT_DIR/.github/workflows/posix-validation.yml"
@@ -30,11 +31,13 @@ required_files=(
   ".agents/skills/codex-prove/agents/openai.yaml"
   ".agents/skills/codex-prove/references/orchestration.md"
   ".agents/skills/codex-prove/references/runtime-notes.md"
+  ".agents/skills/codex-prove/references/ponytail-license.txt"
   ".agents/skills/sol-control/SKILL.md"
   ".agents/skills/sol-control/agents/openai.yaml"
   ".codex/agents/prove-controller.toml"
   ".codex/agents/prove-complex-worker.toml"
   ".codex/agents/prove-efficient-worker.toml"
+  ".codex/agents/prove-specialist-worker.toml"
   "scripts/install.sh"
   "scripts/validate.sh"
   "scripts/test.sh"
@@ -164,6 +167,7 @@ for marker in (
     "fork_turns=\"none\"", "Fail Closed", "PASS | FIX | BLOCKED",
     "verify the verifier", "result-only", "resume packet",
     "prove-controller", "prove-complex-worker", "prove-efficient-worker",
+    "prove-specialist-worker",
 ):
     if marker.lower() not in combined.lower():
         stop()
@@ -178,8 +182,12 @@ if not re.search(r"(?m)^\s*allow_implicit_invocation:\s*false\s*$", compat_text)
     stop()
 
 expected_agents = {
+    "prove-specialist-worker.toml": {
+        "name": "prove-specialist-worker", "model": "gpt-6-sol",
+        "model_reasoning_effort": "high", "sandbox_mode": "workspace-write",
+    },
     "prove-controller.toml": {
-        "name": "prove-controller", "model": "gpt-5.6-sol",
+        "name": "prove-controller", "model": "gpt-6-astra",
         "model_reasoning_effort": "high", "sandbox_mode": "read-only",
     },
     "prove-complex-worker.toml": {
@@ -187,7 +195,7 @@ expected_agents = {
         "model_reasoning_effort": "high", "sandbox_mode": "workspace-write",
     },
     "prove-efficient-worker.toml": {
-        "name": "prove-efficient-worker", "model": "gpt-5.6-luna",
+        "name": "prove-efficient-worker", "model": "gpt-6-luna",
         "model_reasoning_effort": "max", "sandbox_mode": "workspace-write",
     },
 }
@@ -271,7 +279,7 @@ for path in active_public_files:
 
 for script_name in ("install.ps1", "validate.ps1", "uninstall.ps1"):
     source = text(root / "scripts" / script_name).lower()
-    for marker in ("codex-prove", "prove-controller.toml", "prove-complex-worker.toml", "prove-efficient-worker.toml"):
+    for marker in ("codex-prove", "prove-controller.toml", "prove-complex-worker.toml", "prove-efficient-worker.toml", "prove-specialist-worker.toml"):
         if marker not in source:
             stop()
 

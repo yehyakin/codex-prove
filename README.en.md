@@ -14,25 +14,50 @@
 
 **Plan the work. Route the right model. Prove the result.**
 
-`codex-prove` is an explicit, model-neutral orchestration Skill for Codex: **one controller makes decisions and performs final review; two replaceable worker profiles execute bounded work.**
+`codex-prove` is an explicit, model-neutral orchestration Skill for Codex: **one controller makes decisions and performs final review; workers are selected as needed for bounded execution.**
 
 [60-second quickstart](#60-second-quickstart) · [Routes](#how-it-works) · [Cost model](#why-it-can-reduce-cost) · [Runtime evidence](#current-status) · [Install and maintenance](#install-check-and-uninstall)
 
 You provide the goal, completion criteria, and constraints. PROVE handles planning, capability routing, file ownership, staged execution, verification, and evidence review.
 
 - **Controller** is the sole decision owner: understand, plan, route, assign ownership, schedule, and perform the final review.
-- **Complex worker** handles cross-module, long-context, ambiguous-debugging, shared-interface, and high-consequence implementation.
-- **Efficient worker** handles clear, low-ambiguity, tightly bounded, independently verifiable execution.
+- **Specialist worker** handles difficult independent implementation, root-cause analysis, or targeted read-only review.
+- **Regular worker (Complex worker profile)** handles routine features, fixes, tests, and integration under settled requirements.
+- **Efficient worker** handles mechanical batches with explicit rules and objective checks; one-line edits need no delegation.
 
 Simple tasks stay with the current Codex session. Explicitly invoke `$codex-prove` for work that is complex, cross-module, parallelizable, or high-consequence.
 
 Runtime output defaults to Simplified Chinese unless the user explicitly requests another language.
 
-> **v1.0.0 verified:** 115 tests, 39 Forward scenarios, POSIX and Windows PowerShell 5.1/7 CI, and a real fresh-session Compatibility route.
+> **Previous stable v1.0.0 record:** 115 tests, 39 Forward scenarios, POSIX and Windows PowerShell 5.1/7 CI, and a real fresh-session Compatibility route.
 
 Canonical repository: [yehyakin/codex-prove](https://github.com/yehyakin/codex-prove). This is an independent community project, not an official OpenAI product or endorsement.
 
+## v1.1 development: stronger controller, less ceremony
+
+**Astra coordinates, Sol tackles difficult units, Terra handles regular work,
+and Luna runs mechanical batches; tiny tasks stay Direct.**
+The controller uses GPT-6 Astra / high and selects GPT-6 Sol / high, GPT-5.6 Terra / high, or
+GPT-6 Luna / max as needed. Tasks do not need every model or a tier-by-tier relay.
+
+- Small tasks stay **Direct, with zero delegation**, even when explicitly invoked.
+- An authoritative selection record allows a complete first-turn task; no idle self-attestation round.
+- Authorized local implementation, tests, and repairs continue without repeated approval. A missing heading or one failing test is not automatically `BLOCKED`.
+- One active writer per scope; ownership can transfer after the previous worker and its processes stop and the actual diff is preserved.
+- **Ponytail-inspired minimal implementation** favors existing code, standard libraries, and platform features without permanent hooks, modes, or new approval steps.
+
+This describes the development branch, not a published release. See the [v1.1 audit and validation record](docs/release/v1.1-gpt6-audit.md) for evidence and limits.
+
+The September 26 decision confirms this candidate's defaults: **Astra controls,
+Sol handles specialist work, Terra handles regular work, and Luna handles batches**.
+Sol and Luna move to the new generation while preserving effort, scope, and role IDs;
+Terra remains the regular worker rather than being replaced merely because a new model shipped.
+Jev is used only for development research, not default routing or installation/runtime dependencies.
+
 ## Core routing and projected savings
+
+> **Historical scope:** this table and the detailed calculations retain the v1.0 Sol controller and **2026-08-04** rate snapshot. They do not describe the v1.1 Astra default. There is no matched cost measurement for the new configuration; neither these percentages nor Ponytail's upstream savings can be reused for it.
+
 
 The table below uses an “all work performed by Sol” baseline of `1.00×`. Model token shares total 100%. `Orchestration overhead` represents additional Sol planning, review, coordination, and necessary rework as a fraction of the all-Sol baseline.
 
@@ -126,7 +151,7 @@ For the same token type:
 
 These values are `scenario_model_projection`: they are planning estimates, **not matched A/B experiments, not per-task guarantees, and not latency promises**. Repeated context, poor decomposition, parallel waiting, output volume, Fast mode, and rework can reduce or reverse the saving.
 
-A defensible public claim is therefore:
+Under those historical assumptions, the budget example is:
 
 > **Ordinary clear projects can project roughly 72%–76% savings, typical mixed projects roughly 50%–60%, and complex projects roughly 33%–43%; actual results must be recalculated from real routing and token usage.**
 
@@ -155,7 +180,7 @@ Per 1M tokens:
 | GPT-5.6 Terra | 50 credits | 5 credits | 300 credits |
 | GPT-5.6 Luna | 5 credits | 0.5 credits | 30 credits |
 
-The current relative ratios are identical across both accounting surfaces:
+The relative ratios were identical across both accounting surfaces in that snapshot:
 
 ```text
 Sol = 1.00
@@ -206,131 +231,77 @@ A small subset of Enterprise workspaces still using the legacy rate card should 
 | Common problem | Codex PROVE's response |
 | --- | --- |
 | One agent plans, implements, and verifies too much at once | The controller owns judgment and review; workers own bounded execution |
-| Every task uses the highest-cost model | Execution is routed to efficient or complex capability profiles |
+| Every task uses the highest-cost model | Execution is routed to specialist, regular, or efficient capability profiles as needed |
 | Multiple executors touch shared files | **One file, one owner**; overlapping work runs sequentially |
 | “Done” is reported without inspectable proof | Results must include changed paths, diff, tests, builds, or artifacts |
-| A failed task is retried indefinitely | One bounded correction is allowed; otherwise it becomes `BLOCKED` |
+| A failed task is retried indefinitely | Continue with new evidence; stop a path at repeated no-progress or a real boundary |
 
 The goal is not a noisy multi-agent team. It is a clear, auditable control plane for complex work.
 
 ## How it works
 
-![Direct, controller-only, efficient-worker, and complex-worker paths, with evidence returning for final review](docs/assets/readme/control-plane-en.svg)
+![Historical v1.0 two-worker diagram; the text and profile table below describe v1.1](docs/assets/readme/control-plane-en.svg)
+
+The image retains the v1.0 two-worker overview. v1.1 adds an independent specialist;
+its current paths are shown below.
 
 ```text
 User goal
    │
    ▼
-Controller: understand → plan → route → assign → schedule
-   │
+Host: lightweight routing
    ├─ Direct: the current Codex handles simple work
-   ├─ Controller-only: planning, analysis, or review without file changes
-   ├─ Efficient worker: clear, low-ambiguity, independently verifiable execution
-   └─ Complex worker: cross-module, long-context, or high-consequence execution
+   └─ Complex work → Controller: plan → route → assign → schedule
+                         ├─ Controller-only: planning, analysis, or review
+                         ├─ Specialist worker: difficult independent execution / review
+                         ├─ Regular worker (Complex worker profile): routine implementation / tests
+                         └─ Efficient worker: mechanical batches
    │
    ▼
 Real files + diff + test / build / artifact evidence
    │
    ▼
-Controller: artifact-first review by REQ-ID → PASS / FIX / BLOCKED
+Coordinated work: Controller review by REQ-ID → PASS / FIX / BLOCKED → Host delivery
 ```
 
 <details>
-<summary><strong>Expand the complete control protocol: roles, routing, parallelism, verification, and failure handling</strong></summary>
+<summary><strong>Roles, parallelism, and recovery</strong></summary>
 
-<br>
+### Current default profiles
 
-### Evidence-first control
-
-The v1.0 contract keeps one controller and does not add a second reviewer. It
-retains five quality controls:
-
-1. **Requirement-to-evidence graph.** Every `done_when` item has a stable `REQ-ID`; tasks, verification, and final evidence map back to it.
-2. **Artifact-first review.** The controller reads the original requirements, real changed paths, files, complete diff, and verification artifacts before worker `PASS` claims or summaries.
-3. **Verify the verifier.** Exit zero is insufficient. The check must target the final candidate, correct scope, and intended requirement; wrong-module and existence-only checks do not pass.
-4. **Selective challenge.** Ordinary work has zero extra challenge calls. High-consequence, cross-module, shared-interface, conflicting-evidence, or uncovered-requirement work may receive at most one read-only challenge. It returns findings; the controller retains the verdict.
-5. **Recoverable execution.** Long runs preserve owners, candidate identity, requirement coverage, and attempt counts; resume does not redispatch completed work or reset the correction budget.
-
-### Role hierarchy
-
-| Role | Configuration | Owns | Explicit boundary |
-| --- | --- | --- | --- |
-| **Controller** | `prove-controller` → `gpt-5.6-sol` / `high` / `read-only` | Goal understanding, `done_when`, routing, ownership, stages, final review | Does not perform bulk mechanical implementation |
-| **Complex worker** | `prove-complex-worker` → `gpt-5.6-terra` / `high` / `workspace-write` | Cross-module work, long context, ambiguous debugging, shared-interface judgment, high-consequence implementation | Not a second controller; does not rewrite the plan or create subagents |
-| **Efficient worker** | `prove-efficient-worker` → `gpt-5.6-luna` / `max` / `workspace-write` | Clear, low-ambiguity, small-context, mechanical, or high-throughput execution | Does not expand scope, create subagents, or approve the overall task |
-
-Role names stay stable; the models after each arrow are the v1.0 default profile. Future model generations update TOML, validation, and release notes without renaming the project or protocol.
-
-### Route selection
-
-| Route | Use it when | Cost implication |
+| Role | Configuration | Boundary |
 | --- | --- | --- |
-| **Direct** | The task is small, isolated, and clear | No orchestration overhead; 0% routing saving |
-| **Controller-only** | Planning, analysis, or review is needed without file changes | Uses only the controller layer |
-| **Controller → efficient** | Scope is precise and the result is independently verifiable | Preferred for large amounts of clear execution |
-| **Controller → complex** | Work spans modules, needs long context or shared-interface judgment, or carries high consequence | Uses the stronger capability profile |
+| Controller | `prove-controller` → `gpt-6-astra` / `high` / `read-only` | One controller for planning, assignment, and final review |
+| Specialist worker | `prove-specialist-worker` → `gpt-6-sol` / `high` / `workspace-write` | Difficult independent execution or targeted read-only review; not a second controller |
+| Regular worker | `prove-complex-worker` → `gpt-5.6-terra` / `high` / `workspace-write` | Regular features, fixes, tests, and integration; existing ID retained for installation compatibility |
+| Efficient worker | `prove-efficient-worker` → `gpt-6-luna` / `max` / `workspace-write` | Mechanical batches with explicit rules and objective checks |
 
-The complex worker is not the efficient worker's manager and is not a permanent second controller. Both profiles are selected by the controller for the task's actual capability needs.
+The hardest inseparable system-wide decisions remain with Astra. No worker may
+create subagents. Read-only packets grant an empty write scope even when the
+runtime technically permits writes.
 
-### How multiple executors cooperate
+The v1.0 controller used `gpt-5.6-sol`. Role names do not change with model generations; a model update also needs validation, not just a renamed label.
 
-A complex run may use one or more workers, but parallelism follows **file ownership**, not agent count:
+### Boundaries that remain
 
-```text
-Stage 1
-├─ Complex A   → src/auth/core/*
-├─ Efficient A → src/account/ui/*
-└─ Efficient B → docs/account.md
+1. **One active owner.** Disjoint tasks can run in parallel. Shared files, configuration, and side effects run sequentially or in waves, within live capacity.
+2. **Safe handoffs.** Stop the previous worker and its mutating processes, inspect and preserve the actual diff, user changes, and attempt history, then assign a new owner. A timeout is not proof of termination.
+3. **Real evidence.** The controller checks requirements, actual files/diff, verification output, and coverage. A worker `PASS` or transport `completed` is not acceptance.
+4. **Proportional verification.** Later edits invalidate affected evidence only. Reuse fresh evidence for unchanged candidates. No full build for a typo; no existence-only check for a migration.
+5. **Progress-based correction.** `FIX` continues authorized scoped work. Stop a path after two consecutive no-progress attempts and reassess; changing agents does not reset history.
+6. **Genuine blockers.** Request input for new authority, consequential missing choices, or no safe next action, not routine tests or missing headings. Unavailable models must still be reported without silent substitution.
+7. **Less code, not less functionality.** Ponytail-inspired reuse cannot remove required validation, error handling, accessibility, or requested behavior.
+8. **No pretend isolation.** Before/after snapshots show net changes, not proof that no temporary write occurred. High-risk operations still need authorization and enforceable boundaries.
 
-Stage 2
-└─ original designated owner → src/shared/routes.ts
-```
-
-Only tasks with completely disjoint write scopes may run together. Shared files have one designated owner. If dependencies, interfaces, or overlap are uncertain, the controller merges the work or schedules it sequentially.
-
-No fixed worker count is promised. The controller launches the minimum useful number of executors in batches according to dependency order, live capacity, and safety boundaries.
-
-## One complete evidence loop
-
-1. **Extract requirements.** The controller gives every completion criterion a stable `REQ-ID` and required evidence.
-2. **Plan.** The controller maps each task to Requirement IDs, a capability profile, dependencies, exact `write_scope`, exclusions, verification procedure, passing condition, and required evidence.
-3. **Execute.** A worker changes only the assigned scope and does not rewrite the overall plan.
-4. **Self-check.** The executor returns changed paths, Requirement coverage, tests, builds, or artifact evidence.
-5. **Review.** The controller checks real files, the complete diff, verification quality, and requirement coverage before worker summaries.
-6. **Decide.** The controller returns the closed verdict `PASS`, one focused `FIX`, or `BLOCKED`; non-gating suggestions remain separate.
-
-A worker `PASS` applies only to its bounded task. Only the controller may approve the overall work.
-
-## Non-negotiable boundaries
-
-1. **One file, one owner.** Two workers never modify the same file in one run.
-2. **Executors do not create subagents.** Complex and efficient workers are leaf nodes.
-3. **No evidence, no completion.** Transport / spawn `completed` proves delivery only.
-4. **Verification binds to the final candidate.** A later file change invalidates stale evidence.
-5. **At most one focused fix.** The original owner repairs the original scope once; another failure becomes `BLOCKED`.
-6. **Capability is not authorization.** Broader technical runtime access never expands user authorization or `write_scope`; disclose it and use Host-owned before/after snapshots to detect scope violations.
-7. **Review standards do not fall.** Urgency, parallelism, or cost goals never replace verification and evidence.
-8. **Worker PASS is not proof.** The controller reconstructs the success claim from real artifacts.
-9. **A challenge is not a second controller.** It is read-only, cannot approve, and adds no fixed call cost to ordinary tasks.
-10. **High-risk work still fails closed.** Block when model identity, fork, or required scope evidence is unprovable. Destructive, production, or irreversible external work additionally requires an enforceable matching boundary or explicit user approval for the broader capability.
-
-### Bounded efficient-to-complex escalation
-
-Only when an efficient worker's first failure occurs **before** any owned write may the controller escalate the same task and unchanged scope to the complex profile once.
-
-The gate is zero-write state before the first failure.
-
-After a worker writes an owned file, it retains ownership for the run. The controller may issue one focused fix to the original owner, but it may not hand the already-written file to another profile.
-
-## Review outcomes
+Use Native Nested only when supported and demonstrated by an actual launch. Otherwise the Host dispatches the controller's plan and returns artifacts for review: Compatibility. Missing nesting alone does not create a new approval requirement.
 
 | Verdict | Meaning |
 | --- | --- |
-| `PASS` | Every completion criterion is supported by real files and fresh evidence |
-| `FIX` | The original owner can make one focused correction without expanding scope |
-| `BLOCKED` | Permissions, dependencies, runtime identity, scope, conflicts, or verification prevent a trustworthy delivery |
+| `PASS` | Every requirement has real evidence for the current candidate |
+| `FIX` | A problem can still be resolved inside existing authorization |
+| `BLOCKED` | No safe authorized next step, with the specific reason |
 
-The three outcomes form a closed verdict vocabulary. Optional improvements and residual suggestions remain outside the verdict, but an unsatisfied `REQ-ID` can never be downgraded to a suggestion.
+The detailed protocol is maintained in [orchestration.md](.agents/skills/codex-prove/references/orchestration.md) and the on-demand [runtime-notes.md](.agents/skills/codex-prove/references/runtime-notes.md).
 
 </details>
 
@@ -383,9 +354,11 @@ See [`docs/release/runtime-surface-matrix.md`](docs/release/runtime-surface-matr
 
 ## Current status
 
-The current version is **[v1.0.0](https://github.com/yehyakin/codex-prove/releases/tag/v1.0.0)**.
+The previous stable version is **[v1.0.0](https://github.com/yehyakin/codex-prove/releases/tag/v1.0.0)**.
 
 > **Migration:** Sol Control is now Codex PROVE. Use `$codex-prove`; `$sol-control` remains an explicit compatibility alias for v1.0. The installer can transactionally migrate managed v0.1–v0.5 installs, and `--restore-latest` restores the pre-upgrade state.
+
+The following table is historical v1.0 evidence, not a v1.1 test report.
 
 | Verification surface | Recorded evidence |
 | --- | --- |
@@ -408,11 +381,13 @@ These statements describe the recorded evidence boundary; they do not infer supp
 │  ├─ SKILL.md
 │  └─ references/
 │     ├─ orchestration.md      orchestration contract
-│     └─ runtime-notes.md      runtime and capability profiles
+│     ├─ runtime-notes.md      runtime and capability profiles
+│     └─ ponytail-license.txt  upstream MIT attribution
 └─ sol-control/                explicit v1.0 compatibility entry
 
 .codex/agents/
 ├─ prove-controller.toml
+├─ prove-specialist-worker.toml
 ├─ prove-complex-worker.toml
 └─ prove-efficient-worker.toml
 
@@ -434,6 +409,7 @@ README.en.md                   English
 - [Orchestration contract](.agents/skills/codex-prove/references/orchestration.md)
 - [Runtime and capability profiles](.agents/skills/codex-prove/references/runtime-notes.md)
 - [Controller configuration](.codex/agents/prove-controller.toml)
+- [Specialist worker configuration](.codex/agents/prove-specialist-worker.toml)
 - [Complex worker configuration](.codex/agents/prove-complex-worker.toml)
 - [Efficient worker configuration](.codex/agents/prove-efficient-worker.toml)
 - [Runtime surface matrix](docs/release/runtime-surface-matrix.md)
@@ -474,9 +450,16 @@ When changing the README, update both languages and the documentation tests. Tes
 - Exact custom-agent, model, reasoning-effort, and permission selection depends on the host runtime surface.
 - Parallelism depends on live capacity and disjoint write scopes; no fixed worker count is promised.
 - GitHub-hosted Windows runners prove Windows Server behavior, not physical Windows 11 behavior.
-- The complex worker is an execution tier, not a second planner or controller.
+- Specialist and regular workers are execution tiers, not second planners or controllers.
 - PROVE means evidence-bound verification, not a guarantee of perfect correctness.
 - Final delivery depends on real files, the complete diff, and fresh verification. Configuration labels alone are not runtime evidence.
+
+## Inspirations / Prior Art
+
+- [Eric Provencher: Rethinking skills and prompts for GPT-6 Astra](https://x.com/pvncher/status/2095991462416490862): shorter persistent instructions, on-demand references, and user outcomes over ceremony.
+- [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail): understand before simplifying, reuse existing capabilities, and avoid over-building. MIT attribution is retained; its persistent plugin and benchmark claims are not bundled.
+- [Recent implementation review](docs/research/2026-09-25-peer-orchestration.md): actual rules and validation in da34, joserey7, Sol Advisor, Superpowers, and related projects inform non-duplicative delegation, risk-based review, and grader calibration—not a fixed agent team.
+- Earlier orchestration and evidence-workflow sources are recorded in [NOTICE](NOTICE), distinguishing ideas from adaptations.
 
 ## License
 

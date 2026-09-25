@@ -1,6 +1,6 @@
 # Support
 
-Codex Codex PROVE is maintained for the latest tagged release and the current `main` branch. The supported installation surfaces are macOS and Linux through the POSIX lifecycle scripts, plus Windows through Windows PowerShell 5.1 and PowerShell 7.
+Codex PROVE is maintained for the latest tagged release and the current `main` branch. The supported installation surfaces are macOS and Linux through the POSIX lifecycle scripts, plus Windows through Windows PowerShell 5.1 and PowerShell 7.
 
 Exact custom-agent selection, models, reasoning effort, permissions, and nested delegation depend on the Codex host. The repository documents only runtime surfaces for which evidence has been recorded; GitHub-hosted Windows validation is not proof of every physical Windows or Codex Desktop configuration.
 
