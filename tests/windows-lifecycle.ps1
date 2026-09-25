@@ -425,8 +425,18 @@ function Move-Item {
     }
     Microsoft.PowerShell.Management\Move-Item -LiteralPath $LiteralPath -Destination $Destination -ErrorAction Stop
 }
-if ($RestoreLatest) { & $ScriptFile -RestoreLatest }
-else { & $ScriptFile }
+$capturedWarnings = @()
+try {
+    if ($RestoreLatest) { & $ScriptFile -RestoreLatest -WarningVariable capturedWarnings }
+    else { & $ScriptFile -WarningVariable capturedWarnings }
+}
+finally {
+    # Preserve real WarningRecord content across native-host display wrapping.
+    foreach ($warning in $capturedWarnings) {
+        $bytes = [System.Text.Encoding]::UTF8.GetBytes([string]$warning)
+        Write-Output ("PROVE_RECOVERY_WARNING:" + [Convert]::ToBase64String($bytes))
+    }
+}
 '@
     foreach ($operation in @("install", "uninstall")) {
         foreach ($failure in @("restore", "evacuation")) {
@@ -464,11 +474,16 @@ else { & $ScriptFile }
             Assert-True ($transactions.Count -eq 1) "$operation/$failure deleted its recovery transaction"
             $recovery = $transactions[0].FullName
             Assert-True ((Get-FileDigest (Join-Path $recovery "$held/15")) -eq $original) "original recovery copy changed"
-            # Windows PowerShell 5.1 can preserve mixed separators in Join-Path
-            # output; FileInfo.FullName uses canonical separators. Compare the
-            # complete path, not that presentation difference.
+            # Check the original warning, not the native console's formatted
+            # rendering. Still require the complete path and original checksum.
             $reportedPath = "Recovery path: " + $recovery.Replace('\', '/')
-            Assert-True ($output.Replace('\', '/').Contains($reportedPath)) "recovery path was not reported for $operation/$failure"
+            $warningRecords = @([regex]::Matches($output, '(?m)^PROVE_RECOVERY_WARNING:([A-Za-z0-9+/=]+)\r?$'))
+            $reported = $false
+            foreach ($record in $warningRecords) {
+                $message = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($record.Groups[1].Value))
+                if ($message.Replace('\', '/').Contains($reportedPath)) { $reported = $true }
+            }
+            Assert-True $reported "recovery path was not reported for $operation/$failure"
             if ($evacuation) { Assert-True ((Get-FileDigest $specialist) -eq $original) "occupied target was overwritten" }
             else { Assert-PathAbsent $specialist }
             Assert-PathExists (Join-Path $homePath ".codex/agents/prove-controller.toml")

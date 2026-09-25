@@ -145,6 +145,12 @@ class ReleaseEngineeringTests(unittest.TestCase):
         self.assertIn('bash -n "$script"', workflow)
         self.assertNotIn("bash -n scripts/*.sh\n", workflow)
 
+    def test_posix_ci_uses_the_matrix_selected_python(self) -> None:
+        workflow = (WORKFLOWS / "posix-validation.yml").read_text(encoding="utf-8")
+        self.assertIn("python-version: ${{ matrix.python-version }}", workflow)
+        self.assertIn("run: python -m unittest discover -s tests -q", workflow)
+        self.assertNotIn("run: bash scripts/test.sh", workflow)
+
     def test_workflows_pin_actions_and_cover_release_matrix(self) -> None:
         expected = {
             "actions/checkout": "11d5960a326750d5838078e36cf38b85af677262",

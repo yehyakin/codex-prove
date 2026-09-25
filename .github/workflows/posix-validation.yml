@@ -40,7 +40,8 @@ jobs:
           done
 
       - name: Run full unittest suite
-        run: bash scripts/test.sh
+        # Honor setup-python's matrix selection, not the local Homebrew fallback.
+        run: python -m unittest discover -s tests -q
 
       - name: Verify install check is read-only
         shell: bash

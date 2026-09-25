@@ -12,7 +12,7 @@ import worker_model_pilot as pilot
 
 class WorkerPilotTests(unittest.TestCase):
     def test_archived_inputs_and_candidates_match_recorded_hashes(self):
-        archive = json.loads((pilot.ROOT / "docs/research/worker-pilot-2026-09-25.json").read_text())
+        archive = json.loads((pilot.ROOT / "docs/research/worker-pilot-2026-09-25.json").read_text(encoding="utf-8"))
         fixtures = {case["id"]: case for case in archive["frozen_fixtures"]}
         for row in archive["results"]["cells"]:
             case = fixtures[row["case_id"]]
