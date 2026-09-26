@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import re
+import tomllib
 import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -78,7 +79,6 @@ GEOMETRY_ATTRIBUTES = {
 }
 KEY_LABELS = (
     "CODEX PROVE",
-    "72%",
     "FILES",
     "DIFF",
     "TEST",
@@ -87,8 +87,10 @@ KEY_LABELS = (
     "BLOCKED",
     "DIRECT",
     "CONTROLLER-ONLY",
-    "CONTROLLER → EFFICIENT",
-    "CONTROLLER → COMPLEX",
+    "ASTRA",
+    "SOL",
+    "TERRA",
+    "LUNA",
 )
 
 
@@ -202,14 +204,14 @@ def resource_safety_errors(source: str, root: ET.Element) -> list[str]:
 
 
 EXPECTED_WORKERS = (
-    "efficient-worker-1",
-    "efficient-worker-2",
-    "efficient-worker-3",
+    "prove-specialist-worker",
+    "prove-complex-worker",
+    "prove-efficient-worker",
 )
 
 
 def worker_path_errors(root: ET.Element) -> list[str]:
-    """Validate three independent controller/worker task/evidence round trips."""
+    """Validate a round trip for each optional worker profile, not a fixed team."""
 
     errors: list[str] = []
     flow_elements = [
@@ -239,7 +241,7 @@ def worker_path_errors(root: ET.Element) -> list[str]:
         if source != "prove-controller":
             errors.append(f"task path must start at prove-controller: {source!r}")
         if target not in EXPECTED_WORKERS:
-            errors.append(f"task path has invalid efficient owner: {target!r}")
+            errors.append(f"task path has invalid worker profile: {target!r}")
         task_targets.append(target)
 
     evidence_sources: list[str] = []
@@ -247,7 +249,7 @@ def worker_path_errors(root: ET.Element) -> list[str]:
         source = element.attrib.get("data-from", "").strip()
         target = element.attrib.get("data-to", "").strip()
         if source not in EXPECTED_WORKERS:
-            errors.append(f"evidence path has invalid efficient owner: {source!r}")
+            errors.append(f"evidence path has invalid worker profile: {source!r}")
         if target != "prove-controller":
             errors.append(f"evidence path must return to prove-controller: {target!r}")
         evidence_sources.append(source)
@@ -255,18 +257,18 @@ def worker_path_errors(root: ET.Element) -> list[str]:
     expected_workers = set(EXPECTED_WORKERS)
     if set(task_targets) != expected_workers:
         errors.append(
-            "task path data-to must exactly cover efficient-worker-1..3: "
+            "task path data-to must exactly cover the three worker profiles: "
             f"{sorted(set(task_targets))!r}"
         )
     if len(task_targets) != len(EXPECTED_WORKERS):
-        errors.append("task paths must contain exactly one path per efficient worker")
+        errors.append("task paths must contain exactly one path per worker profile")
     if set(evidence_sources) != expected_workers:
         errors.append(
-            "evidence path data-from must exactly cover efficient-worker-1..3: "
+            "evidence path data-from must exactly cover the three worker profiles: "
             f"{sorted(set(evidence_sources))!r}"
         )
     if len(evidence_sources) != len(EXPECTED_WORKERS):
-        errors.append("evidence paths must contain exactly one path per efficient worker")
+        errors.append("evidence paths must contain exactly one path per worker profile")
     return errors
 
 
@@ -291,7 +293,7 @@ class ControlOrbitAssetContractTests(unittest.TestCase):
                     f"{name}: root must use the standard SVG namespace",
                 )
                 expected_view_box = (
-                    "0 0 1200 420" if name.startswith("hero-") else "0 0 1200 520"
+                    "0 0 1200 420" if name.startswith("hero-") else "0 0 1200 640"
                 )
                 self.assertEqual(expected_view_box, root.attrib.get("viewBox"), name)
 
@@ -329,29 +331,23 @@ class ControlOrbitAssetContractTests(unittest.TestCase):
                 elif name == "hero-en.svg":
                     self.assertIn("PROVE", text, name)
                     self.assertIn("controller", text.casefold(), name)
-                    self.assertRegex(
-                        text,
-                        r"(?i)(?:estimated|budget|projection|sample[- ]validated)",
-                        name,
-                    )
                 else:
                     self.assertIn("PROVE", text, name)
                     self.assertIn("CONTROLLER", text, name)
                 if name.startswith("hero-"):
-                    self.assertIn("72%", text, name)
+                    self.assertNotRegex(text, r"\d+(?:\.\d+)?%", name)
                     self.assertIn("FILES", text, name)
                     self.assertIn("DIFF", text, name)
                     self.assertIn("TEST", text, name)
-                    if name.endswith("-zh.svg"):
-                        self.assertRegex(text, r"(?:估算|预算|比例|路由开销)", name)
                 else:
                     for token in ("PASS", "FIX", "BLOCKED"):
                         self.assertIn(token, text, f"{name}: missing {token}")
                     for token in (
                         "DIRECT",
                         "CONTROLLER-ONLY",
-                        "CONTROLLER → EFFICIENT",
-                        "CONTROLLER → COMPLEX",
+                        "SOL",
+                        "TERRA",
+                        "LUNA",
                     ):
                         self.assertIn(token, text, f"{name}: missing route {token}")
                     if name.endswith("-zh.svg"):
@@ -375,13 +371,18 @@ class ControlOrbitAssetContractTests(unittest.TestCase):
                 worker_ids = sorted(
                     identifier
                     for identifier in ids
-                    if re.fullmatch(r"efficient-worker-[0-9]+", identifier)
+                    if identifier in EXPECTED_WORKERS
                 )
                 self.assertEqual(
                     worker_ids,
-                    ["efficient-worker-1", "efficient-worker-2", "efficient-worker-3"],
-                    f"{name}: expected exactly efficient-worker-1..3",
+                    sorted(EXPECTED_WORKERS),
+                    f"{name}: expected exactly the current three worker profiles",
                 )
+                nodes = {element.get("id"): element for element in root.iter() if element.get("id")}
+                for profile_id in ("prove-controller", *EXPECTED_WORKERS):
+                    profile = tomllib.loads((ROOT / ".codex/agents" / f"{profile_id}.toml").read_text(encoding="utf-8"))
+                    self.assertEqual(profile["model"], nodes[profile_id].get("data-model"), name)
+                self.assertEqual([], worker_path_errors(root), name)
 
                 for element, node_text, font_size in iter_text_nodes(root):
                     if not node_text:
@@ -397,7 +398,7 @@ class ControlOrbitAssetContractTests(unittest.TestCase):
                             f"{name}: text below 18 units: {node_text!r}",
                         )
                     folded = node_text.casefold()
-                    if any(label.casefold() in folded for label in KEY_LABELS):
+                    if any(re.search(rf"(?<![a-z]){re.escape(label.casefold())}(?![a-z])", folded) for label in KEY_LABELS):
                         self.assertIsNotNone(font_size, f"{name}: key label has no font-size")
                         if font_size is not None:
                             self.assertGreaterEqual(
@@ -484,7 +485,7 @@ class ControlOrbitAssetContractTests(unittest.TestCase):
         missing_evidence = fixture(EXPECTED_WORKERS, EXPECTED_WORKERS[:2])
         self.assertTrue(worker_path_errors(missing_evidence))
 
-        generalized_worker = fixture(("efficient", "efficient-worker-2", "efficient-worker-3"), EXPECTED_WORKERS)
+        generalized_worker = fixture(("efficient", *EXPECTED_WORKERS[1:]), EXPECTED_WORKERS)
         self.assertTrue(worker_path_errors(generalized_worker))
 
 

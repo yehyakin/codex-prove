@@ -29,11 +29,11 @@
 
 运行时默认使用简体中文；如果用户明确指定其他语言，则遵循用户选择。
 
-> **上一稳定版 v1.0.0 的记录：**115 项测试、39 个 Forward 场景、POSIX 与 Windows PowerShell 5.1/7 CI，以及全新会话 Compatibility 真实路由。
+> **当前 main：**四角色升级已合并；含本次文档回归的 120 项本地测试通过。实现基线 `936cfca` 的 8 个 Linux / macOS / Windows CI 任务全部通过。[查看证据与运行边界](#当前状态)。最新稳定标签仍为 v1.0.0。
 
 规范仓库：[yehyakin/codex-prove](https://github.com/yehyakin/codex-prove)。这是独立社区项目，不代表 OpenAI 官方产品或背书。
 
-## v1.1 开发版：更强主控，更少流程
+## v1.1 · 已合并 main：更强主控，更少流程
 
 **Astra 统筹，Sol 攻坚，Terra 主力，Luna 批量；小任务直接做。**
 主控为 GPT-6 Astra / high；按需选择 GPT-6 Sol / high、GPT-5.6 Terra / high 或 GPT-6 Luna / max 执行，
@@ -45,29 +45,33 @@
 - 同一范围只允许一个活跃写入者；停稳旧执行者及其进程、保留 Diff 后可以安全移交。
 - 融入 **Ponytail** 的最小实现思想：先复用现有代码、标准库和平台能力，不增加常驻 Hook、模式开关或审批。
 
-本节描述开发分支，不是已发布版本。审计、测试和运行边界见 [v1.1 升级记录](docs/release/v1.1-gpt6-audit.md)。
+本节描述当前 main 的实现，尚未发布 v1.1 稳定标签。完整变更、修复和验证过程见 [v1.1 升级记录](docs/release/v1.1-gpt6-audit.md)。
 
-9 月 26 日确认本候选的默认分工：**Astra 主控、Sol 专项、Terra 常规、Luna 批处理**。
+2026 年 9 月 26 日合并的默认分工：**Astra 主控、Sol 专项、Terra 常规、Luna 批处理**。
 Sol、Luna 升级代际，保留既有 effort、权限和角色标识；Terra 继续常规执行，
 不因新模型发布而自动替换。Jev 仅用于研发调研，不接入默认路由，也不成为安装或运行依赖。
 
-## 核心路由与预计节省
+## 核心路由与成本
 
-> **历史口径：**下表和下方完整计算保留 v1.0 的 Sol 主控及 **2026-08-04** 费率快照；不适用于 v1.1 Astra 主控。新配置尚无匹配成本测量，不能沿用这些百分比，也不能叠加 Ponytail 的上游节省数据。
+**把判断留给 Astra，把执行交给合适的模型，而不是所有 token 都用最高价模型。**
 
+| 路由 | 默认模型 / effort | 适合的工作 | 输入 / 输出单价，相对 Astra |
+| --- | --- | --- | ---: |
+| 主控 | GPT-6 Astra / high | 理解、规划、调度、最终审核 | 100% / 100% |
+| 专项 | GPT-6 Sol / high | 困难但可独立验收的实现、根因分析或专项审核 | 20% / 20% |
+| 常规 | GPT-5.6 Terra / high | 方案明确的功能、修复、测试和集成 | 20% / 24% |
+| 批处理 | GPT-6 Luna / max | 规则明确、客观可验证的机械批量执行 | 1% / 1% |
+| Direct | 当前 Codex | 小任务直接完成，零委派 | 额外编排开销 0%；路由节省 0% |
 
-下表以“同一任务全部使用 Sol”为 `1.00×` 基线。三个模型的 token 份额合计为 100%，`编排开销`表示额外的 Sol 规划、审核、协调和必要返工，相对于全 Sol 基线增加的成本。
+上述为 **2026-09-26、Standard、短上下文**的单价比，不是任务总成本降幅。[API 费率](https://developers.openai.com/api/docs/pricing) · [Terra 费率](https://developers.openai.com/api/docs/models/gpt-5.6-terra) · [Codex credits 费率](https://learn.chatgpt.com/docs/pricing)
 
-| 场景 | 示例 token 路由 | 编排开销 | 预计节省 |
-| --- | --- | ---: | ---: |
-| **普通明确型项目** | Sol 10% · Terra 20% · Luna 70% | 3%–7% | **72.2%–76.2%** |
-| **混合型项目** | Sol 20% · Terra 40% · Luna 40% | 2%–12% | **50.4%–60.4%** |
-| **复杂型项目** | Sol 25% · Terra 60% · Luna 15% | 7%–17% | **33.4%–43.4%** |
-| **Direct 小任务** | 当前 Codex 直接完成，不委派 | 0% | **路由节省 0%** |
+**预算算例：$15.00 → $5.66，约省 62.3%。** 假设累计 1M 非缓存输入 + 0.1M 输出，每类 token 按 Astra 20% / Sol 20% / Terra 40% / Luna 20% 分配，再加全 Astra 基线 5% 的编排开销。[计算与假设](#为什么能节省成本)
 
-这些区间是基于公开费率和示例 token 份额的 `scenario_model_projection`，用于预算规划，**不是每个任务的保证，也不代表一定更快**。
+这是 `scenario_model_projection`，不是当前用户样本的平均值或每个任务的保证，也不代表一定更快。模型份额和 5% 开销是明确列出的示例假设，不是固定路由配额；最终按实际用量、返工和质量验收计算。
 
 ## 60 秒开始
+
+需要 Git、Python 3.11+，以及支持对应模型与自定义 Agent 的 Codex。以下默认安装当前 main；要使用稳定标签，在安装前执行 `git switch --detach v1.0.0`，该版本仍使用旧模型分工。
 
 ### macOS / Linux
 
@@ -128,13 +132,54 @@ PROVE 不是默认模式，也不是固定 Agent 团队。它只在编排能提�
 
 ## 为什么能节省成本
 
-Codex PROVE 的节省逻辑很直接：
+当前路线由 **Astra 判断和终审**，Sol / Terra / Luna 按任务边界执行；不是模型越便宜就包办一切，也不是四个模型逐层接力。Sol 与 Terra 当前输入同价、Sol 输出更低价；保留 Terra 是已确认的角色选择，不宣称它必然更便宜或更好。
+
+### 当前费率与算例 · 2026-09-26
+
+每 1M tokens，Standard、单次请求输入不超过 272K；API 与 Codex credits 分列：
+
+| 模型 | API 输入 | API 缓存输入 | API 输出 | Credits 输入 | Credits 缓存输入 | Credits 输出 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| GPT-6 Astra | $10.00 | $1.00 | $50.00 | 250 | 25 | 1,250 |
+| GPT-6 Sol | $2.00 | $0.20 | $10.00 | 50 | 5 | 250 |
+| GPT-5.6 Terra | $2.00 | $0.20 | $12.00 | 50 | 5 | 300 |
+| GPT-6 Luna | $0.10 | $0.01 | $0.50 | 2.5 | 0.25 | 12.5 |
+
+来源：[API 定价](https://developers.openai.com/api/docs/pricing)、[Terra 模型页](https://developers.openai.com/api/docs/models/gpt-5.6-terra)、[Codex credits](https://learn.chatgpt.com/docs/pricing)。这是费率快照；账单以使用时适用费率为准。
+
+以前面的累计 token 量为例，各请求均在短上下文范围内、无缓存、无工具附加费：
+
+```text
+baseline = 1M × $10/M + 0.1M × $50/M = $15.00
+route = 20% × $15.00 + 20% × $3.00
+      + 40% × $3.20 + 20% × $0.15 = $4.91
+overhead = 5% × $15.00 = $0.75
+total = $4.91 + $0.75 = $5.66
+saving = 1 - $5.66 / $15.00 = 62.3% (rounded)
+```
+
+同一算例的 Codex token 费率结果为 **375 → 141.5 credits**，不是订阅月费减少 62.3%，也不直接等于每周可用额度增加。这里只比较 token 费用，**不计人工时间或等待时间**，也没有证明各模型产出质量等价。
+
+实际用量应逐模型相加：`非缓存输入 × 输入费率 + 缓存输入 × 缓存费率 + 输出（含计费推理）× 输出费率`，再计入适用的缓存写入、工具等费用。实际日志已包含规划、验证和返工时，不要再重复加示例开销。API 缓存写入通常按输入的 1.25× 计费；Codex credits 不单列缓存写入费。GPT-6 Fast mode 的 API 为适用 Standard 费率 2×，Codex credits 为 2.5×，不要混用。超长上下文、重复上下文和返工也会改变结果。
+
+<details>
+<summary><strong>v1.0 历史口径：旧模型成本区间、费率与公式</strong></summary>
+
+**历史口径：以下仅保留 2026-08-04 的 v1.0 快照，不适用于当前四角色配置，也不与 Ponytail 的上游成绩叠加。** 当时的基线是全程 GPT-5.6 Sol，不是当前全 Astra 基线。
+
+| 场景 | 示例 token 路由 | 编排开销 | 预计节省 |
+| --- | --- | ---: | ---: |
+| **普通明确型项目** | Sol 10% · Terra 20% · Luna 70% | 3%–7% | **72.2%–76.2%** |
+| **混合型项目** | Sol 20% · Terra 40% · Luna 40% | 2%–12% | **50.4%–60.4%** |
+| **复杂型项目** | Sol 25% · Terra 60% · Luna 15% | 7%–17% | **33.4%–43.4%** |
+
+旧版的节省逻辑为：
 
 > **把高成本的目标理解、边界判断与最终审核留给 Sol；把实际执行按复杂度路由给 Terra 或 Luna。**
 
 按 **2026-08-04** 的官方 API 价格与 Codex token-based rate card，同一种 token 类型下，三个模型的相对成本为：
 
-| 模型 | 相对成本 | 在本项目中的职责 |
+| 模型 | 相对成本 | v1.0 的职责 |
 | --- | ---: | --- |
 | **Sol** | **1.00×** | 理解、规划、分配、调度、最终审核 |
 | **Terra High** | **0.40×** | 复杂、跨模块、长上下文或高风险执行 |
@@ -153,9 +198,6 @@ Codex PROVE 的节省逻辑很直接：
 > **普通明确型项目可投影节省约 72%–76%，典型混合项目约 50%–60%，复杂项目约 33%–43%；实际结果必须按真实路由和 token 使用复算。**
 
 而不是把所有任务概括成一个固定的“平均节省 56%”。
-
-<details>
-<summary><strong>查看官方费率、公式与完整计算</strong></summary>
 
 ### API 价格
 
@@ -237,9 +279,9 @@ API 用户看到的是美元金额；ChatGPT / Codex 用户通常看到的是 cr
 
 ## 工作方式
 
-![v1.0 双 worker 路径示意；v1.1 当前分工以下方文字和配置表为准](docs/assets/readme/control-plane-zh.svg)
+![当前路由：Direct 零委派，Astra 按需选择 Sol、Terra、Luna，真实证据返回主控审核](docs/assets/readme/control-plane-zh.svg)
 
-上图保留 v1.0 的两类 worker 示意；v1.1 增加独立 specialist，当前路径如下。
+图中三类 worker 是可选能力，不表示每次都创建三个 Agent。独立、无重叠任务可并行；依赖任务分 Wave，共享文件串行。
 
 ```text
 用户目标
@@ -343,15 +385,35 @@ pwsh -NoProfile -File scripts/uninstall.ps1 -RestoreLatest
 
 安装器只管理本项目拥有的 Skill 与 agent 文件，并保留无关 agent 和用户自己的 `~/.codex/config.toml`。隔离生命周期测试时可使用 `ORCHESTRATE_HOME` 指定临时 home。
 
-安装器支持从 v0.1–v0.5 的受管版本迁移：先校验旧 Skill、Agent 与 ownership state，再备份并原子安装到 `~/.agents/skills/codex-prove` 和 `~/.codex/codex-prove`。v1.0 同时安装 `$sol-control` 兼容入口。`--restore-latest` 可恢复升级前的完整可管理状态；检测到用户修改、无 ownership 的同名目标或校验失败时会停止，不会覆盖。
+安装器支持从 v0.1–v0.5 的受管版本迁移，也支持既有 PROVE 安装的升级：先校验旧 Skill、Agent 与 ownership state，再备份并原子安装到 `~/.agents/skills/codex-prove` 和 `~/.codex/codex-prove`。当前仍安装 `$sol-control` 显式兼容入口和四份 Agent 配置。`--restore-latest` 可恢复升级前的完整可管理状态；检测到用户修改、无 ownership 的同名目标或校验失败时会停止，不会覆盖。
+
+已有源码副本时，先确认 `git status --short` 无用户改动，执行 `git switch main` 后再运行 `git pull --ff-only origin main`，重新验证、安装并打开全新 Codex 会话。安装脚本会输出备份位置；更新 GitHub 源码不会自动更新已有全局安装或旧会话中的 Agent。
 
 平台与证据覆盖详见 [`docs/release/runtime-surface-matrix.md`](docs/release/runtime-surface-matrix.md)。
 
 ## 当前状态
 
-上一稳定版本为 **[v1.0.0](https://github.com/yehyakin/codex-prove/releases/tag/v1.0.0)**。
+**当前 main 已包含 v1.1 四角色升级；最新稳定标签仍为 [v1.0.0](https://github.com/yehyakin/codex-prove/releases/tag/v1.0.0)。** 合并不是发布标签，也不是全局安装或新会话验证。
 
-> **迁移说明：**Sol Control 已更名为 Codex PROVE。新入口是 `$codex-prove`；`$sol-control` 在 v1.0 中保留为显式兼容别名。安装器可事务迁移受管的 v0.1–v0.5 版本，`--restore-latest` 可恢复升级前状态。
+> **迁移说明：**Sol Control 已更名为 Codex PROVE。入口为 `$codex-prove`；`$sol-control` 仍是显式兼容别名。安装器迁移、备份和恢复均只处理本项目受管文件。
+
+### 当前实现的证据
+
+| 验证面 | 结果与范围 |
+| --- | --- |
+| 合并基线 | [`936cfca`](https://github.com/yehyakin/codex-prove/commit/936cfca558600cbbe38dce19d5970aee4d3aadc5)：118 项测试通过；双入口 Skill Creator、YAML/TOML、Shell 与 PowerShell AST 验证通过 |
+| 本次文档更新 | 新增成本算例和版本状态回归，完整本地测试 120 项通过；中英 README 在 1200 / 390 px 宽度及四张 SVG 经 Chrome 渲染检查 |
+| Linux / macOS | [main POSIX CI](https://github.com/yehyakin/codex-prove/actions/runs/36242572791)：Ubuntu/macOS × Python 3.11/3.13，4/4 通过 |
+| Windows | [main Windows CI](https://github.com/yehyakin/codex-prove/actions/runs/36242572803)：Windows Server 2022 / `windows-latest` × PowerShell 5.1/7，4/4 通过；不等于物理 Windows 11 实机验证 |
+| 安装安全 | 隔离生命周期覆盖四份配置、无关文件保留、父路径链接拒绝、异常回滚、卸载与恢复；没有改动本机全局安装 |
+| 路由样本 | [一次 Astra high 只读检查](docs/release/gpt6-four-role-routing-probe.json)覆盖 5 个合成请求；[49 个 Forward 场景](tests/forward-tests.md)是场景规格，不是 49 次真实模型运行 |
+| Worker 对照 | [18 次 Sol / Terra CLI 试验](docs/research/2026-09-25-worker-pilot.md)保留测试通过和后验发现问题的两套结果，不包装成质量或成本赢家 |
+| 尚未确认 | 当前四模型完整端到端、升级后的全局安装和新会话发现、Native Nested / Compatibility 新配置实跑；旧版本证明不能替代这些检查 |
+
+上表绑定已验证的实现提交；后续文档回归和当前分支状态以顶部 CI 徽章为准。完整过程见 [升级记录](docs/release/v1.1-gpt6-audit.md)与[运行矩阵](docs/release/runtime-surface-matrix.md)。
+
+<details>
+<summary><strong>v1.0 稳定版历史证据</strong></summary>
 
 以下表格是 v1.0 历史证据，不是 v1.1 的测试报告。
 
@@ -368,6 +430,8 @@ v1.0.0 将品牌、Skill 与 Agent 角色从具体模型名解耦，同时保留
 
 这些状态描述的是已记录证据范围，不推断未验证运行表面。
 
+</details>
+
 ## 仓库结构
 
 ```text
@@ -378,7 +442,7 @@ v1.0.0 将品牌、Skill 与 Agent 角色从具体模型名解耦，同时保留
 │     ├─ orchestration.md      编排契约
 │     ├─ runtime-notes.md      运行时与能力 profile
 │     └─ ponytail-license.txt  上游 MIT 归属
-└─ sol-control/                v1.0 显式兼容入口
+└─ sol-control/                显式兼容入口
 
 .codex/agents/
 ├─ prove-controller.toml
@@ -408,6 +472,7 @@ README.en.md                   English
 - [Complex worker 配置](.codex/agents/prove-complex-worker.toml)
 - [Efficient worker 配置](.codex/agents/prove-efficient-worker.toml)
 - [运行表面矩阵](docs/release/runtime-surface-matrix.md)
+- [v1.1 升级与验证记录](docs/release/v1.1-gpt6-audit.md)
 - [真实项目路由样本](tests/real-project-benchmark.md)
 - [v1.0 匹配 A/B 协议](tests/v100-ab-benchmark.md)
 - [v1.0 真实匹配 smoke 证据](tests/v100-live-smoke.md)
@@ -439,7 +504,7 @@ python3 scripts/benchmark_ab.py validate tests/fixtures/v100-ab-benchmark.json
 
 ## 限制
 
-- 成本区间是基于公开费率与示例 token 份额的预算投影，不是匹配 A/B benchmark。
+- 成本算例基于公开费率和显式假设；历史成本区间只适用于旧版，不是当前四模型的匹配 A/B benchmark。
 - 真实 token 总量可能因规划、上下文重复、验证和返工而变化。
 - Fast mode、超长上下文和不同输出比例可能改变实际消耗。
 - 精确 custom agent、model、reasoning effort 与权限选择取决于宿主运行表面。

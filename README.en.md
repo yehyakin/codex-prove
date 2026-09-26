@@ -29,11 +29,11 @@ Simple tasks stay with the current Codex session. Explicitly invoke `$codex-prov
 
 Runtime output defaults to Simplified Chinese unless the user explicitly requests another language.
 
-> **Previous stable v1.0.0 record:** 115 tests, 39 Forward scenarios, POSIX and Windows PowerShell 5.1/7 CI, and a real fresh-session Compatibility route.
+> **Current main:** the four-role upgrade is merged. All 120 local tests, including this documentation update, pass. Implementation baseline `936cfca` passed all 8 Linux / macOS / Windows CI jobs. [Evidence and runtime limits](#current-status). The latest stable tag remains v1.0.0.
 
 Canonical repository: [yehyakin/codex-prove](https://github.com/yehyakin/codex-prove). This is an independent community project, not an official OpenAI product or endorsement.
 
-## v1.1 development: stronger controller, less ceremony
+## v1.1 · merged into main: stronger controller, less ceremony
 
 **Astra coordinates, Sol tackles difficult units, Terra handles regular work,
 and Luna runs mechanical batches; tiny tasks stay Direct.**
@@ -46,31 +46,35 @@ GPT-6 Luna / max as needed. Tasks do not need every model or a tier-by-tier rela
 - One active writer per scope; ownership can transfer after the previous worker and its processes stop and the actual diff is preserved.
 - **Ponytail-inspired minimal implementation** favors existing code, standard libraries, and platform features without permanent hooks, modes, or new approval steps.
 
-This describes the development branch, not a published release. See the [v1.1 audit and validation record](docs/release/v1.1-gpt6-audit.md) for evidence and limits.
+This describes the current main implementation; a stable v1.1 tag has not been published. See the [v1.1 audit and validation record](docs/release/v1.1-gpt6-audit.md) for changes, fixes, and verification history.
 
-The September 26 decision confirms this candidate's defaults: **Astra controls,
+The defaults merged on September 26, 2026 are: **Astra controls,
 Sol handles specialist work, Terra handles regular work, and Luna handles batches**.
 Sol and Luna move to the new generation while preserving effort, scope, and role IDs;
 Terra remains the regular worker rather than being replaced merely because a new model shipped.
 Jev is used only for development research, not default routing or installation/runtime dependencies.
 
-## Core routing and projected savings
+## Core routing and cost
 
-> **Historical scope:** this table and the detailed calculations retain the v1.0 Sol controller and **2026-08-04** rate snapshot. They do not describe the v1.1 Astra default. There is no matched cost measurement for the new configuration; neither these percentages nor Ponytail's upstream savings can be reused for it.
+**Keep judgment with Astra and send execution to the right model, instead of paying the highest rate for every token.**
 
+| Route | Default model / effort | Best-fit work | Input / output unit price, relative to Astra |
+| --- | --- | --- | ---: |
+| Controller | GPT-6 Astra / high | Understand, plan, coordinate, and review | 100% / 100% |
+| Specialist | GPT-6 Sol / high | Difficult independent implementation, root-cause analysis, or targeted review | 20% / 20% |
+| Regular | GPT-5.6 Terra / high | Settled features, fixes, tests, and integration | 20% / 24% |
+| Batch | GPT-6 Luna / max | Mechanical batches with explicit rules and objective checks | 1% / 1% |
+| Direct | Current Codex | Small work, no delegation | 0% added orchestration; 0% routing saving |
 
-The table below uses an “all work performed by Sol” baseline of `1.00×`. Model token shares total 100%. `Orchestration overhead` represents additional Sol planning, review, coordination, and necessary rework as a fraction of the all-Sol baseline.
+These are **2026-09-26, Standard, short-context** unit-price ratios, not total task savings. [API rates](https://developers.openai.com/api/docs/pricing) · [Terra rates](https://developers.openai.com/api/docs/models/gpt-5.6-terra) · [Codex credits](https://learn.chatgpt.com/docs/pricing)
 
-| Scenario | Example token routing | Orchestration overhead | Projected saving |
-| --- | --- | ---: | ---: |
-| **Ordinary clear project** | Sol 10% · Terra 20% · Luna 70% | 3%–7% | **72.2%–76.2%** |
-| **Mixed project** | Sol 20% · Terra 40% · Luna 40% | 2%–12% | **50.4%–60.4%** |
-| **Complex project** | Sol 25% · Terra 60% · Luna 15% | 7%–17% | **33.4%–43.4%** |
-| **Direct small task** | The current Codex completes it without delegation | 0% | **0% routing saving** |
+**Budget example: $15.00 → $5.66, about 62.3% lower.** Assume an aggregate 1M uncached input + 0.1M output, with each token category split Astra 20% / Sol 20% / Terra 40% / Luna 20%, plus overhead equal to 5% of the all-Astra baseline. [Calculation and assumptions](#why-it-can-reduce-cost)
 
-These ranges are `scenario_model_projection` values based on public rates and example token shares. They are for budget planning, **not per-task guarantees or latency promises**.
+This is a `scenario_model_projection`, not a user-sample average, per-task guarantee, or latency promise. The shares and 5% overhead are explicit example assumptions, not routing quotas. Use actual usage, rework, and quality acceptance for the final comparison.
 
 ## 60-second quickstart
+
+Requires Git, Python 3.11+, and a Codex runtime supporting the configured models and custom agents. These commands install current main. To use the stable tag instead, run `git switch --detach v1.0.0` before installation; that version retains the older model split.
 
 ### macOS / Linux
 
@@ -131,13 +135,54 @@ PROVE is neither the default mode nor a permanent agent team. It uses workers on
 
 ## Why it can reduce cost
 
-The cost strategy is straightforward:
+**Astra makes decisions and reviews evidence**; Sol / Terra / Luna execute scoped work. This is neither cheapest-model-for-everything nor a four-model relay. Sol and Terra currently have the same input rate, with lower output pricing for Sol. Keeping Terra is the confirmed role choice, not a claim that it must be cheaper or better.
+
+### Current rates and example · 2026-09-26
+
+Per 1M tokens at Standard speed, with no more than 272K input tokens per request. API dollars and Codex credits are separate columns:
+
+| Model | API input | API cached input | API output | Credits input | Credits cached input | Credits output |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| GPT-6 Astra | $10.00 | $1.00 | $50.00 | 250 | 25 | 1,250 |
+| GPT-6 Sol | $2.00 | $0.20 | $10.00 | 50 | 5 | 250 |
+| GPT-5.6 Terra | $2.00 | $0.20 | $12.00 | 50 | 5 | 300 |
+| GPT-6 Luna | $0.10 | $0.01 | $0.50 | 2.5 | 0.25 | 12.5 |
+
+Sources: [API pricing](https://developers.openai.com/api/docs/pricing), [Terra model page](https://developers.openai.com/api/docs/models/gpt-5.6-terra), and [Codex credits](https://learn.chatgpt.com/docs/pricing). This is a dated snapshot; billing follows the applicable rates at usage time.
+
+For the aggregate workload above, assume every request stays in short context, with no caching or extra tool charges:
+
+```text
+baseline = 1M × $10/M + 0.1M × $50/M = $15.00
+route = 20% × $15.00 + 20% × $3.00
+      + 40% × $3.20 + 20% × $0.15 = $4.91
+overhead = 5% × $15.00 = $0.75
+total = $4.91 + $0.75 = $5.66
+saving = 1 - $5.66 / $15.00 = 62.3% (rounded)
+```
+
+The same example yields **375 → 141.5 credits** at the Codex token rates. That is not a 62.3% reduction in subscription price or a direct increase in weekly included capacity. This compares token charges only, **excluding human effort and elapsed time**, and does not establish equivalent output quality.
+
+For actual usage, sum each model's `uncached input × input rate + cached input × cached rate + output (including billable reasoning) × output rate`, plus applicable cache-write, tool, and other charges. Do not add the example overhead again when your logs already include planning, verification, and rework. API cache writes are generally 1.25× the input rate; Codex credits have no separate cache-write charge. GPT-6 Fast mode is 2× applicable Standard API rates but 2.5× Standard Codex credit rates. Long context, repeated context, and retries also change the result.
+
+<details>
+<summary><strong>v1.0 historical scope: earlier cost ranges, rates, and formula</strong></summary>
+
+**Historical scope: the following preserves the 2026-08-04 v1.0 snapshot only. It does not apply to the current four-role configuration or compound with Ponytail's upstream results.** Its baseline was all GPT-5.6 Sol, not the current all-Astra example.
+
+| Scenario | Example token routing | Orchestration overhead | Projected saving |
+| --- | --- | ---: | ---: |
+| **Ordinary clear project** | Sol 10% · Terra 20% · Luna 70% | 3%–7% | **72.2%–76.2%** |
+| **Mixed project** | Sol 20% · Terra 40% · Luna 40% | 2%–12% | **50.4%–60.4%** |
+| **Complex project** | Sol 25% · Terra 60% · Luna 15% | 7%–17% | **33.4%–43.4%** |
+
+The earlier cost logic was:
 
 > **Keep goal interpretation, boundary decisions, and final review with Sol; route implementation to Terra or Luna according to complexity.**
 
 Using the official API prices and Codex token-based rate card checked on **2026-08-04**, the relative cost of the same token type is:
 
-| Model | Relative cost | Responsibility in this project |
+| Model | Relative cost | Responsibility in v1.0 |
 | --- | ---: | --- |
 | **Sol** | **1.00×** | Understand, plan, assign, schedule, and review |
 | **Terra High** | **0.40×** | Complex, cross-module, long-context, or high-risk execution |
@@ -156,9 +201,6 @@ Under those historical assumptions, the budget example is:
 > **Ordinary clear projects can project roughly 72%–76% savings, typical mixed projects roughly 50%–60%, and complex projects roughly 33%–43%; actual results must be recalculated from real routing and token usage.**
 
 It is not accurate to compress every workload into a fixed “56% average saving.”
-
-<details>
-<summary><strong>View official rates, formula, and full calculation</strong></summary>
 
 ### API prices
 
@@ -240,10 +282,9 @@ The goal is not a noisy multi-agent team. It is a clear, auditable control plane
 
 ## How it works
 
-![Historical v1.0 two-worker diagram; the text and profile table below describe v1.1](docs/assets/readme/control-plane-en.svg)
+![Current routing: Direct skips delegation; Astra selects Sol, Terra, or Luna and reviews real evidence](docs/assets/readme/control-plane-en.svg)
 
-The image retains the v1.0 two-worker overview. v1.1 adds an independent specialist;
-its current paths are shown below.
+The three worker types are optional capabilities, not a mandatory three-agent team. Independent, disjoint work may run in parallel; dependent work uses waves, and shared files stay serial.
 
 ```text
 User goal
@@ -348,15 +389,35 @@ pwsh -NoProfile -File scripts/uninstall.ps1 -RestoreLatest
 
 The lifecycle scripts manage only project-owned Skill and agent files. They preserve unrelated agents and the user's `~/.codex/config.toml`. Set `ORCHESTRATE_HOME` to a temporary home for isolated lifecycle tests.
 
-The installer can migrate managed v0.1–v0.5 installs. It verifies the previous Skill, agents, and ownership state, backs them up, and atomically installs to `~/.agents/skills/codex-prove` and `~/.codex/codex-prove`. v1.0 also installs the `$sol-control` compatibility entry. `--restore-latest` restores the complete manageable pre-upgrade state. The installer refuses user-modified, unowned, or checksum-invalid collisions.
+The installer can migrate managed v0.1–v0.5 installs and upgrade existing PROVE installs. It verifies the previous Skill, agents, and ownership state, backs them up, and atomically installs to `~/.agents/skills/codex-prove` and `~/.codex/codex-prove`. It still installs the explicit `$sol-control` alias alongside four Agent profiles. `--restore-latest` restores the complete manageable pre-upgrade state. User-modified, unowned, or checksum-invalid collisions are refused.
+
+For an existing source checkout, first confirm `git status --short` has no user changes, run `git switch main` followed by `git pull --ff-only origin main`, validate, reinstall, and open a fresh Codex session. The installer reports the backup path. Updating GitHub source does not automatically refresh global installations or Agent definitions in existing sessions.
 
 See [`docs/release/runtime-surface-matrix.md`](docs/release/runtime-surface-matrix.md) for platform and evidence coverage.
 
 ## Current status
 
-The previous stable version is **[v1.0.0](https://github.com/yehyakin/codex-prove/releases/tag/v1.0.0)**.
+**Current main includes the v1.1 four-role upgrade; the latest stable tag remains [v1.0.0](https://github.com/yehyakin/codex-prove/releases/tag/v1.0.0).** Merging is not publishing a tag, installing globally, or verifying a fresh session.
 
-> **Migration:** Sol Control is now Codex PROVE. Use `$codex-prove`; `$sol-control` remains an explicit compatibility alias for v1.0. The installer can transactionally migrate managed v0.1–v0.5 installs, and `--restore-latest` restores the pre-upgrade state.
+> **Migration:** Sol Control is now Codex PROVE. Use `$codex-prove`; `$sol-control` remains an explicit compatibility alias. Migration, backup, and restore touch only project-managed files.
+
+### Current implementation evidence
+
+| Verification surface | Result and scope |
+| --- | --- |
+| Merged baseline | [`936cfca`](https://github.com/yehyakin/codex-prove/commit/936cfca558600cbbe38dce19d5970aee4d3aadc5): 118 tests pass; both Skill Creator entries, YAML/TOML, Shell, and PowerShell AST checks pass |
+| This documentation update | New cost-example and version-status regressions; all 120 local tests pass. Both READMEs at 1200 / 390 px and all four SVG assets were rendered and checked in Chrome |
+| Linux / macOS | [main POSIX CI](https://github.com/yehyakin/codex-prove/actions/runs/36242572791): Ubuntu/macOS × Python 3.11/3.13, 4/4 pass |
+| Windows | [main Windows CI](https://github.com/yehyakin/codex-prove/actions/runs/36242572803): Windows Server 2022 / `windows-latest` × PowerShell 5.1/7, 4/4 pass; not physical Windows 11 verification |
+| Installation safety | Isolated lifecycle checks cover four profiles, unrelated files, linked-parent rejection, failure rollback, uninstall, and restore; no local global install was changed |
+| Routing sample | [One read-only Astra high evaluation](docs/release/gpt6-four-role-routing-probe.json) covers 5 synthetic requests; the [49 Forward scenarios](tests/forward-tests.md) are specifications, not 49 live model runs |
+| Worker comparison | [18 Sol / Terra CLI trials](docs/research/2026-09-25-worker-pilot.md) retain both frozen-test passes and later-discovered failures, not a claimed quality or cost winner |
+| Not yet confirmed | Current four-model end-to-end execution, upgraded global install and fresh-session discovery, and new-configuration Native Nested / Compatibility runs; earlier-version proof does not establish these |
+
+This table is bound to the verified implementation commit. Top-of-page CI badges track later documentation regressions and current branch status. See the [audit record](docs/release/v1.1-gpt6-audit.md) and [runtime matrix](docs/release/runtime-surface-matrix.md) for details.
+
+<details>
+<summary><strong>Historical v1.0 stable-release evidence</strong></summary>
 
 The following table is historical v1.0 evidence, not a v1.1 test report.
 
@@ -373,6 +434,8 @@ v1.0.0 decouples the brand, Skill, and agent roles from specific model names whi
 
 These statements describe the recorded evidence boundary; they do not infer support for unverified runtime surfaces.
 
+</details>
+
 ## Repository layout
 
 ```text
@@ -383,7 +446,7 @@ These statements describe the recorded evidence boundary; they do not infer supp
 │     ├─ orchestration.md      orchestration contract
 │     ├─ runtime-notes.md      runtime and capability profiles
 │     └─ ponytail-license.txt  upstream MIT attribution
-└─ sol-control/                explicit v1.0 compatibility entry
+└─ sol-control/                explicit compatibility entry
 
 .codex/agents/
 ├─ prove-controller.toml
@@ -413,6 +476,7 @@ README.en.md                   English
 - [Complex worker configuration](.codex/agents/prove-complex-worker.toml)
 - [Efficient worker configuration](.codex/agents/prove-efficient-worker.toml)
 - [Runtime surface matrix](docs/release/runtime-surface-matrix.md)
+- [v1.1 upgrade and validation record](docs/release/v1.1-gpt6-audit.md)
 - [Real-project routing samples](tests/real-project-benchmark.md)
 - [v1.0 matched A/B protocol](tests/v100-ab-benchmark.md)
 - [v1.0 live matched smoke evidence](tests/v100-live-smoke.md)
@@ -444,7 +508,7 @@ When changing the README, update both languages and the documentation tests. Tes
 
 ## Limitations
 
-- The cost ranges are budget projections based on public rates and example token shares, not matched A/B benchmarks.
+- The cost example uses public rates and explicit assumptions. Historical ranges apply only to the earlier version, not a matched A/B benchmark of the current four-model setup.
 - Real token volume may change because of planning, repeated context, verification, and rework.
 - Fast mode, very long prompts, and different output ratios can change actual consumption.
 - Exact custom-agent, model, reasoning-effort, and permission selection depends on the host runtime surface.

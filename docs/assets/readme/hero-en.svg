@@ -1,91 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="18">
-  <title>Codex PROVE model-neutral orchestration and evidence loop</title>
-  <desc>The controller routes low-ambiguity bounded work to efficient workers and cross-module or high-consequence work to complex workers; FILES, DIFF, and TEST evidence returns for final review.</desc>
-
-  <rect width="1200" height="420" fill="#0B1020"/>
-  <rect x="28" y="28" width="1144" height="364" rx="24" fill="#111A30" stroke="#9AA6B8" stroke-opacity="0.35" stroke-width="2"/>
-  <path d="M48 118H622M48 330H622" fill="none" stroke="#9AA6B8" stroke-opacity="0.35" stroke-width="2"/>
-  <path d="M650 58H1148M650 366H1148" fill="none" stroke="#9AA6B8" stroke-opacity="0.22" stroke-width="2"/>
-
-  <text x="64" y="78" fill="#F7F3E8" font-size="36" font-weight="800" letter-spacing="2">CODEX PROVE</text>
-  <text x="64" y="106" fill="#65D6C4" font-size="24" font-weight="600">Planning · Routing · Ownership · Verification · Evidence</text>
-  <text x="64" y="174" fill="#FF6B3D" font-size="30" font-weight="800">~72%–76% budget range</text>
-  <text x="64" y="205" fill="#9AA6B8" font-size="18">Official ratios · routing and orchestration overhead</text>
-
-  <text x="64" y="268" fill="#F7F3E8" font-size="22" font-weight="700">PLAN → ROUTE → VERIFY</text>
-  <circle cx="74" cy="304" r="5" fill="#FF6B3D"/>
-  <path d="M90 304H210M226 304H346M362 304H482" fill="none" stroke="#FF6B3D" stroke-width="3"/>
-  <circle cx="500" cy="304" r="5" fill="#8FA7FF"/>
-  <text x="64" y="358" fill="#F7F3E8" font-size="21" font-weight="700">FILES · DIFF · TEST</text>
-  <text x="64" y="382" fill="#9AA6B8" font-size="20">Evidence returns to the controller before PASS / FIX / BLOCKED</text>
-
-  <text x="680" y="88" fill="#9AA6B8" font-size="18" letter-spacing="2">PROVE CONTROL LOOP · CAPABILITY ROUTING</text>
-  <path d="M700 166H1114M700 166V316M1114 166V316" fill="none" stroke="#9AA6B8" stroke-opacity="0.2" stroke-width="2"/>
-
-  <g fill="none" stroke="#FF6B3D" stroke-width="4" stroke-linecap="round">
-    <path id="task-path-1" data-flow="task" data-from="prove-controller" data-to="efficient-worker-1" d="M820 204C770 226 748 247 748 270"/>
-    <path id="task-path-2" data-flow="task" data-from="prove-controller" data-to="efficient-worker-2" d="M852 220C860 239 884 248 884 270"/>
-    <path id="task-path-3" data-flow="task" data-from="prove-controller" data-to="efficient-worker-3" d="M884 204C940 226 1020 247 1020 270"/>
-  </g>
-  <g fill="none" stroke="#8FA7FF" stroke-width="4" stroke-dasharray="6 10" stroke-linecap="round">
-    <path id="evidence-path-1" data-flow="evidence" data-from="efficient-worker-1" data-to="prove-controller" d="M748 270C748 238 786 215 820 192"/>
-    <path id="evidence-path-2" data-flow="evidence" data-from="efficient-worker-2" data-to="prove-controller" d="M884 270C884 240 870 220 852 198"/>
-    <path id="evidence-path-3" data-flow="evidence" data-from="efficient-worker-3" data-to="prove-controller" d="M1020 270C1020 238 946 215 884 192"/>
-  </g>
-  <g fill="#FF6B3D">
-    <path d="M744 270L748 282L752 270Z"/>
-    <path d="M880 270L884 282L888 270Z"/>
-    <path d="M1016 270L1020 282L1024 270Z"/>
-  </g>
-  <g fill="#8FA7FF">
-    <path d="M816 194L820 182L824 194Z"/>
-    <path d="M848 200L852 188L856 200Z"/>
-    <path d="M880 194L884 182L888 194Z"/>
-  </g>
-
-  <g id="prove-controller">
-    <rect x="800" y="114" width="104" height="104" rx="18" fill="#FF6B3D" fill-opacity="0.16" stroke="#FF6B3D" stroke-width="2"/>
-    <rect x="810" y="124" width="84" height="84" rx="14" fill="#FF6B3D" stroke="#F7F3E8" stroke-width="3"/>
-    <rect x="820" y="140" width="64" height="52" rx="8" fill="#0B1020" stroke="#F7F3E8" stroke-width="2"/>
-    <circle cx="832" cy="150" r="3" fill="#65D6C4"/>
-    <path d="M842 150H872M832 182H872" stroke="#F7F3E8" stroke-width="3" stroke-linecap="round"/>
-    <text x="852" y="174" text-anchor="middle" fill="#F7F3E8" font-size="18" font-weight="800">PROVE</text>
-  </g>
-  <text x="852" y="110" text-anchor="middle" fill="#F7F3E8" font-size="18" font-weight="700">Single controller · evidence review</text>
-
-  <g fill="none" stroke="#9AA6B8" stroke-width="3" stroke-linecap="round">
-    <path id="complex-task-orbit" data-tier="complex" d="M904 152H1048"/>
-    <path id="complex-evidence-orbit" data-tier="complex" d="M1048 194H904" stroke-dasharray="5 9"/>
-  </g>
-  <g id="complex-worker">
-    <rect x="1048" y="126" width="64" height="64" rx="12" fill="#9AA6B8" fill-opacity="0.16" stroke="#9AA6B8" stroke-width="2"/>
-    <rect x="1056" y="134" width="48" height="48" rx="8" fill="#9AA6B8" stroke="#F7F3E8" stroke-width="2"/>
-    <circle cx="1066" cy="145" r="3" fill="#0B1020"/>
-    <path d="M1074 145H1094M1066 157H1094M1066 169H1086" stroke="#0B1020" stroke-width="3" stroke-linecap="round"/>
-    <text x="1080" y="214" text-anchor="middle" fill="#9AA6B8" font-size="18" font-weight="700">COMPLEX</text>
-    <text x="1080" y="238" text-anchor="middle" fill="#F7F3E8" font-size="18">bounded complex execution</text>
-  </g>
-
-  <g id="efficient-worker-1">
-    <rect x="716" y="270" width="64" height="64" rx="12" fill="#65D6C4" fill-opacity="0.16" stroke="#65D6C4" stroke-width="2"/>
-    <rect x="724" y="278" width="48" height="48" rx="8" fill="#65D6C4" stroke="#F7F3E8" stroke-width="2"/>
-    <circle cx="734" cy="289" r="3" fill="#0B1020"/>
-    <path d="M742 289H762M734 301H762M734 313H754" stroke="#0B1020" stroke-width="3" stroke-linecap="round"/>
-    <text x="748" y="350" text-anchor="middle" fill="#65D6C4" font-size="18" font-weight="700">EFFICIENT 1</text>
-  </g>
-  <g id="efficient-worker-2">
-    <rect x="852" y="270" width="64" height="64" rx="12" fill="#65D6C4" fill-opacity="0.16" stroke="#65D6C4" stroke-width="2"/>
-    <rect x="860" y="278" width="48" height="48" rx="8" fill="#65D6C4" stroke="#F7F3E8" stroke-width="2"/>
-    <circle cx="870" cy="289" r="3" fill="#0B1020"/>
-    <path d="M878 289H898M870 301H898M870 313H890" stroke="#0B1020" stroke-width="3" stroke-linecap="round"/>
-    <text x="884" y="350" text-anchor="middle" fill="#65D6C4" font-size="18" font-weight="700">EFFICIENT 2</text>
-  </g>
-  <g id="efficient-worker-3">
-    <rect x="988" y="270" width="64" height="64" rx="12" fill="#65D6C4" fill-opacity="0.16" stroke="#65D6C4" stroke-width="2"/>
-    <rect x="996" y="278" width="48" height="48" rx="8" fill="#65D6C4" stroke="#F7F3E8" stroke-width="2"/>
-    <circle cx="1006" cy="289" r="3" fill="#0B1020"/>
-    <path d="M1014 289H1034M1006 301H1034M1006 313H1026" stroke="#0B1020" stroke-width="3" stroke-linecap="round"/>
-    <text x="1020" y="350" text-anchor="middle" fill="#65D6C4" font-size="18" font-weight="700">EFFICIENT 3</text>
-  </g>
+<title>Codex PROVE: Astra controls; Sol, Terra, and Luna execute on demand</title>
+<desc>One Controller assigns bounded work. Optional workers return files, diff, and tests. Solid paths dispatch tasks; dashed paths return evidence. This is not a fixed team.</desc>
+<defs>
+  <marker id="task-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#FF6B3D"/></marker>
+  <marker id="evidence-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#8FA7FF"/></marker>
+</defs>
+<rect width="1200" height="420" fill="#0B1020"/>
+<rect x="28" y="24" width="1144" height="372" rx="24" fill="#111A30" stroke="#9AA6B8" stroke-opacity="0.35" stroke-width="2"/>
+<text x="64" y="85" text-anchor="start" fill="#F7F3E8" font-size="38" font-weight="800">CODEX PROVE</text>
+<text x="64" y="124" text-anchor="start" fill="#65D6C4" font-size="22" font-weight="600">PLAN · ROUTE · OWN · VERIFY · EVIDENCE</text>
+<path d="M64 146H586" stroke="#9AA6B8" stroke-opacity="0.3" stroke-width="2"/>
+<text x="64" y="202" text-anchor="start" fill="#FF6B3D" font-size="34" font-weight="800">Stronger judgment.</text>
+<text x="64" y="248" text-anchor="start" fill="#FF6B3D" font-size="34" font-weight="800">Right-sized execution.</text>
+<text x="64" y="289" text-anchor="start" fill="#F7F3E8" font-size="22" font-weight="600">Tiny work stays Direct. Delegate when useful.</text>
+<text x="64" y="342" text-anchor="start" fill="#65D6C4" font-size="22" font-weight="600">FILES · DIFF · TEST</text>
+<text x="64" y="373" text-anchor="start" fill="#9AA6B8" font-size="20" font-weight="600">Real evidence → Controller review → Host delivery</text>
+<text x="900" y="76" text-anchor="middle" fill="#9AA6B8" font-size="20" font-weight="600">ONE CONTROLLER · OPTIONAL WORKERS</text>
+<path id="task-path-1" data-flow="task" data-from="prove-controller" data-to="prove-specialist-worker" d="M876 212C876 240 700 236 700 274" fill="none" stroke="#FF6B3D" stroke-width="3" marker-end="url(#task-arrow)"/>
+<path id="evidence-path-1" data-flow="evidence" data-from="prove-specialist-worker" data-to="prove-controller" d="M760 274C760 244 934 242 934 212" fill="none" stroke="#8FA7FF" stroke-width="2.5" stroke-dasharray="5 7" marker-end="url(#evidence-arrow)"/>
+<path id="task-path-2" data-flow="task" data-from="prove-controller" data-to="prove-complex-worker" d="M876 212C876 240 872 236 872 274" fill="none" stroke="#FF6B3D" stroke-width="3" marker-end="url(#task-arrow)"/>
+<path id="evidence-path-2" data-flow="evidence" data-from="prove-complex-worker" data-to="prove-controller" d="M932 274C932 244 934 242 934 212" fill="none" stroke="#8FA7FF" stroke-width="2.5" stroke-dasharray="5 7" marker-end="url(#evidence-arrow)"/>
+<path id="task-path-3" data-flow="task" data-from="prove-controller" data-to="prove-efficient-worker" d="M876 212C876 240 1044 236 1044 274" fill="none" stroke="#FF6B3D" stroke-width="3" marker-end="url(#task-arrow)"/>
+<path id="evidence-path-3" data-flow="evidence" data-from="prove-efficient-worker" data-to="prove-controller" d="M1104 274C1104 244 934 242 934 212" fill="none" stroke="#8FA7FF" stroke-width="2.5" stroke-dasharray="5 7" marker-end="url(#evidence-arrow)"/>
+<g id="prove-controller" data-model="gpt-6-astra"><rect x="798" y="112" width="214" height="100" rx="14" fill="#0B1020" stroke="#FF6B3D" stroke-width="2"/><text x="905" y="150" text-anchor="middle" fill="#FF6B3D" font-size="25" font-weight="800">GPT-6 ASTRA</text><text x="905" y="180" text-anchor="middle" fill="#F7F3E8" font-size="20" font-weight="600">Controller · high</text></g>
+<g id="prove-specialist-worker" data-model="gpt-6-sol"><rect x="656" y="274" width="148" height="82" rx="14" fill="#0B1020" stroke="#8FA7FF" stroke-width="2"/><text x="730" y="302" text-anchor="middle" fill="#8FA7FF" font-size="24" font-weight="800">SOL</text><text x="730" y="328" text-anchor="middle" fill="#F7F3E8" font-size="18" font-weight="600">GPT-6 · high</text></g>
+<text x="730" y="380" text-anchor="middle" fill="#8FA7FF" font-size="20" font-weight="600">Specialist</text>
+<g id="prove-complex-worker" data-model="gpt-5.6-terra"><rect x="828" y="274" width="148" height="82" rx="14" fill="#0B1020" stroke="#F7F3E8" stroke-width="2"/><text x="902" y="302" text-anchor="middle" fill="#F7F3E8" font-size="24" font-weight="800">TERRA</text><text x="902" y="328" text-anchor="middle" fill="#F7F3E8" font-size="18" font-weight="600">GPT-5.6 · high</text></g>
+<text x="902" y="380" text-anchor="middle" fill="#F7F3E8" font-size="20" font-weight="600">Regular</text>
+<g id="prove-efficient-worker" data-model="gpt-6-luna"><rect x="1000" y="274" width="148" height="82" rx="14" fill="#0B1020" stroke="#65D6C4" stroke-width="2"/><text x="1074" y="302" text-anchor="middle" fill="#65D6C4" font-size="24" font-weight="800">LUNA</text><text x="1074" y="328" text-anchor="middle" fill="#F7F3E8" font-size="18" font-weight="600">GPT-6 · max</text></g>
+<text x="1074" y="380" text-anchor="middle" fill="#65D6C4" font-size="20" font-weight="600">Batch</text>
 </svg>

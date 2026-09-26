@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Contract tests for the v1.0.0 bilingual documentation surface."""
+"""Contracts for current bilingual documentation and retained dated evidence."""
 
 from __future__ import annotations
 
 import re
+from decimal import Decimal
 import tomllib
 import unittest
 import xml.etree.ElementTree as ET
@@ -284,15 +285,15 @@ class ReadmeContractTests(unittest.TestCase):
             (
                 CHINESE_README,
                 chinese,
-                "## 核心路由与预计节省",
-                "| 场景 | 示例 token 路由 | 编排开销 | 预计节省 |",
+                "## 核心路由与成本",
+                "| 路由 | 默认模型 / effort | 适合的工作 | 输入 / 输出单价，相对 Astra |",
                 "## 为什么能节省成本",
             ),
             (
                 ENGLISH_README,
                 english,
-                "## Core routing and projected savings",
-                "| Scenario | Example token routing | Orchestration overhead | Projected saving |",
+                "## Core routing and cost",
+                "| Route | Default model / effort | Best-fit work | Input / output unit price, relative to Astra |",
                 "## Why it can reduce cost",
             ),
         )
@@ -303,13 +304,59 @@ class ReadmeContractTests(unittest.TestCase):
             self.assertLess(
                 text.index(projection_heading),
                 text.index(table_header),
-                f"{path.name}: projection heading must introduce the scenario table",
+                f"{path.name}: routing heading must introduce the current cost table",
             )
             self.assertLess(
                 text.index(table_header),
                 text.index(explanation_heading),
-                f"{path.name}: scenario table must appear before the cost explanation",
+                f"{path.name}: routing table must appear before the cost explanation",
             )
+
+    def test_current_cost_example_is_exact_bilingual_and_separate_from_history(self) -> None:
+        rates = {
+            "GPT-6 Astra": ("10.00", "1.00", "50.00", "250", "25", "1,250"),
+            "GPT-6 Sol": ("2.00", "0.20", "10.00", "50", "5", "250"),
+            "GPT-5.6 Terra": ("2.00", "0.20", "12.00", "50", "5", "300"),
+            "GPT-6 Luna": ("0.10", "0.01", "0.50", "2.5", "0.25", "12.5"),
+        }
+        shares = tuple(map(Decimal, ("0.2", "0.2", "0.4", "0.2")))
+        output = Decimal("0.1")
+        api_costs = [Decimal(row[0]) + output * Decimal(row[2]) for row in rates.values()]
+        credit_costs = [Decimal(row[3]) + output * Decimal(row[5].replace(",", "")) for row in rates.values()]
+        routed = sum(share * cost for share, cost in zip(shares, api_costs))
+        total = routed + Decimal("0.05") * api_costs[0]
+        credits = sum(share * cost for share, cost in zip(shares, credit_costs)) + Decimal("0.05") * credit_costs[0]
+        self.assertEqual(Decimal("1"), sum(shares))
+        self.assertEqual(Decimal("15"), api_costs[0])
+        self.assertEqual(Decimal("4.91"), routed)
+        self.assertEqual(Decimal("5.66"), total)
+        self.assertEqual(Decimal("141.5"), credits)
+        self.assertEqual(Decimal("62.3"), ((1 - total / api_costs[0]) * 100).quantize(Decimal("0.1")))
+        for path, text in self.readme_documents().items():
+            historical_start = text.index("<details>\n<summary><strong>v1.0")
+            current, history = text[:historical_start], text[historical_start:]
+            for model, values in rates.items():
+                row = "| " + model + " | " + " | ".join(
+                    "$" + value if index < 3 else value for index, value in enumerate(values)
+                ) + " |"
+                self.assertIn(row, current, path.name)
+            for signal in ("2026-09-26", "$15.00", "$5.66", "62.3%", "375 → 141.5 credits", "5%", "272K", "2.5×"):
+                self.assertIn(signal, current, path.name)
+            for old_signal in ("72.2%–76.2%", "50.4%–60.4%", "33.4%–43.4%", "2026-08-04"):
+                self.assertNotIn(old_signal, current, path.name)
+                self.assertIn(old_signal, history, path.name)
+            self.assertIn("https://learn.chatgpt.com/docs/pricing", current, path.name)
+            self.assertIn("https://developers.openai.com/api/docs/pricing", current, path.name)
+            self.assertRegex(current, r"不计人工时间或等待时间|excluding human effort and elapsed time")
+
+    def test_main_status_binds_evidence_without_claiming_a_new_release(self) -> None:
+        for path, text in self.readme_documents().items():
+            for signal in ("936cfca", "118", "36242572791", "36242572803", "49", "18", "gpt6-four-role-routing-probe.json", "git pull --ff-only origin main"):
+                self.assertIn(signal, text, path.name)
+            self.assertRegex(text, r"尚未发布 v1.1 稳定标签|stable v1.1 tag has not been published")
+            self.assertRegex(text, r"尚未确认|Not yet confirmed")
+            self.assertNotRegex(text, r"本节描述开发分支|This describes the development branch|保留 v1.0 的两类 worker 示意|image retains the v1.0 two-worker")
+            self.assertEqual(text.count("<details>"), text.count("</details>"), path.name)
 
     def test_rendered_markdown_ignores_fenced_and_commented_images(self) -> None:
         fixture = """
@@ -646,7 +693,7 @@ class ReadmeContractTests(unittest.TestCase):
                     f"{path.name}: wrong ChatGPT rate row for {model}",
                 )
 
-    def test_readmes_publish_current_cost_ranges_and_relative_credit_weights(self) -> None:
+    def test_readmes_preserve_historical_cost_ranges_and_relative_credit_weights(self) -> None:
         documents = self.readme_documents()
         for path, text in documents.items():
             self.assertIn("https://developers.openai.com/api/docs/models/compare", text, path.name)
