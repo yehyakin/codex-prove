@@ -1,0 +1,210 @@
+{
+  "schema_version": 1,
+  "release": "v1.1.0",
+  "date": "2026-09-27",
+  "evidence_class": "bounded_live_release_smoke",
+  "source_baseline": "93e1c35282ecb195f325967ecd3fa1f54d967b2c",
+  "source_runtime_hash_encoding": "SHA-256 of UTF-8 repository text with LF line endings; checkout CRLF is normalized for cross-platform comparison",
+  "source_runtime_sha256": {
+    ".agents/skills/codex-prove/SKILL.md": "13ca8f28ba4b7e29325049d95e3b9a158b2e5d9074bb5ecb2d2a6c0ef19d33bf",
+    ".agents/skills/codex-prove/agents/openai.yaml": "aa46c04369a5060d43c77904091ab33aeabce36e55ce496b513db66085e7e306",
+    ".agents/skills/codex-prove/references/orchestration.md": "fcda53853671128585127496829c5de2a21b905f114ec586a30f0b8dad47ccfc",
+    ".agents/skills/codex-prove/references/ponytail-license.txt": "ffc6f98c0e8e03c8eafe92f63c6f03ec517d860bccd833e16a1a8aa1d4b6ec95",
+    ".agents/skills/codex-prove/references/runtime-notes.md": "e97d0ebba68dfb0fdb38b8d4b5081bdea8597687f5bfc7a625d34ee1b8722b32",
+    ".agents/skills/sol-control/SKILL.md": "4d8f5a4e1131d1e45059e8f402e63ee7bca90d66d4a1948192e8c4b43d01f20c",
+    ".agents/skills/sol-control/agents/openai.yaml": "4de77c8704a12646e8be94b90636dd00ff7f2dd7eec059bd16d6a64526d5a436",
+    ".codex/agents/prove-complex-worker.toml": "98ff01ab8155398a3518b975549054f0c12bd6f5ca3621e3081ba1cb4ad0ddc5",
+    ".codex/agents/prove-controller.toml": "db0c32b5c18bc6218db5e12b936495230bb600ea941adec57830c0e3e6751567",
+    ".codex/agents/prove-efficient-worker.toml": "99c6bf16c7538add2f20ab748cc16cb1f1776098d30fb909b9ee0927d0a401e3",
+    ".codex/agents/prove-specialist-worker.toml": "99813cb41fd86f77b3a09335a6e06d16c650e54f3b5c7de1891fc95abc0d716c"
+  },
+  "runtime": {
+    "surface": "Codex Desktop collaboration",
+    "execution_mode": "Compatibility",
+    "launch_kind": "explicit-profile",
+    "authority": "Host spawn_agent model and reasoning_effort parameters accepted by runtime; not child self-attestation",
+    "technical_scope": "Generic agents inherited broader tool permissions; read/write scope was enforced operationally, not claimed as OS isolation",
+    "launches": [
+      {
+        "profile": "prove-controller",
+        "model": "gpt-6-astra",
+        "reasoning_effort": "high",
+        "agent_type": "default",
+        "fork_turns": "none",
+        "task": "v110_controller",
+        "write_scope": []
+      },
+      {
+        "profile": "prove-specialist-worker",
+        "model": "gpt-6-sol",
+        "reasoning_effort": "high",
+        "agent_type": "default",
+        "fork_turns": "none",
+        "task": "v110_scheduler_sol",
+        "write_scope": [
+          "scheduler.py",
+          "test_scheduler_worker.py"
+        ]
+      },
+      {
+        "profile": "prove-efficient-worker",
+        "model": "gpt-6-luna",
+        "reasoning_effort": "max",
+        "agent_type": "default",
+        "fork_turns": "none",
+        "task": "v110_data_luna",
+        "write_scope": [
+          "tasks.json"
+        ]
+      },
+      {
+        "profile": "prove-complex-worker",
+        "model": "gpt-5.6-terra",
+        "reasoning_effort": "high",
+        "agent_type": "default",
+        "fork_turns": "none",
+        "task": "v110_report_terra",
+        "write_scope": [
+          "report.py"
+        ]
+      }
+    ],
+    "waves": [
+      [
+        "v110_scheduler_sol",
+        "v110_data_luna"
+      ],
+      [
+        "v110_report_terra"
+      ]
+    ],
+    "controller_verdict": "PASS",
+    "worker_subdelegation": false
+  },
+  "smoke": {
+    "fixture_baseline": "d7c0b0b5c9cefc540d121bf91cccc3c3cec643f0",
+    "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v test_acceptance test_scheduler_worker",
+    "tests": 14,
+    "exit_code": 0,
+    "elapsed_seconds": 0.251,
+    "requirements_coverage": {
+      "REQ-1": "PASS",
+      "REQ-2": "PASS",
+      "REQ-3": "PASS",
+      "REQ-4": "PASS"
+    },
+    "user_change_preserved": true,
+    "files_sha256": {
+      "REQUEST.md": "82d07a4d1e2c929810e4725f59480f1c45b11240c54674f9a48e562405c5da03",
+      "paths.py": "cc15aecd2cf4ab91993f9fb99c8ec688f4de1e997b48e84fd04b90c9c6946761",
+      "raw_tasks.json": "d2a08fc2e7fed15498d3270538c93eb76c0f8fe042576a6314e200dd912acb88",
+      "report.py": "3f5a339e85ad00fa14b5c8956ccb3e8bfecc5c4153e85c4a82b418127dbc752d",
+      "scheduler.py": "84209acb4c48cf2831fc7c731900417700debef73bbea1c530b1b012415dc2b3",
+      "tasks.json": "30137bd8db232f5a47dcf7015b1e0ba97c320fad7d78aeec880ac36f7f6b479b",
+      "test_acceptance.py": "9e446faf33c91b12bb99de3c85f88e460d6b56a3b9f484af6d6145480d10ced1",
+      "test_scheduler_worker.py": "b54ba93ae8d6efcfbca50978e288b57ce84636ff15919e7773c6f071c85c5e57",
+      "user-notes.txt": "7c386123c17bbba8cdd0391f26fa503d8d28da263813a69b52e9a64d83cb7c90"
+    },
+    "recoveries": [
+      {
+        "type": "host_fixture_error",
+        "initial_worker_status": "BLOCKED",
+        "controller_resolution": "FIX",
+        "observed": "Sibling paths src/a/x and src/a/file.py were wrongly expected to conflict; implementation returned ['b','c','d'], assertion expected ['c','d']. Required subset: 3 pass, 1 fail, exit 1.",
+        "before_sha256": "511bd5f2366179ca7dc971ef4be325c885290f35de422c667d00eee3d173ebff",
+        "after_sha256": "9e446faf33c91b12bb99de3c85f88e460d6b56a3b9f484af6d6145480d10ced1",
+        "repair": "Host corrected the sibling expectation and added active ancestor/equal assertions. Scheduler implementation unchanged; original Sol reran 4 acceptance + 5 own tests, all passed.",
+        "new_user_approval": false
+      },
+      {
+        "type": "stale_default_cwd",
+        "observed": "Terra process creation failed with ENOENT before edits.",
+        "repair": "Host supplied the existing explicit workdir; same Terra/high task completed.",
+        "model_changed": false,
+        "new_user_approval": false
+      }
+    ]
+  },
+  "installation": {
+    "status": "PASS",
+    "platform": "macOS",
+    "installer": "scripts/install.sh",
+    "byte_equal_runtime_files": 11,
+    "config_unchanged": true,
+    "backup": "~/.codex/codex-prove/backups/20260927T101745Z-95573"
+  },
+  "fresh_session": {
+    "runtime": "codex-cli 0.158.0-alpha.2.1",
+    "flags": [
+      "--ignore-user-config",
+      "--disable apps",
+      "--disable plugins",
+      "--disable hooks",
+      "--disable memories",
+      "--ephemeral"
+    ],
+    "model": "gpt-6-astra",
+    "reasoning_effort": "high",
+    "direct": {
+      "session_id": "01a0e25f-469b-7901-ab7b-852e226e671b",
+      "turn_completed": true,
+      "item_types": [
+        "agent_message",
+        "command_execution"
+      ],
+      "events_sha256": "830983e84664054b55a6b9df9443b3ace0b4ec5bdabf80a16e51ab11463faf9e",
+      "exit_code": 0,
+      "installed_skill_read": true,
+      "spawn_count": 0,
+      "expected_bytes_verified": true,
+      "result_sha256": "da71e0257358992f14799532caf1862df17e6126a60a23bcf8bbc16d97da51fb"
+    },
+    "discovery": {
+      "session_id": "01a0e261-8b24-79b0-9abc-a2ea6b7ec266",
+      "turn_completed": true,
+      "item_types": [
+        "agent_message"
+      ],
+      "events_sha256": "b8639276a8e8b35223182dc7ecd76f287c95d08496d9727424ebc0aac85460f4",
+      "roles": [
+        {
+          "name": "prove-controller",
+          "available": true,
+          "model": "gpt-6-astra",
+          "reasoning_effort": "high",
+          "source": "tool_declaration"
+        },
+        {
+          "name": "prove-specialist-worker",
+          "available": true,
+          "model": "gpt-6-sol",
+          "reasoning_effort": "high",
+          "source": "tool_declaration"
+        },
+        {
+          "name": "prove-complex-worker",
+          "available": true,
+          "model": "gpt-5.6-terra",
+          "reasoning_effort": "high",
+          "source": "tool_declaration"
+        },
+        {
+          "name": "prove-efficient-worker",
+          "available": true,
+          "model": "gpt-6-luna",
+          "reasoning_effort": "max",
+          "source": "tool_declaration"
+        }
+      ],
+      "exit_code": 0,
+      "evidence_scope": "Fresh-session tool-declaration report matched installed profiles; not a custom-role execution test."
+    }
+  },
+  "limitations": [
+    "One synthetic smoke, not a quality, time, token, or cost-savings benchmark.",
+    "Native Nested with the current mapping is unverified.",
+    "Physical Windows 11 current-profile execution is unverified; hosted Windows CI is separate.",
+    "New custom-role execution was not substituted for the explicit-profile Compatibility evidence.",
+    "Final content hashes do not prove no transient writes occurred."
+  ]
+}

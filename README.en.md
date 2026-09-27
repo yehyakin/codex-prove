@@ -74,7 +74,7 @@ pwsh -NoProfile -File scripts/install.ps1
 
 The installer backs up the previous version, leaves your existing `~/.codex/config.toml` alone, and doesn't touch unrelated agents. Open a new Codex session when it's done.
 
-These commands install current `main`, which includes the GPT-6 model split. The latest release tag is still [v1.0.0](https://github.com/yehyakin/codex-prove/releases/tag/v1.0.0), with the older model setup.
+The current stable release is [v1.1.0](https://github.com/yehyakin/codex-prove/releases/tag/v1.1.0), including the GPT-6 model split. These commands install `main` and follow subsequent repository updates.
 
 ## Usage
 
@@ -110,7 +110,7 @@ People told us the old workflow took too much upkeep, got `blocked` too often, a
 - **Keep moving when it's safe.** Local edits and tests you've already authorized don't stop for approval just because a test fails or a heading is missing. New permissions and important unresolved choices still need your input.
 - **Less unnecessary code.** Borrowing from Ponytail, check what the project and standard library already offer before adding dependencies or abstractions.
 
-These changes are on `main`; there is no stable v1.1 tag yet. See the [upgrade notes](docs/release/v1.1-gpt6-audit.md) for details and the [compatibility and test notes](docs/release/runtime-surface-matrix.md) for what's been tried on each setup. Full end-to-end testing of the current four-model setup is still in progress.
+These changes ship in **v1.1.0**, with one completed four-model orchestration smoke and a fresh-session check after installation. See the [release notes](docs/release/v1.1.0.md), [upgrade history](docs/release/v1.1-gpt6-audit.md), and [compatibility and test notes](docs/release/runtime-surface-matrix.md).
 
 ## A few common questions
 

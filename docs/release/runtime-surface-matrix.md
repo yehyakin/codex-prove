@@ -4,12 +4,33 @@ Release-time evidence for Codex PROVE. Configuration, an agent label, or a child
 self-report is not runtime proof. Statuses are `VERIFIED`, `FAILED`, or
 `UNVERIFIED`.
 
-Current implementation evidence: 2026-09-26, merged main baseline `936cfca`.
+Current release evidence: 2026-09-27, v1.1.0. Runtime files are bound by SHA-256
+in the [release receipt](v1.1.0-runtime.json); the source baseline is `93e1c35`.
+The release changes documentation and evidence, not those runtime files.
 
-## v1.1 main: four-role implementation
+## v1.1.0: live release checks
 
-The four-role source is merged into main; the latest stable tag remains v1.0.0.
-See [the GPT-6 audit record](v1.1-gpt6-audit.md) for the full chronology.
+| Surface | Signal | Status | Evidence location | Date |
+| --- | --- | --- | --- | --- |
+| Repository | Local release checks | VERIFIED | 114 tests, 37.267 s, exit 0; validate.sh and Skill Creator passed; final commit CI is linked from the GitHub Release | 2026-09-27 |
+| Desktop | Complete end-to-end runtime | VERIFIED | [Receipt](v1.1.0-runtime.json): Astra plan → parallel Sol/Luna → dependent Terra → same Astra review; 14 checks, final PASS | 2026-09-27 |
+| Desktop | Compatibility (explicit-profile) | VERIFIED | Fresh generic launches selected exact source model/effort and profile instructions; not a claim of custom-role selection | 2026-09-27 |
+| macOS | Global installation | VERIFIED | Installer backup; 11 installed runtime files byte-equal to source; config unchanged | 2026-09-27 |
+| Fresh CLI | Installed Skill discovery and Direct | VERIFIED | Session `01a0e25f-469b-7901-ab7b-852e226e671b`: read installed Skill, exact requested edit, zero spawned agents, exit 0 | 2026-09-27 |
+| Fresh CLI | Four-role declaration discovery | VERIFIED | Session `01a0e261-8b24-79b0-9abc-a2ea6b7ec266`: tool-declaration report matches installed profiles; discovery only, not execution | 2026-09-27 |
+| Desktop | Native Nested | UNVERIFIED | Not exercised for this four-role mapping | 2026-09-27 |
+| Physical Windows 11 | Current four-role runtime | UNVERIFIED | Hosted Windows CI is not physical-device execution | 2026-09-27 |
+
+This is one synthetic Compatibility smoke, not a broad quality, speed or savings
+benchmark. The failed Host-authored assertion and stale-cwd recovery are retained
+in the receipt. Technical permissions were broader than profile sandbox intent;
+operational ownership is not OS-enforced isolation. See [release notes](v1.1.0.md).
+
+## 2026-09-26 implementation baseline
+
+The following table is the pre-release checkpoint, retained rather than rewritten
+as though the later live checks had already happened. The GPT-6 source was merged
+into main while the latest tag was still v1.0.0. See [the audit chronology](v1.1-gpt6-audit.md).
 
 | Surface | Signal | Status | Evidence location | Date |
 | --- | --- | --- | --- | --- |

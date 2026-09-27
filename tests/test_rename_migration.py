@@ -47,10 +47,12 @@ class RenameMigrationContractTests(unittest.TestCase):
         self.assertNotIn("luna-max-worker.toml", active_names)
 
     def test_public_readmes_publish_new_identity_and_compatibility_window(self) -> None:
+        # Preserve the migration history without pinning the current homepage
+        # to the first model-neutral release forever.
+        self.assertIn("v1.0.0", read(ROOT / "CODEX_PROVE_V1_IMPLEMENTATION_REPORT.md"))
         for relative in ("README.md", "README.en.md"):
             text = read(ROOT / relative)
             self.assertIn(REPOSITORY, text, relative)
-            self.assertIn("v1.0.0", text, relative)
             self.assertIn("CODEX_PROVE_V1_IMPLEMENTATION_REPORT.md", text, relative)
             self.assertIn("$codex-prove", text, relative)
             self.assertIn("$sol-control", text, relative)

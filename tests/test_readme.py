@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 import tomllib
 import unittest
@@ -250,13 +252,13 @@ class ReadmeContractTests(unittest.TestCase):
 
     def test_user_files_and_release_status(self):
         patterns = (
-            (r"不改.*config.toml", r"不动其他 Agent", r"先备份", r"不会直接覆盖", r"发布标签目前仍是", r"v1.1 还没有打稳定标签", r"当前四模型完整联跑仍在补测"),
-            (r"config.toml.*alone", r"doesn't touch unrelated agents", r"backs up", r"instead of overwriting", r"latest release tag is still", r"no stable v1.1 tag yet", r"Full end-to-end testing.*still in progress"),
+            (r"不改.*config.toml", r"不动其他 Agent", r"先备份", r"不会直接覆盖"),
+            (r"config.toml.*alone", r"doesn't touch unrelated agents", r"backs up", r"instead of overwriting"),
         )
         for text, required in zip(self.documents().values(), patterns):
             for pattern in required:
                 self.assertRegex(text, pattern)
-            for value in (f"{REPO}/releases/tag/v1.0.0", "docs/release/runtime-surface-matrix.md", "docs/release/v1.1-gpt6-audit.md"):
+            for value in (f"{REPO}/releases/tag/v1.1.0", "docs/release/v1.1.0.md", "docs/release/runtime-surface-matrix.md", "docs/release/v1.1-gpt6-audit.md"):
                 self.assertIn(value, text)
 
     def test_runtime_history_stays_in_linked_docs(self):
@@ -264,10 +266,36 @@ class ReadmeContractTests(unittest.TestCase):
         current, history = matrix.split("## v1.0 model-neutral roles", 1)
         for value in ("936cfca", "118", "36242572791", "36242572803", "49", "18", "gpt6-four-role-routing-probe.json"):
             self.assertIn(value, current)
-        for surface in ("Complete end-to-end runtime", "Fresh global install / Skill and four-role discovery", "Current Native Nested / Compatibility"):
-            matching = [r for r in table_rows(current) if len(r) >= 3 and r[1] == surface]
+        live = current.split("## 2026-09-26 implementation baseline", 1)[0]
+        statuses = {
+            "Complete end-to-end runtime": "VERIFIED",
+            "Compatibility (explicit-profile)": "VERIFIED",
+            "Global installation": "VERIFIED",
+            "Installed Skill discovery and Direct": "VERIFIED",
+            "Four-role declaration discovery": "VERIFIED",
+            "Native Nested": "UNVERIFIED",
+            "Current four-role runtime": "UNVERIFIED",
+        }
+        for surface, expected_status in statuses.items():
+            matching = [r for r in table_rows(live) if len(r) >= 3 and r[1] == surface]
             self.assertEqual(1, len(matching), surface)
-            self.assertEqual("UNVERIFIED", matching[0][2])
+            self.assertEqual(expected_status, matching[0][2])
+        receipt = json.loads((ROOT / "docs/release/v1.1.0-runtime.json").read_text(encoding="utf-8"))
+        self.assertEqual("v1.1.0", receipt["release"])
+        for relative, expected_hash in receipt["source_runtime_sha256"].items():
+            source_bytes = (ROOT / relative).read_bytes().replace(b"\r\n", b"\n")
+            self.assertEqual(expected_hash, hashlib.sha256(source_bytes).hexdigest(), relative)
+        self.assertEqual(4, len(receipt["runtime"]["launches"]))
+        for launch in receipt["runtime"]["launches"]:
+            profile = tomllib.loads((ROOT / f'.codex/agents/{launch["profile"]}.toml').read_text(encoding="utf-8"))
+            self.assertEqual((profile["model"], profile["model_reasoning_effort"]),
+                             (launch["model"], launch["reasoning_effort"]))
+        self.assertEqual("Compatibility", receipt["runtime"]["execution_mode"])
+        self.assertEqual("PASS", receipt["runtime"]["controller_verdict"])
+        self.assertEqual(0, receipt["smoke"]["exit_code"])
+        self.assertEqual(0, receipt["fresh_session"]["direct"]["spawn_count"])
+        self.assertTrue(receipt["fresh_session"]["direct"]["expected_bytes_verified"])
+        self.assertTrue(receipt["smoke"]["user_change_preserved"])
         self.assertIn("| Desktop | Compatibility | VERIFIED |", history)
         self.assertIn("| Desktop | Native Nested | UNVERIFIED |", history)
 

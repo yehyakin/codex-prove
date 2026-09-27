@@ -74,7 +74,7 @@ pwsh -NoProfile -File scripts/install.ps1
 
 安装器会先备份旧版，不改你原有的 `~/.codex/config.toml`，也不动其他 Agent。装好后开一个新的 Codex 会话。
 
-以上安装的是当前 `main`，已经包含 GPT-6 分工。发布标签目前仍是 [v1.0.0](https://github.com/yehyakin/codex-prove/releases/tag/v1.0.0)，使用旧版模型配置。
+当前稳定版是 [v1.1.0](https://github.com/yehyakin/codex-prove/releases/tag/v1.1.0)，已包含 GPT-6 分工。以上命令安装 `main`，跟随仓库后续更新。
 
 ## 怎么用
 
@@ -110,7 +110,7 @@ $codex-prove 看看这个项目的登录方案，比较一下怎么改更合适�
 - **能继续的就继续。** 已经授权的本地修改和测试，不会因为一次失败或少了一个标题就停下来找你批准。需要新权限或关键选择时才问你。
 - **少写没必要的代码。** 借鉴 Ponytail，先看项目里有没有、标准库能不能做，再考虑新依赖和新抽象。
 
-这些改动已在 `main`，v1.1 还没有打稳定标签。详细变更见[升级记录](docs/release/v1.1-gpt6-audit.md)；各平台和模型目前测到哪一步，见[兼容性与测试记录](docs/release/runtime-surface-matrix.md)。当前四模型完整联跑仍在补测。
+这些改动已随 **v1.1.0** 发布，完成了一次四模型分工实跑和安装后的新会话检查。见[本次发布说明](docs/release/v1.1.0.md)、[升级记录](docs/release/v1.1-gpt6-audit.md)和[兼容性与测试记录](docs/release/runtime-surface-matrix.md)。
 
 ## 几个常见问题
 
