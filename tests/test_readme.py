@@ -1,1027 +1,294 @@
 #!/usr/bin/env python3
-"""Contracts for current bilingual documentation and retained dated evidence."""
+"""Protect README facts and usability without freezing marketing prose."""
 
 from __future__ import annotations
 
 import re
-from decimal import Decimal
 import tomllib
 import unittest
-import xml.etree.ElementTree as ET
+from decimal import Decimal
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
-
 ROOT = Path(__file__).resolve().parents[1]
-CHINESE_README = ROOT / "README.md"
-ENGLISH_README = ROOT / "README.en.md"
-README_FILES = (CHINESE_README, ENGLISH_README)
-SVG_FILES = (
-    ROOT / "docs" / "assets" / "readme" / "hero-zh.svg",
-    ROOT / "docs" / "assets" / "readme" / "hero-en.svg",
-    ROOT / "docs" / "assets" / "readme" / "control-plane-zh.svg",
-    ROOT / "docs" / "assets" / "readme" / "control-plane-en.svg",
-)
-EXPECTED_IMAGE_TARGETS_BY_README = {
-    CHINESE_README: (
-        "docs/assets/readme/hero-zh.svg",
-        "docs/assets/readme/control-plane-zh.svg",
-    ),
-    ENGLISH_README: (
-        "docs/assets/readme/hero-en.svg",
-        "docs/assets/readme/control-plane-en.svg",
-    ),
+READMES = (ROOT / "README.md", ROOT / "README.en.md")
+COSTS = ROOT / "docs/costs.md"
+REPO = "https://github.com/yehyakin/codex-prove"
+LINK_RE = re.compile(r"!?\[[^\]]*\]\((?:<([^>]+)>|([^\s)]+))")
+IMAGE_RE = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
+RATES = {
+    "GPT-6 Astra": ("10.00", "1.00", "50.00", "250", "25", "1,250"),
+    "GPT-6 Sol": ("2.00", "0.20", "10.00", "50", "5", "250"),
+    "GPT-5.6 Terra": ("2.00", "0.20", "12.00", "50", "5", "300"),
+    "GPT-6 Luna": ("0.10", "0.01", "0.50", "2.5", "0.25", "12.5"),
 }
-CANONICAL_REPOSITORY_URL = "https://github.com/yehyakin/codex-prove"
-OLD_REPOSITORY_URLS = (
-    "https://github.com/yehyakin/codex-sol-luna",
-    "https://github.com/yehyakin/codex-sol-luna-orchestrator",
-)
-
-MARKDOWN_LINK_RE = re.compile(
-    r"!?\[[^\]]*\]\((?:<(?P<bracketed>[^>]+)>|(?P<plain>[^\s)]+))"
-)
-MARKDOWN_IMAGE_RE = re.compile(
-    r"!\[(?P<alt>[^\]]*)\]\((?:<(?P<bracketed>[^>]+)>|(?P<plain>[^\s)]+))"
-)
-FENCE_OPEN_RE = re.compile(r"^[ \t]{0,3}(?P<fence>`{3,}|~{3,})")
-HTML_COMMENT_RE = re.compile(r"(?s)<!--.*?-->")
-ACK_HEADING_RE = re.compile(r"(?im)^\*\*致谢 / Thanks\*\*\s*$")
-
-CONTROL_ORBIT_PALETTE = (
-    "#0B1020",
-    "#F7F3E8",
-    "#65D6C4",
-    "#8FA7FF",
-    "#FF6B3D",
-)
-
-ENGLISH_DISCLAIMER_RE = re.compile(
-    r"\bnot(?:\s+[\w-]+){0,3}\s+guarantees?\b",
-    re.IGNORECASE,
-)
-CHINESE_DISCLAIMER_RE = re.compile(
-    r"(?:不构成保证|非保证|不是\s*保证|不是[^。！？；;\n]{1,40}?的\s*保证)"
-)
-
-API_RATES = {
-    "GPT-5.6 Sol": ("$5.00", "$0.50", "$30.00"),
-    "GPT-5.6 Terra": ("$2.00", "$0.20", "$12.00"),
-    "GPT-5.6 Luna": ("$0.20", "$0.02", "$1.20"),
+OLD_RATES = {
+    "GPT-5.6 Sol": ("5.00", "0.50", "30.00", "125", "12.5", "750"),
+    "GPT-5.6 Terra": ("2.00", "0.20", "12.00", "50", "5", "300"),
+    "GPT-5.6 Luna": ("0.20", "0.02", "1.20", "5", "0.5", "30"),
 }
-CHATGPT_RATES = {
-    "GPT-5.6 Sol": ("125", "12.5", "750"),
-    "GPT-5.6 Terra": ("50", "5", "300"),
-    "GPT-5.6 Luna": ("5", "0.5", "30"),
-}
+SCENARIOS = (
+    ("0.10", "0.20", "0.70", "0.03", "0.07", "72.2", "76.2"),
+    ("0.20", "0.40", "0.40", "0.02", "0.12", "50.4", "60.4"),
+    ("0.25", "0.60", "0.15", "0.07", "0.17", "33.4", "43.4"),
+)
+
+
+def visible_markdown(text: str) -> str:
+    lines, fence = [], None
+    for line in text.splitlines():
+        if fence:
+            if re.fullmatch(rf" {{0,3}}{re.escape(fence[0])}{{{len(fence)},}}\s*", line):
+                fence = None
+            lines.append("")
+            continue
+        opening = re.match(r" {0,3}(" + chr(96) + r"{3,}|~{3,})", line)
+        if opening:
+            fence = opening[1]
+            lines.append("")
+        else:
+            lines.append(line)
+    return re.sub(r"<!--.*?-->", "", "\n".join(lines), flags=re.S)
+
+
+def heading_ids(text: str) -> set[str]:
+    counts, ids = {}, set()
+    for title in re.findall(r"^#{1,6}\s+(.+?)\s*#*\s*$", visible_markdown(text), re.M):
+        slug = re.sub(r"[^\w -]", "", re.sub(r"<[^>]*>", "", title).lower()).replace(" ", "-")
+        count = counts.get(slug, 0)
+        ids.add(f"{slug}-{count}" if count else slug)
+        counts[slug] = count + 1
+    return ids
+
+
+def table_rows(text: str) -> list[tuple[str, ...]]:
+    return [tuple(c.strip() for c in line.strip().strip("|").split("|"))
+            for line in visible_markdown(text).splitlines() if line.strip().startswith("|")]
+
+
+def link_errors(path: Path, text: str) -> list[str]:
+    errors = []
+    visible = visible_markdown(text)
+    links = [m[1] or m[2] for m in LINK_RE.finditer(visible)]
+    links += re.findall(r'<(?:a|img)\b[^>]*\b(?:href|src)="([^"]+)"', visible)
+    for link in links:
+        parsed = urlsplit(link.replace("&amp;", "&"))
+        if parsed.scheme or parsed.netloc:
+            continue
+        target = (path.parent / unquote(parsed.path)).resolve() if parsed.path else path
+        if not target.is_relative_to(ROOT.resolve()):
+            errors.append(f"outside repository: {link}")
+        elif not target.is_file():
+            errors.append(f"missing file: {link}")
+        elif parsed.fragment and target.suffix == ".md":
+            if unquote(parsed.fragment) not in heading_ids(target.read_text(encoding="utf-8")):
+                errors.append(f"missing heading: {link}")
+    return errors
 
 
 class ReadmeContractTests(unittest.TestCase):
-    @staticmethod
-    def normalize_soft_line(text: str) -> str:
-        """Fold soft line wraps inside one already-isolated Markdown block."""
+    def documents(self):
+        return {path: path.read_text(encoding="utf-8") for path in READMES}
 
-        return re.sub(r"[ \t]*\n[ \t]*", " ", text).strip()
+    def test_language_switches(self):
+        for text in self.documents().values():
+            for link in ("[简体中文](README.md)", "[English](README.en.md)"):
+                self.assertIn(link, "\n".join(text.splitlines()[:8]))
+        notes = COSTS.read_text(encoding="utf-8")
+        for value in ("## English", "(../README.md)", "(../README.en.md)"):
+            self.assertIn(value, notes)
 
-    @staticmethod
-    def rendered_markdown(text: str) -> str:
-        """Remove fenced code and HTML comments while preserving line boundaries."""
+    def test_link_helpers(self):
+        fence = chr(96) * 3
+        fixture = f"{fence}md\n![hidden](missing.svg)\n{fence}\n<!-- ![hidden](other.svg) -->\n![visible](real.svg)"
+        self.assertEqual([("visible", "real.svg")], IMAGE_RE.findall(visible_markdown(fixture)))
+        self.assertEqual([], IMAGE_RE.findall(visible_markdown(f"~~~~md\n{fence}\n![hidden](nested.svg)\n~~~~")))
+        self.assertEqual({"能省多少", "whats-new", "repeat", "repeat-1"},
+                         heading_ids("# 能省多少\n## What's new?\n## Repeat\n## Repeat"))
+        for fixture in ("[bad](missing.md)", "[bad](../outside.md)", "[bad](README.md#missing-heading)", '<a href="missing.md">bad</a>'):
+            self.assertTrue(link_errors(READMES[0], fixture), fixture)
 
-        lines = text.splitlines(keepends=True)
-        rendered: list[str] = []
-        fence_char: str | None = None
-        fence_length = 0
-        for line in lines:
-            if fence_char is not None:
-                closing = re.match(
-                    rf"^[ \t]{{0,3}}{re.escape(fence_char)}{{{fence_length},}}[ \t]*(?:\r?\n)?$",
-                    line,
-                )
-                rendered.append("\n" if line.endswith("\n") else "")
-                if closing:
-                    fence_char = None
-                    fence_length = 0
-                continue
+    def test_relative_links_and_anchors(self):
+        for path in (*READMES, COSTS):
+            self.assertEqual([], link_errors(path, path.read_text(encoding="utf-8")), path.name)
 
-            opening = FENCE_OPEN_RE.match(line)
-            if opening:
-                fence = opening.group("fence")
-                fence_char = fence[0]
-                fence_length = len(fence)
-                rendered.append("\n" if line.endswith("\n") else "")
-                continue
-            rendered.append(line)
+    def test_repository_images_and_folds(self):
+        for (path, text), lang in zip(self.documents().items(), ("zh", "en")):
+            self.assertIn(REPO, text)
+            self.assertNotRegex(text, r"https://github\.com/yehyakin/(?:codex-sol-luna|sol-control)")
+            images = IMAGE_RE.findall(visible_markdown(text))
+            self.assertEqual([f"docs/assets/readme/hero-{lang}.svg", f"docs/assets/readme/control-plane-{lang}.svg"],
+                             [target for _, target in images])
+            self.assertTrue(all(alt.strip() for alt, _ in images))
+            self.assertEqual(text.count("<details>"), text.count("</details>"))
 
-        without_fences = "".join(rendered)
+    def test_model_names_match_configuration(self):
+        for label, profile in (
+            ("GPT-6 Astra", "prove-controller"), ("GPT-6 Sol", "prove-specialist-worker"),
+            ("GPT-5.6 Terra", "prove-complex-worker"), ("GPT-6 Luna", "prove-efficient-worker"),
+        ):
+            config = tomllib.loads((ROOT / f".codex/agents/{profile}.toml").read_text(encoding="utf-8"))
+            self.assertEqual(label.lower().replace(" ", "-"), config["model"])
+            for path, text in self.documents().items():
+                self.assertEqual(1, sum(r[0] == label for r in table_rows(text)), f"{path.name}: {label}")
 
-        def blank_comment(match: re.Match[str]) -> str:
-            newlines = "\n" * match.group(0).count("\n")
-            return newlines or " "
+    def test_homepage_prices_and_assumptions(self):
+        for path, text in self.documents().items():
+            for row in table_rows(text):
+                if row[0] in RATES:
+                    rate = RATES[row[0]]
+                    self.assertEqual(("$" + rate[0], "$" + rate[2]), row[-2:])
+            for fact in ("2026-09-26", "Standard", "1M", "0.1M", "20% / 20% / 40% / 20%", "5%", "docs/costs.md"):
+                self.assertIn(fact, text, path.name)
 
-        return HTML_COMMENT_RE.sub(blank_comment, without_fences)
-
-    @staticmethod
-    def table_cells(line: str) -> tuple[str, ...]:
-        row = line.strip()
-        if row.startswith("|"):
-            row = row[1:]
-        if row.endswith("|"):
-            row = row[:-1]
-        return tuple(
-            re.sub(r"[ \t]+", " ", cell.strip())
-            for cell in row.split("|")
-            if cell.strip()
+    def test_budget_has_nearby_context(self):
+        patterns = (
+            ("预算例子", "不是每个项目", "不含人工和等待时间", "返工", "也可能更贵"),
+            ("budget example", "not a promise", "not your time or the wait", "rework", "more expensive"),
         )
+        for (path, text), required in zip(self.documents().items(), patterns):
+            section = next(s for s in re.split(r"(?m)^## ", visible_markdown(text)) if "$15.00" in s)
+            for value in ("$15.00", "$5.66", "62.3%", "docs/costs.md", *required):
+                self.assertIn(value, section, path.name)
 
-    @classmethod
-    def markdown_blocks(cls, text: str) -> list[tuple[str, str, tuple[str, ...]]]:
-        """Return rendered paragraphs/headings and tables without cross-block folding."""
+    def test_cost_comparison_table_matches_the_budget_example(self):
+        for path, text in self.documents().items():
+            comparisons = [row for row in table_rows(text) if len(row) == 4 and row[1] in ("$15.00", "$5.66")]
+            self.assertEqual(2, len(comparisons), path.name)
+            baseline, routed = comparisons
+            self.assertIn("Astra", baseline[0])
+            self.assertIn("PROVE", routed[0])
+            self.assertEqual(("$15.00", "375", "—"), baseline[1:])
+            self.assertEqual(("$5.66", "141.5", "62.3%"), tuple(cell.strip("*") for cell in routed[1:]))
+            for column in (1, 2):
+                saving = (1 - Decimal(routed[column].lstrip("$")) / Decimal(baseline[column].lstrip("$"))) * 100
+                self.assertEqual(Decimal("62.3"), saving.quantize(Decimal("0.1")))
 
-        rendered = cls.rendered_markdown(text)
-        blocks: list[tuple[str, str, tuple[str, ...]]] = []
-        paragraph_lines: list[str] = []
-        table_lines: list[str] = []
+    def test_current_rates_and_sources(self):
+        current = COSTS.read_text(encoding="utf-8").split("## v1.0")[0]
+        for model, values in RATES.items():
+            self.assertIn((model, *("$" + v if i < 3 else v for i, v in enumerate(values))), table_rows(current))
+        for value in (
+            "https://developers.openai.com/api/docs/pricing",
+            "https://developers.openai.com/api/docs/models/gpt-5.6-terra",
+            "https://learn.chatgpt.com/docs/pricing", "2026-09-26", "272K", "Standard", "1.25×", "2×", "2.5×",
+        ):
+            self.assertIn(value, current)
 
-        def flush_paragraph() -> None:
-            if paragraph_lines:
-                block = cls.normalize_soft_line("\n".join(paragraph_lines))
-                blocks.append(("paragraph", block, (block,)))
-                paragraph_lines.clear()
-
-        def flush_table() -> None:
-            if table_lines:
-                rows = [cls.normalize_soft_line(line) for line in table_lines]
-                cells = tuple(cell for line in table_lines for cell in cls.table_cells(line))
-                blocks.append(("table", " ".join(rows), cells))
-                table_lines.clear()
-
-        for line in rendered.splitlines():
-            stripped = line.strip()
-            is_table_row = stripped.startswith("|") and stripped.endswith("|")
-            if is_table_row:
-                flush_paragraph()
-                table_lines.append(line)
-                continue
-            flush_table()
-            if not stripped:
-                flush_paragraph()
-                continue
-            if re.match(r"^#{1,6}\s+", stripped):
-                flush_paragraph()
-                heading = cls.normalize_soft_line(stripped)
-                blocks.append(("heading", heading, (heading,)))
-                continue
-            paragraph_lines.append(line)
-
-        flush_table()
-        flush_paragraph()
-        return blocks
-
-    @classmethod
-    def semantic_units(cls, text: str) -> list[str]:
-        units: list[str] = []
-        for kind, block, cells in cls.markdown_blocks(text):
-            units.extend(cells if kind == "table" else (block,))
-        return units
-
-    @classmethod
-    def block_units(cls, blocks: list[tuple[str, str, tuple[str, ...]]]) -> list[str]:
-        units: list[str] = []
-        for kind, block, cells in blocks:
-            units.extend(cells if kind == "table" else (block,))
-        return units
-
-    @staticmethod
-    def block_contains_tokens(
-        blocks: list[tuple[str, str, tuple[str, ...]]],
-        tokens: tuple[str, ...],
-    ) -> bool:
-        folded_tokens = tuple(token.casefold() for token in tokens)
-        return any(
-            all(token in block.casefold() for token in folded_tokens)
-            for _, block, _ in blocks
-        )
-
-    @classmethod
-    def has_direct_zero_pair(cls, text: str) -> bool:
-        rendered = cls.rendered_markdown(text)
-        paragraph_match = any(
-            kind != "table" and re.search(r"(?i)\bDirect\b|直接", block) and "0%" in block
-            for kind, block, _ in cls.markdown_blocks(rendered)
-        )
-        table_row_match = any(
-            "|" in line and re.search(r"(?i)\bDirect\b|直接", line) and "0%" in line
-            for line in rendered.splitlines()
-        )
-        return paragraph_match or table_row_match
-
-    @classmethod
-    def has_valid_disclaimer(cls, text: str, language: str | None = None) -> bool:
-        if language == "english":
-            return bool(ENGLISH_DISCLAIMER_RE.search(text))
-        if language == "chinese":
-            return bool(CHINESE_DISCLAIMER_RE.search(text))
-        return bool(ENGLISH_DISCLAIMER_RE.search(text) or CHINESE_DISCLAIMER_RE.search(text))
-
-    @classmethod
-    def has_valid_disclaimer_in_blocks(
-        cls,
-        blocks: list[tuple[str, str, tuple[str, ...]]],
-        language: str | None = None,
-    ) -> bool:
-        return any(cls.has_valid_disclaimer(unit, language) for unit in cls.block_units(blocks))
-
-    def trailing_acknowledgement(self, text: str, readme_name: str) -> str:
-        rendered = self.rendered_markdown(text).rstrip()
-        matches = list(ACK_HEADING_RE.finditer(rendered))
-        self.assertTrue(matches, f"{readme_name}: missing final acknowledgement heading")
-        acknowledgement = rendered[matches[-1].start() :]
-        return re.sub(r"\s+", " ", acknowledgement).strip()
-
-    def test_trailing_acknowledgement_normalizes_heading_gap_without_hiding_trailing_content(self) -> None:
-        sentence = "感谢 [LINUX DO 论坛](https://linux.do/) 社区的关注、反馈与支持"
-        fixture = f"**致谢 / Thanks**\n\n{sentence}"
-        expected = f"**致谢 / Thanks** {sentence}"
-        self.assertEqual(expected, self.trailing_acknowledgement(fixture, "fixture README"))
-
-        with_trailing_content = f"{fixture}\n\n尾随内容"
-        normalized = self.trailing_acknowledgement(with_trailing_content, "fixture README")
-        self.assertIn("尾随内容", normalized)
-        self.assertFalse(
-            normalized.endswith(sentence),
-            "trailing content must remain visible so final-block validation can reject it",
-        )
-
-    def readme_documents(self) -> dict[Path, str]:
-        missing = [str(path.relative_to(ROOT)) for path in README_FILES if not path.is_file()]
-        self.assertEqual([], missing, "missing bilingual README file(s)")
-        return {path: path.read_text(encoding="utf-8") for path in README_FILES}
-
-    def require_svg_files(self) -> None:
-        missing = [str(path.relative_to(ROOT)) for path in SVG_FILES if not path.is_file()]
-        self.assertEqual([], missing, "missing repository-owned SVG asset(s)")
-
-    def test_both_complete_readmes_exist_and_start_with_language_switches(self) -> None:
-        documents = self.readme_documents()
-        chinese_head = "\n".join(documents[CHINESE_README].splitlines()[:24])
-        english_head = "\n".join(documents[ENGLISH_README].splitlines()[:24])
-
-        self.assertRegex(chinese_head, r"\[简体中文\]\(README\.md\)")
-        self.assertRegex(chinese_head, r"\[English\]\(README\.en\.md\)")
-        self.assertRegex(english_head, r"\[简体中文\]\(README\.md\)")
-        self.assertRegex(english_head, r"\[English\]\(README\.en\.md\)")
-
-    def test_cost_claims_are_scenario_model_projections_not_sample_validated_costs(self) -> None:
-        chinese = CHINESE_README.read_text(encoding="utf-8")
-        english = ENGLISH_README.read_text(encoding="utf-8")
-
-        for text, path in ((chinese, CHINESE_README), (english, ENGLISH_README)):
-            for signal in ("72%", "76%", "50%", "60%", "33%", "43%", "0.4", "0.04"):
-                self.assertIn(signal, text, f"{path.name}: missing cost signal {signal}")
-            self.assertIn("scenario_model_projection", text, path.name)
-            self.assertNotIn("sample_validated_projection", text, path.name)
-
-        first_screen_specs = (
-            (
-                CHINESE_README,
-                chinese,
-                "## 核心路由与成本",
-                "| 路由 | 默认模型 / effort | 适合的工作 | 输入 / 输出单价，相对 Astra |",
-                "## 为什么能节省成本",
-            ),
-            (
-                ENGLISH_README,
-                english,
-                "## Core routing and cost",
-                "| Route | Default model / effort | Best-fit work | Input / output unit price, relative to Astra |",
-                "## Why it can reduce cost",
-            ),
-        )
-        for path, text, projection_heading, table_header, explanation_heading in first_screen_specs:
-            self.assertIn(projection_heading, text, path.name)
-            self.assertIn(table_header, text, path.name)
-            self.assertIn(explanation_heading, text, path.name)
-            self.assertLess(
-                text.index(projection_heading),
-                text.index(table_header),
-                f"{path.name}: routing heading must introduce the current cost table",
-            )
-            self.assertLess(
-                text.index(table_header),
-                text.index(explanation_heading),
-                f"{path.name}: routing table must appear before the cost explanation",
-            )
-
-    def test_current_cost_example_is_exact_bilingual_and_separate_from_history(self) -> None:
-        rates = {
-            "GPT-6 Astra": ("10.00", "1.00", "50.00", "250", "25", "1,250"),
-            "GPT-6 Sol": ("2.00", "0.20", "10.00", "50", "5", "250"),
-            "GPT-5.6 Terra": ("2.00", "0.20", "12.00", "50", "5", "300"),
-            "GPT-6 Luna": ("0.10", "0.01", "0.50", "2.5", "0.25", "12.5"),
-        }
+    def test_current_budget_math(self):
         shares = tuple(map(Decimal, ("0.2", "0.2", "0.4", "0.2")))
         output = Decimal("0.1")
-        api_costs = [Decimal(row[0]) + output * Decimal(row[2]) for row in rates.values()]
-        credit_costs = [Decimal(row[3]) + output * Decimal(row[5].replace(",", "")) for row in rates.values()]
-        routed = sum(share * cost for share, cost in zip(shares, api_costs))
-        total = routed + Decimal("0.05") * api_costs[0]
-        credits = sum(share * cost for share, cost in zip(shares, credit_costs)) + Decimal("0.05") * credit_costs[0]
-        self.assertEqual(Decimal("1"), sum(shares))
-        self.assertEqual(Decimal("15"), api_costs[0])
-        self.assertEqual(Decimal("4.91"), routed)
-        self.assertEqual(Decimal("5.66"), total)
-        self.assertEqual(Decimal("141.5"), credits)
-        self.assertEqual(Decimal("62.3"), ((1 - total / api_costs[0]) * 100).quantize(Decimal("0.1")))
-        for path, text in self.readme_documents().items():
-            historical_start = text.index("<details>\n<summary><strong>v1.0")
-            current, history = text[:historical_start], text[historical_start:]
-            for model, values in rates.items():
-                row = "| " + model + " | " + " | ".join(
-                    "$" + value if index < 3 else value for index, value in enumerate(values)
-                ) + " |"
-                self.assertIn(row, current, path.name)
-            for signal in ("2026-09-26", "$15.00", "$5.66", "62.3%", "375 → 141.5 credits", "5%", "272K", "2.5×"):
-                self.assertIn(signal, current, path.name)
-            for old_signal in ("72.2%–76.2%", "50.4%–60.4%", "33.4%–43.4%", "2026-08-04"):
-                self.assertNotIn(old_signal, current, path.name)
-                self.assertIn(old_signal, history, path.name)
-            self.assertIn("https://learn.chatgpt.com/docs/pricing", current, path.name)
-            self.assertIn("https://developers.openai.com/api/docs/pricing", current, path.name)
-            self.assertRegex(current, r"不计人工时间或等待时间|excluding human effort and elapsed time")
+        api = [Decimal(r[0]) + output * Decimal(r[2]) for r in RATES.values()]
+        credits = [Decimal(r[3]) + output * Decimal(r[5].replace(",", "")) for r in RATES.values()]
+        routed = sum(s * cost for s, cost in zip(shares, api))
+        total = routed + Decimal("0.05") * api[0]
+        credit_total = sum(s * cost for s, cost in zip(shares, credits)) + Decimal("0.05") * credits[0]
+        saving = ((1 - total / api[0]) * 100).quantize(Decimal("0.1"))
+        self.assertEqual((Decimal(1), Decimal("15"), Decimal("4.91"), Decimal("5.66"), Decimal("141.5"), Decimal("62.3")),
+                         (sum(shares), api[0], routed, total, credit_total, saving))
+        notes = COSTS.read_text(encoding="utf-8")
+        for fact in ("$15.00", "$4.91", "$0.75", "$5.66", "62.3%", "375 → 141.5 credits"):
+            self.assertIn(fact, notes)
 
-    def test_main_status_binds_evidence_without_claiming_a_new_release(self) -> None:
-        for path, text in self.readme_documents().items():
-            for signal in ("936cfca", "118", "36242572791", "36242572803", "49", "18", "gpt6-four-role-routing-probe.json", "git pull --ff-only origin main"):
-                self.assertIn(signal, text, path.name)
-            self.assertRegex(text, r"尚未发布 v1.1 稳定标签|stable v1.1 tag has not been published")
-            self.assertRegex(text, r"尚未确认|Not yet confirmed")
-            self.assertNotRegex(text, r"本节描述开发分支|This describes the development branch|保留 v1.0 的两类 worker 示意|image retains the v1.0 two-worker")
-            self.assertEqual(text.count("<details>"), text.count("</details>"), path.name)
-
-    def test_rendered_markdown_ignores_fenced_and_commented_images(self) -> None:
-        fixture = """
-```markdown
-## Choose the route
-![fenced](docs/assets/fenced.svg)
-```
-<!--
-## Workflow
-![commented](docs/assets/commented.svg)
--->
-## 60-second quickstart
-![visible](docs/assets/visible.svg)
-"""
-        self.assertEqual(
-            [("visible", "docs/assets/visible.svg")],
-            self.image_sequence(fixture),
-            "docs/assets/visible.svg: only the rendered image may enter the asset sequence",
-        )
-
-    def test_scenario_projection_math_is_reproducible(self) -> None:
-        scenarios = (
-            ("ordinary", 0.10, 0.20, 0.70, 0.03, 0.07, 72.2, 76.2, ("Sol 10%", "Terra 20%", "Luna 70%", "3%–7%", "72.2%–76.2%")),
-            ("mixed", 0.20, 0.40, 0.40, 0.02, 0.12, 50.4, 60.4, ("Sol 20%", "Terra 40%", "Luna 40%", "2%–12%", "50.4%–60.4%")),
-            ("complex", 0.25, 0.60, 0.15, 0.07, 0.17, 33.4, 43.4, ("Sol 25%", "Terra 60%", "Luna 15%", "7%–17%", "33.4%–43.4%")),
-        )
-        documents = self.readme_documents()
-        for name, sol, terra, luna, overhead_min, overhead_max, saving_min, saving_max, signals in scenarios:
-            self.assertAlmostEqual(sol + terra + luna, 1.0, msg=name)
-            base_cost = sol + terra * 0.40 + luna * 0.04
-            self.assertAlmostEqual((1 - base_cost - overhead_max) * 100, saving_min, msg=name)
-            self.assertAlmostEqual((1 - base_cost - overhead_min) * 100, saving_max, msg=name)
-            for path, text in documents.items():
-                self.assertTrue(
-                    self.block_contains_tokens(self.markdown_blocks(text), signals),
-                    f"{path.name}: {name} scenario shares, overhead, and saving must share one table block",
-                )
-
-    def test_disclaimer_helper_rejects_a_contrary_guarantee_clause(self) -> None:
-        self.assertTrue(self.has_valid_disclaimer("This is not a guarantee."))
-        self.assertTrue(self.has_valid_disclaimer("这不是每个任务的保证。"))
-        self.assertTrue(self.has_valid_disclaimer("这是非保证说明。"))
-        self.assertFalse(
-            self.has_valid_disclaimer("这不是模型，而是保证。"),
-            "README disclaimer fixture must reject a contrast clause ending in 而是保证",
-        )
-        self.assertFalse(
-            self.has_valid_disclaimer("这不是模型，却是保证。"),
-            "README disclaimer fixture must reject a contrast clause ending in 却是保证",
-        )
-        self.assertFalse(
-            self.has_valid_disclaimer("这不是成本估算，只是保证。"),
-            "README disclaimer fixture must reject a contrast clause ending in 只是保证",
-        )
-        self.assertFalse(
-            self.has_valid_disclaimer("This is not a model, but a guarantee."),
-            "README disclaimer fixture must not treat an unrelated contrast as a guarantee disclaimer",
-        )
-
-    def test_direct_and_zero_percent_must_share_one_semantic_block(self) -> None:
-        self.assertTrue(self.has_direct_zero_pair("Direct tasks route here with 0% savings."))
-        self.assertTrue(self.has_direct_zero_pair("Direct tasks route here\nwith 0% savings."))
-        self.assertFalse(
-            self.has_direct_zero_pair("Direct tasks route here.\n\nThe separate route saves 0%."),
-            "README first-screen fixture must reject a cross-paragraph Direct/0% pairing",
-        )
-        self.assertTrue(
-            self.has_direct_zero_pair(
-                "| Direct tasks | 0% savings |\n| --- | --- |"
-            ),
-            "README fixture must accept Direct/0% within one table row",
-        )
-        self.assertFalse(
-            self.has_direct_zero_pair(
-                "| Direct tasks | ordinary route |\n| --- | --- |\n| no delegation | 0% savings |"
-            ),
-            "README fixture must reject Direct/0% split across table rows",
-        )
-
-    def test_chinese_readme_publishes_conditioned_scenarios_without_fixed_composite(self) -> None:
-        text = CHINESE_README.read_text(encoding="utf-8")
-        blocks = self.markdown_blocks(text)
-        block_texts = [block for _, block, _ in blocks]
-        self.assertTrue(
-            self.block_contains_tokens(blocks, ("普通", "72%", "76%")),
-            f"{CHINESE_README.name}: missing ordinary 72%-76% scenario",
-        )
-        self.assertTrue(
-            self.block_contains_tokens(blocks, ("混合", "50%", "60%")),
-            f"{CHINESE_README.name}: missing mixed 50%-60% scenario",
-        )
-        self.assertTrue(
-            self.block_contains_tokens(blocks, ("复杂", "33%", "43%")),
-            f"{CHINESE_README.name}: missing complex 33%-43% scenario",
-        )
-        for block in block_texts:
-            if "56%" in block and re.search(r"综合|平均", block):
-                self.assertRegex(
-                    block,
-                    r"不是|不应|不准确|不能|不得|取消|删除",
-                    f"{CHINESE_README.name}: 56% may appear only as a rejected fixed-average claim",
-                )
-        self.assertTrue(
-            any("不是固定结果或保证" in block for block in block_texts)
-            or self.has_valid_disclaimer_in_blocks(blocks, "chinese"),
-            f"{CHINESE_README.name}: missing current-range disclaimer",
-        )
-        self.assertTrue(
-            self.has_direct_zero_pair(text),
-            f"{CHINESE_README.name}: Direct and 0% must share one paragraph/table cell",
-        )
-
-    def test_english_readme_publishes_conditioned_scenarios_without_fixed_composite(self) -> None:
-        text = ENGLISH_README.read_text(encoding="utf-8")
-        blocks = self.markdown_blocks(text)
-        block_texts = [block for _, block, _ in blocks]
-        self.assertTrue(
-            self.block_contains_tokens(blocks, ("typical", "72%", "76%"))
-            or self.block_contains_tokens(blocks, ("ordinary", "72%", "76%")),
-            f"{ENGLISH_README.name}: missing ordinary 72%-76% scenario",
-        )
-        self.assertTrue(
-            self.block_contains_tokens(blocks, ("mixed", "50%", "60%"))
-            or self.block_contains_tokens(blocks, ("hybrid", "50%", "60%")),
-            f"{ENGLISH_README.name}: missing mixed 50%-60% scenario",
-        )
-        self.assertTrue(
-            self.block_contains_tokens(blocks, ("complex", "33%", "43%")),
-            f"{ENGLISH_README.name}: missing complex 33%-43% scenario",
-        )
-        for block in block_texts:
-            if "56%" in block and re.search(r"(?i)composite|combined|average|fixed", block):
-                self.assertRegex(
-                    block,
-                    r"(?i)not|inaccurate|do not|must not|remove|reject",
-                    f"{ENGLISH_README.name}: 56% may appear only as a rejected fixed-average claim",
-                )
-        self.assertTrue(
-            self.has_valid_disclaimer_in_blocks(blocks, "english"),
-            f"{ENGLISH_README.name}: missing valid English not-guarantee disclaimer",
-        )
-        self.assertTrue(
-            self.has_direct_zero_pair(text),
-            f"{ENGLISH_README.name}: Direct and 0% must share one paragraph/table cell",
-        )
-
-    def test_readmes_use_the_canonical_repository_name(self) -> None:
-        documents = self.readme_documents()
-        for path, text in documents.items():
-            self.assertIn(CANONICAL_REPOSITORY_URL, text, path.name)
-            for old_url in OLD_REPOSITORY_URLS:
-                self.assertNotIn(old_url, text, path.name)
-            self.assertIn("codex-prove", text, path.name)
-
-    def image_sequence(self, text: str, readme_name: str = "fixture README") -> list[tuple[str, str]]:
-        images: list[tuple[str, str]] = []
-        for match in MARKDOWN_IMAGE_RE.finditer(self.rendered_markdown(text)):
-            target = match.group("bracketed") or match.group("plain")
-            parsed = urlsplit(target)
-            self.assertFalse(
-                parsed.scheme or parsed.netloc,
-                f"{readme_name}: image asset must be repository-local: {target}",
-            )
-            images.append((match.group("alt").strip(), target.split("#", 1)[0]))
-        return images
-
-    def test_readmes_use_the_localized_images_in_the_same_order(self) -> None:
-        documents = self.readme_documents()
-        sequences = {path: self.image_sequence(text, path.name) for path, text in documents.items()}
-        for path, sequence in sequences.items():
-            self.assertEqual(
-                list(EXPECTED_IMAGE_TARGETS_BY_README[path]),
-                [target for _, target in sequence],
-                f"{path.name}: rendered image asset sequence must match {list(EXPECTED_IMAGE_TARGETS_BY_README[path])}",
-            )
-        for path, sequence in sequences.items():
-            for alt, target in sequence:
-                self.assertTrue(alt, f"{target}: {path.name} image alt text must be non-empty")
-
-        english_targets = EXPECTED_IMAGE_TARGETS_BY_README[ENGLISH_README]
-        for index, ((chinese_alt, chinese_target), (english_alt, english_target)) in enumerate(
-            zip(sequences[CHINESE_README], sequences[ENGLISH_README])
+    def test_cost_notes_distinguish_billing_time_and_quality(self):
+        notes = COSTS.read_text(encoding="utf-8")
+        for value in (
+            "不代表订阅月费", "每周可用额度", "人工成本", "等待时间", "not routing quotas, observed averages, or a guarantee",
+            "subscription price", "weekly usage", "human effort and elapsed time", "don't add the example's 5% again",
+            "not establish equal output quality", "不适用于当前", "do not apply to the current four-model setup",
         ):
-            self.assertEqual(
-                english_targets[index],
-                english_target,
-                f"image index {index}: English asset must pair with the localized Chinese asset",
-            )
-            self.assertNotEqual(
-                chinese_alt,
-                english_alt,
-                f"{chinese_target}: corresponding Chinese and English alt text must be localized",
-            )
+            self.assertIn(value, notes)
 
-    def test_all_relative_markdown_links_resolve_inside_the_repository(self) -> None:
-        documents = self.readme_documents()
-        root = ROOT.resolve()
-        for path, text in documents.items():
-            links = list(MARKDOWN_LINK_RE.finditer(self.rendered_markdown(text)))
-            self.assertTrue(links, f"{path.name}: no Markdown links found")
-            for match in links:
-                raw_target = match.group("bracketed") or match.group("plain")
-                parsed = urlsplit(raw_target)
-                if parsed.scheme or parsed.netloc or raw_target.startswith("#"):
-                    continue
-                relative_target = unquote(parsed.path)
-                if not relative_target:
-                    continue
-                target = (path.parent / relative_target).resolve()
-                try:
-                    target.relative_to(root)
-                except ValueError:
-                    self.fail(f"{path.name}: relative link escapes repository: {raw_target}")
-                self.assertTrue(target.is_file(), f"{path.name}: broken relative link: {raw_target}")
+    def test_historical_prices_retained_outside_homepage(self):
+        history = COSTS.read_text(encoding="utf-8").split("## v1.0", 1)[1]
+        self.assertIn("2026-08-04", history)
+        for model, values in OLD_RATES.items():
+            self.assertIn((model, *("$" + v for v in values[:3])), table_rows(history))
+            self.assertIn((model, *(v + " credits" for v in values[3:])), table_rows(history))
+        for text in self.documents().values():
+            for claim in ("72.2%–76.2%", "50.4%–60.4%", "33.4%–43.4%"):
+                self.assertNotIn(claim, text, "Old savings must not imply GPT-6 results")
+        for source in ("https://developers.openai.com/api/docs/models/compare", "https://help.openai.com/en/articles/20001106-codex-rate-card"):
+            self.assertIn(source, history)
 
-    def test_svg_assets_are_well_formed_local_and_accessible(self) -> None:
-        self.require_svg_files()
-        for path in SVG_FILES:
-            try:
-                root = ET.parse(path).getroot()
-            except (ET.ParseError, OSError) as exc:
-                self.fail(f"{path.relative_to(ROOT)} is not parseable SVG: {exc}")
-            self.assertEqual("svg", root.tag.rsplit("}", 1)[-1], path.name)
-            self.assertIn("viewBox", root.attrib, path.name)
-            title = root.find(".//{http://www.w3.org/2000/svg}title")
-            if title is None:
-                title = root.find(".//title")
-            description = root.find(".//{http://www.w3.org/2000/svg}desc")
-            if description is None:
-                description = root.find(".//desc")
-            self.assertIsNotNone(title, f"{path.name}: missing SVG title")
-            self.assertIsNotNone(description, f"{path.name}: missing SVG description")
-            self.assertTrue((title.text or "").strip(), f"{path.name}: empty SVG title")
-            self.assertTrue((description.text or "").strip(), f"{path.name}: empty SVG description")
+    def test_historical_scenario_math(self):
+        rows = table_rows(COSTS.read_text(encoding="utf-8"))
+        for scenario in SCENARIOS:
+            sol, terra, luna, low, high, saving_low, saving_high = map(Decimal, scenario)
+            self.assertEqual(Decimal(1), sol + terra + luna)
+            cost = sol + terra * Decimal("0.40") + luna * Decimal("0.04")
+            self.assertEqual(saving_low, (1 - cost - high) * 100)
+            self.assertEqual(saving_high, (1 - cost - low) * 100)
+            shares = f"Sol {sol * 100:.0f}% · Terra {terra * 100:.0f}% · Luna {luna * 100:.0f}%"
+            overhead = f"{low * 100:.0f}%–{high * 100:.0f}%"
+            savings = f"{saving_low}%–{saving_high}%"
+            self.assertTrue(any(r[1:] == (shares, overhead, savings) for r in rows))
 
-            source = path.read_text(encoding="utf-8")
-            self.assertNotRegex(source, r"(?is)<script\b|(?:href|src)=['\"]https?://")
-            self.assertNotRegex(source, r"(?i)@import|url\(['\"]?https?://")
-            self.assertNotRegex(source, r"(?is)<image\b|data:image|<foreignObject\b")
-            self.assertNotRegex(source, r"(?is)<linearGradient\b|<radialGradient\b")
-            self.assertNotRegex(source, r"(?i)oil-visual|border collie|边牧|圆框眼镜")
-            for color in CONTROL_ORBIT_PALETTE:
-                self.assertIn(color, source, path.name)
-
-    def test_readmes_publish_the_configured_profiles_without_freezing_layout(self) -> None:
-        # Model, effort, and permission facts must match TOML. Headings and
-        # marketing order are not part of the runtime contract.
-        profiles = [
-            tomllib.loads(path.read_text(encoding="utf-8"))
-            for path in sorted((ROOT / ".codex/agents").glob("prove-*.toml"))
-        ]
-        for path, text in self.readme_documents().items():
-            table_rows = [line for line in text.splitlines() if line.startswith("|")]
-            for profile in profiles:
-                matching = [
-                    line for line in table_rows
-                    if profile["name"] in line and "gpt-" in line
-                ]
-                self.assertEqual(1, len(matching), f"{path.name}: profile row {profile['name']}")
-                for key in ("model", "model_reasoning_effort", "sandbox_mode"):
-                    self.assertIn(profile[key], matching[0], f"{path.name}: {key} drift")
-            for route in ("Direct", "Controller-only", "Efficient worker", "Complex worker"):
-                self.assertIn(route, text, f"{path.name}: route missing {route}")
-            self.assertIn("v1.1", text)
-            self.assertIn("Ponytail", text)
-            self.assertIn("2026-08-04", text)
-            self.assertRegex(text, r"Historical scope|历史口径")
-
-    def test_readmes_cover_layout_testing_limitations_prior_art_and_license(self) -> None:
-        documents = self.readme_documents()
-        required_topics = (
-            r"(?i)repository\s+(?:layout|structure)|仓库(?:布局|结构)",
-            r"(?i)testing|测试",
-            r"(?i)limitations?|限制",
-            r"(?i)prior\s+art|先例",
-            r"(?i)license|许可证|许可",
-            r"(?i)maintainer|维护者",
-            r"(?i)support|支持",
-            r"(?i)security|安全",
-        )
-        for path, text in documents.items():
-            for topic in required_topics:
-                self.assertRegex(text, topic, f"{path.name}: missing final documentation topic {topic}")
-
-    def test_readmes_explain_worker_profiles_and_platform_quickstarts(self) -> None:
-        documents = self.readme_documents()
-        signals = (
-            "$codex-prove",
-            "$sol-control",
-            "prove-controller",
-            "prove-efficient-worker",
-            "prove-complex-worker",
-            "bash scripts/validate.sh",
-            "bash scripts/install.sh",
-            "bash scripts/uninstall.sh",
-            "scripts/install.ps1",
-            "scripts/validate.ps1",
-            "scripts/uninstall.ps1",
-            "-RestoreLatest",
-            "ORCHESTRATE_HOME",
-            "PowerShell 5.1",
-            "PowerShell 7",
-            "Windows 11",
-            "Windows Server 2022",
-            "macOS",
-            "Linux",
-        )
-        for path, text in documents.items():
-            for signal in signals:
-                self.assertIn(signal, text, f"{path.name}: missing platform/runtime signal {signal}")
-            self.assertRegex(text, r"(?i)Controller[\s\S]{0,160}(?:controls|sole|唯一|主控)")
-            self.assertRegex(text, r"(?i)Efficient worker[\s\S]{0,160}(?:executes|执行|承接|handles)")
-            self.assertRegex(
-                text,
-                r"(?i)Complex worker[\s\S]{0,180}(?:executes|执行|处理|handles|cross[- ]module|跨模块)",
-            )
-
-    def test_readmes_publish_exact_api_and_chatgpt_rate_rows(self) -> None:
-        documents = self.readme_documents()
-        for path, text in documents.items():
-            lines = text.splitlines()
-            for model, values in API_RATES.items():
-                model_rows = [line for line in lines if model in line]
-                self.assertTrue(model_rows, f"{path.name}: missing API row for {model}")
-                self.assertTrue(
-                    any(all(value in line for value in values) for line in model_rows),
-                    f"{path.name}: wrong API rate row for {model}",
-                )
-            for model, values in CHATGPT_RATES.items():
-                model_rows = [line for line in lines if model in line]
-                self.assertTrue(model_rows, f"{path.name}: missing ChatGPT row for {model}")
-                self.assertTrue(
-                    any(all(value in line for value in values) for line in model_rows),
-                    f"{path.name}: wrong ChatGPT rate row for {model}",
-                )
-
-    def test_readmes_preserve_historical_cost_ranges_and_relative_credit_weights(self) -> None:
-        documents = self.readme_documents()
-        for path, text in documents.items():
-            self.assertIn("https://developers.openai.com/api/docs/models/compare", text, path.name)
-            self.assertIn(
-                "https://help.openai.com/en/articles/20001106-codex-rate-card",
-                text,
-                path.name,
-            )
-            self.assertIn("2026-08-04", text, path.name)
-            blocks = self.markdown_blocks(text)
-            for labels, value in (
-                (("Sol", "索尔"), r"1(?:\.0+)?"),
-                (("Terra", "Terra 高"), r"0\.4(?:0+)?"),
-                (("Luna", "Luna 高"), r"0\.04(?:0+)?"),
+    def test_platform_commands(self):
+        for path, text in self.documents().items():
+            for command in (
+                f"git clone {REPO}.git", "cd codex-prove", "Set-Location codex-prove", "Python 3.11+",
+                "bash scripts/validate.sh", "bash scripts/install.sh", "bash scripts/uninstall.sh",
+                "bash scripts/uninstall.sh --restore-latest", "git status --short", "git switch main", "git pull --ff-only origin main",
             ):
-                self.assertTrue(
-                    any(
-                        any(label.casefold() in block.casefold() for label in labels)
-                        and re.search(rf"(?<![\d.]){value}(?![\d.])", block)
-                        for _, block, _ in blocks
-                    ),
-                    f"{path.name}: missing relative credit weight {labels[0]}={value}",
-                )
-            for labels, values in (
-                (("ordinary", "typical", "普通"), ("72%", "76%")),
-                (("mixed", "hybrid", "混合"), ("50%", "60%")),
-                (("complex", "复杂"), ("33%", "43%")),
+                self.assertIn(command, text, path.name)
+            for script in ("validate", "install", "uninstall"):
+                self.assertIn(f"powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/{script}.ps1", text)
+                self.assertIn(f"pwsh -NoProfile -File scripts/{script}.ps1", text)
+                self.assertTrue((ROOT / f"scripts/{script}.ps1").is_file())
+            self.assertIn("scripts/uninstall.ps1 -RestoreLatest", text)
+
+    def test_activation_and_simple_tasks(self):
+        patterns = (
+            (r"只有你写了.*\$codex-prove.*才会启用", r"简单任务.*不额外开子代理", r"默认用简体中文"),
+            (r"only runs when you ask for.*\$codex-prove", r"small tasks stay direct, without extra agents", r"Simplified Chinese by default"),
+        )
+        for text, required in zip(self.documents().values(), patterns):
+            for pattern in required:
+                self.assertRegex(text, pattern)
+            self.assertIn("$sol-control", text)
+
+    def test_user_files_and_release_status(self):
+        patterns = (
+            (r"不改.*config.toml", r"不动其他 Agent", r"先备份", r"不会直接覆盖", r"发布标签目前仍是", r"v1.1 还没有打稳定标签", r"当前四模型完整联跑仍在补测"),
+            (r"config.toml.*alone", r"doesn't touch unrelated agents", r"backs up", r"instead of overwriting", r"latest release tag is still", r"no stable v1.1 tag yet", r"Full end-to-end testing.*still in progress"),
+        )
+        for text, required in zip(self.documents().values(), patterns):
+            for pattern in required:
+                self.assertRegex(text, pattern)
+            for value in (f"{REPO}/releases/tag/v1.0.0", "docs/release/runtime-surface-matrix.md", "docs/release/v1.1-gpt6-audit.md"):
+                self.assertIn(value, text)
+
+    def test_runtime_history_stays_in_linked_docs(self):
+        matrix = (ROOT / "docs/release/runtime-surface-matrix.md").read_text(encoding="utf-8")
+        current, history = matrix.split("## v1.0 model-neutral roles", 1)
+        for value in ("936cfca", "118", "36242572791", "36242572803", "49", "18", "gpt6-four-role-routing-probe.json"):
+            self.assertIn(value, current)
+        for surface in ("Complete end-to-end runtime", "Fresh global install / Skill and four-role discovery", "Current Native Nested / Compatibility"):
+            matching = [r for r in table_rows(current) if len(r) >= 3 and r[1] == surface]
+            self.assertEqual(1, len(matching), surface)
+            self.assertEqual("UNVERIFIED", matching[0][2])
+        self.assertIn("| Desktop | Compatibility | VERIFIED |", history)
+        self.assertIn("| Desktop | Native Nested | UNVERIFIED |", history)
+
+    def test_support_security_and_prior_art(self):
+        for path, text in self.documents().items():
+            for link in (
+                "CONTRIBUTING.md", "CODE_OF_CONDUCT.md", "SECURITY.md", "SUPPORT.md", "LICENSE", "NOTICE",
+                "https://github.com/yehyakin", f"{REPO}/security/advisories/new", f"{REPO}/issues/new/choose",
+                ".agents/skills/codex-prove/SKILL.md", ".agents/skills/codex-prove/references/orchestration.md",
+                ".agents/skills/codex-prove/references/runtime-notes.md",
+                "https://github.com/DietrichGebert/ponytail", "https://github.com/obra/superpowers",
             ):
-                self.assertTrue(
-                    any(
-                        any(label.casefold() in block.casefold() for label in labels)
-                        and all(value in block for value in values)
-                        for _, block, _ in blocks
-                    ),
-                    f"{path.name}: missing current cost range for {labels[0]}",
-                )
+                self.assertIn(link, text, path.name)
 
-            self.assertTrue(
-                self.has_direct_zero_pair(text),
-                f"{path.name}: Direct and 0% must share one paragraph or table cell",
-            )
-
-    def test_readmes_do_not_publish_old_complex_direct_claim_as_current(self) -> None:
-        documents = self.readme_documents()
-        historical_markers = re.compile(
-            r"(?i)(?:historical|legacy|prior|previous|not\s+current|"
-            r"condition(?:ed|al|-based)|reliability[- ]gated|"
-            r"历史|旧口径|旧基准|非现行|条件(?:下|性)|可靠性门槛)"
+    def test_linux_do_thanks_is_last(self):
+        thanks = (
+            "感谢 [LINUX DO 论坛](https://linux.do/) 社区的关注、反馈与支持",
+            "Thank you to the [LINUX DO forum](https://linux.do/) community for its attention, feedback, and support.",
         )
-        for path, text in documents.items():
-            for unit in self.semantic_units(text):
-                if re.search(r"(?i)(?:complex|复杂).{0,180}65%", unit):
-                    self.assertRegex(
-                        unit,
-                        historical_markers,
-                        f"{path.name}: complex 65% must be explicitly historical/non-current",
-                    )
-            self.assertNotRegex(
-                text,
-                r"41%\s*\*\s*85%\s*=\s*34\.85%",
-                f"{path.name}: old reliability-gated derivation must not remain current",
-            )
-
-    def test_readmes_preserve_linux_do_attribution(self) -> None:
-        chinese = CHINESE_README.read_text(encoding="utf-8")
-        english = ENGLISH_README.read_text(encoding="utf-8")
-        chinese_tail = self.trailing_acknowledgement(chinese, CHINESE_README.name)
-        english_tail = self.trailing_acknowledgement(english, ENGLISH_README.name)
-        self.assertTrue(
-            chinese_tail.endswith(
-                "**致谢 / Thanks** 感谢 [LINUX DO 论坛](https://linux.do/) 社区的关注、反馈与支持"
-            ),
-            "Chinese acknowledgement must be the final block without a full stop",
-        )
-        self.assertTrue(
-            english_tail.endswith(
-                "**致谢 / Thanks** Thank you to the [LINUX DO forum](https://linux.do/) community for its attention, feedback, and support."
-            ),
-            "English acknowledgement must be the final block",
-        )
-
-    def test_readmes_link_the_release_runtime_surface_matrix(self) -> None:
-        documents = self.readme_documents()
-        for path, text in documents.items():
-            self.assertIn("docs/release/runtime-surface-matrix.md", text, path.name)
-
-    def test_readmes_state_disclaimers_and_api_subscription_distinction(self) -> None:
-        documents = self.readme_documents()
-        for path, text in documents.items():
-            self.assertTrue(
-                any(
-                    self.has_valid_disclaimer(
-                        unit,
-                        "chinese" if path == CHINESE_README else "english",
-                    )
-                    for unit in self.semantic_units(text)
-                ),
-                f"{path.name}: disclaimer must explicitly state not (a) guarantee or its Chinese equivalent",
-            )
-            self.assertRegex(text, r"(?i)API")
-            self.assertRegex(text, r"(?i)subscription|订阅")
-            self.assertRegex(text, r"(?i)(?:dollar|monetary|capacity|credits|美元|金额|容量|额度)")
-            self.assertRegex(text, r"(?i)(?:retry|retries|erase|reverse|重试|抵消|反转)")
-            self.assertRegex(text, r"(?is)API.{0,180}(?:dollar|monetary|美元|金额|金钱)")
-            self.assertTrue(
-                any(
-                    re.search(r"(?i)subscription|订阅", unit)
-                    and re.search(r"(?i)capacity|credits|容量|额度", unit)
-                    for unit in self.semantic_units(text)
-                ),
-                f"{path.name}: subscription and capacity/credits must share one semantic unit",
-            )
-
-    def test_bilingual_core_signals_have_parity(self) -> None:
-        documents = self.readme_documents()
-        parity_signals = (
-            "$codex-prove",
-            "$sol-control",
-            "prove-controller",
-            "prove-efficient-worker",
-            "prove-complex-worker",
-            "prove-specialist-worker",
-            "gpt-6-sol",
-            "gpt-6-luna",
-            "gpt-5.6-terra",
-            "https://developers.openai.com/api/docs/models/compare",
-            "https://help.openai.com/en/articles/20001106-codex-rate-card",
-            "72%",
-            "76%",
-            "50%",
-            "60%",
-            "33%",
-            "43%",
-            "0.4",
-            "0.04",
-            "0%",
-            "route_cost",
-            "saving = 1 - route_cost",
-            "config.toml",
-            "RestoreLatest",
-            "v1.0.0",
-            "Compatibility",
-            "Native Nested",
-            "CODEX_PROVE_V1_IMPLEMENTATION_REPORT.md",
-            "v1.0.0",
-            "CONTRIBUTING.md",
-            "CODE_OF_CONDUCT.md",
-            "SECURITY.md",
-            "SUPPORT.md",
-            "@yehyakin",
-        )
-        for signal in parity_signals:
-            for path, text in documents.items():
-                self.assertIn(signal, text, f"{path.name}: parity signal missing: {signal}")
-
-        release_status_specs = {
-            CHINESE_README: {
-                "title": "当前状态",
-                "compatibility": r"Compatibility",
-                "unproven": r"Native Nested[\s\S]{0,500}Windows 11",
-                "local_row_label": "本地仓库",
-                "hosted_row_label": "托管 CI",
-                "physical_windows_row_label": "Windows 实机安装",
-                "local_row_signals": (
-                    "v1.0.0",
-                    "Skill Creator",
-                ),
-                "hosted_row_signals": (
-                    "POSIX",
-                    "Windows Server 2022",
-                    "windows-latest",
-                    "Windows PowerShell 5.1",
-                    "PowerShell 7",
-                ),
-                "physical_windows_row_signals": (
-                    "用户报告安装成功",
-                    "未收集 Windows 版本",
-                    "安装日志",
-                    "运行时身份",
-                ),
-            },
-            ENGLISH_README: {
-                "title": "Current status",
-                "compatibility": r"Compatibility",
-                "unproven": r"Native Nested[\s\S]{0,500}Windows 11",
-                "local_row_label": "Local repository",
-                "hosted_row_label": "Hosted CI",
-                "physical_windows_row_label": "Physical Windows install",
-                "local_row_signals": (
-                    "v1.0.0",
-                    "Skill Creator",
-                ),
-                "hosted_row_signals": (
-                    "POSIX",
-                    "Windows Server 2022",
-                    "windows-latest",
-                    "Windows PowerShell 5.1",
-                    "PowerShell 7",
-                ),
-                "physical_windows_row_signals": (
-                    "User-reported installation success",
-                    "Windows version",
-                    "install log",
-                    "runtime identity",
-                ),
-            },
-        }
-        for path, text in documents.items():
-            spec = release_status_specs[path]
-            rendered = self.rendered_markdown(text)
-            release_heading_matches = list(
-                re.finditer(rf"(?m)^## {re.escape(spec['title'])}\s*$", rendered)
-            )
-            self.assertEqual(
-                len(release_heading_matches),
-                1,
-                f"{path.name}: release status must have exactly one H2 heading",
-            )
-            release_heading = release_heading_matches[0]
-            self.assertEqual(
-                release_heading.group(0).split(maxsplit=1)[0],
-                "##",
-                f"{path.name}: release status heading must be H2",
-            )
-
-            following_heading = re.search(r"(?m)^## (?!#)", rendered[release_heading.end() :])
-            release_end = (
-                len(rendered)
-                if following_heading is None
-                else release_heading.end() + following_heading.start()
-            )
-            release_block = rendered[release_heading.start() : release_end]
-            for signal in (
-                "v1.0.0",
-                "(CODEX_PROVE_V1_IMPLEMENTATION_REPORT.md)",
-            ):
-                self.assertIn(
-                    signal,
-                    release_block,
-                    f"{path.name}: release status block missing {signal}",
-                )
-            self.assertRegex(
-                release_block,
-                spec["compatibility"],
-                f"{path.name}: release status must positively verify Compatibility",
-            )
-            self.assertRegex(
-                release_block,
-                spec["unproven"],
-                f"{path.name}: release status must mark unsupported surfaces unproven",
-            )
-
-            def gfm_row_cells(line: str) -> tuple[str, ...] | None:
-                stripped = line.strip()
-                if not stripped or "|" not in stripped:
-                    return None
-                cells = self.table_cells(stripped)
-                return cells if len(cells) >= 2 else None
-
-            table_blocks: list[list[tuple[str, ...]]] = []
-            lines = release_block.splitlines()
-            line_index = 0
-            while line_index + 1 < len(lines):
-                header_cells = gfm_row_cells(lines[line_index])
-                delimiter_cells = gfm_row_cells(lines[line_index + 1])
-                if (
-                    header_cells is None
-                    or delimiter_cells is None
-                    or len(header_cells) != len(delimiter_cells)
-                    or not all(
-                        re.fullmatch(r":?-+:?", cell.replace(" ", ""))
-                        for cell in delimiter_cells
-                    )
-                ):
-                    line_index += 1
-                    continue
-
-                data_rows: list[tuple[str, ...]] = []
-                line_index += 2
-                while line_index < len(lines):
-                    data_cells = gfm_row_cells(lines[line_index])
-                    if data_cells is None or len(data_cells) != len(header_cells):
-                        break
-                    data_rows.append(data_cells)
-                    line_index += 1
-                table_blocks.append(data_rows)
-
-            status_table_rows: list[dict[str, str]] = []
-            target_labels = (
-                spec["local_row_label"],
-                spec["hosted_row_label"],
-                spec["physical_windows_row_label"],
-            )
-            for data_rows in table_blocks:
-                rows: dict[str, str] = {}
-                for cells in data_rows:
-                    row_label = cells[0]
-                    if row_label in target_labels:
-                        self.assertNotIn(
-                            row_label,
-                            rows,
-                            f"{path.name}: release status row must be unique: {row_label}",
-                        )
-                        rows[row_label] = cells[1]
-                if rows:
-                    status_table_rows.append(rows)
-
-            self.assertEqual(
-                len(status_table_rows),
-                1,
-                f"{path.name}: local and hosted release rows must share one GFM table",
-            )
-            status_rows = status_table_rows[0]
-
-            for row_key in ("local", "hosted", "physical_windows"):
-                row_label = spec[f"{row_key}_row_label"]
-                self.assertIn(
-                    row_label,
-                    status_rows,
-                    f"{path.name}: release status missing {row_key} evidence row",
-                )
-                row = status_rows[row_label]
-                for signal in spec[f"{row_key}_row_signals"]:
-                    self.assertIn(
-                        signal,
-                        row,
-                        f"{path.name}: {row_key} release status row missing {signal}",
-                    )
+        for (path, text), sentence in zip(self.documents().items(), thanks):
+            self.assertTrue(text.rstrip().endswith("**致谢 / Thanks**\n\n" + sentence), path.name)
 
 
 if __name__ == "__main__":

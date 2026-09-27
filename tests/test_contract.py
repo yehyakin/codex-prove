@@ -103,8 +103,8 @@ class InvocationAndLanguageTests(unittest.TestCase):
             self.assertIn("其他语言", instructions, path.name)
 
     def test_readme_default_is_chinese_with_english_peer(self) -> None:
-        self.assertIn("运行时默认使用简体中文", read(ROOT / "README.md"))
-        self.assertIn("Runtime output defaults to Simplified Chinese", read(ROOT / "README.en.md"))
+        self.assertRegex(read(ROOT / "README.md"), r"默认(?:使用|用)简体中文")
+        self.assertRegex(read(ROOT / "README.en.md"), r"(?:defaults to|responds in) Simplified Chinese")
 
 
 class ProtocolStructureTests(unittest.TestCase):

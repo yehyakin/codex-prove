@@ -11,7 +11,9 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "tests" / "fixtures" / "real-project-benchmark.json"
 REPORT = ROOT / "tests" / "real-project-benchmark.md"
 README_FILES = (ROOT / "README.md", ROOT / "README.en.md")
+COST_NOTES = ROOT / "docs" / "costs.md"
 BENCHMARK_DOCUMENTS = README_FILES + (
+    COST_NOTES,
     REPORT,
     ROOT
     / "docs"
@@ -109,7 +111,7 @@ class RealProjectBenchmarkTests(unittest.TestCase):
             43.4,
         )
 
-    def test_report_and_readmes_publish_their_documented_evidence_boundaries(self) -> None:
+    def test_report_and_linked_cost_notes_preserve_the_historical_scope(self) -> None:
         self.assertTrue(REPORT.is_file(), REPORT)
         report = REPORT.read_text(encoding="utf-8")
         for signal in (
@@ -136,12 +138,21 @@ class RealProjectBenchmarkTests(unittest.TestCase):
         for match in re.finditer(r"1\s*/\s*25", report):
             window = report[max(0, match.start() - 120) : match.end() + 180]
             self.assertRegex(window, historical_markers)
+        # Historical projections belong in the linked cost notes, not in the
+        # current-model homepage. Keep the numbers and qualification together.
+        notes = COST_NOTES.read_text(encoding="utf-8")
+        history = notes.split("## v1.0", 1)[1]
+        for signal in ("2026-08-04", "72.2%–76.2%", "50.4%–60.4%", "33.4%–43.4%", "0.40", "0.04"):
+            self.assertIn(signal, history)
+        self.assertIn("不适用于当前", history)
+        self.assertIn("do not apply to the current four-model setup", history)
+        self.assertIn("预算假设", notes)
+        self.assertIn("assumptions for a budget", notes)
         for path in README_FILES:
             text = path.read_text(encoding="utf-8")
-            for signal in ("72%", "76%", "50%", "60%", "33%", "43%", "0.4", "0.04"):
-                self.assertIn(signal, text, path.name)
-            self.assertIn("scenario_model_projection", text, path.name)
-            self.assertRegex(text, r"(?i)not matched A/B|不是匹配 A/B")
+            self.assertIn("docs/costs.md", text, path.name)
+            for historical_range in ("72.2%–76.2%", "50.4%–60.4%", "33.4%–43.4%"):
+                self.assertNotIn(historical_range, text, path.name)
             self.assertNotRegex(text, r"(?i)(?:complex|复杂).{0,160}65%")
             self.assertNotRegex(text, r"1\s*/\s*25")
             self.assertNotIn("sample_validated_projection", text)

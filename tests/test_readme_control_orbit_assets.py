@@ -79,14 +79,8 @@ GEOMETRY_ATTRIBUTES = {
 }
 KEY_LABELS = (
     "CODEX PROVE",
-    "FILES",
-    "DIFF",
-    "TEST",
-    "PASS",
-    "FIX",
-    "BLOCKED",
-    "DIRECT",
-    "CONTROLLER-ONLY",
+    "SMALL TASK",
+    "PLAN FIRST",
     "ASTRA",
     "SOL",
     "TERRA",
@@ -324,43 +318,28 @@ class ControlOrbitAssetContractTests(unittest.TestCase):
                     )
 
                 text = element_text(root)
+                self.assertIn("PROVE", text, name)
                 if name.endswith("-zh.svg"):
-                    self.assertIn("PROVE", text, name)
-                    self.assertIn("Controller", text, name)
                     self.assertRegex(text, CHINESE_TEXT_RE, f"{name}: missing Chinese copy")
-                elif name == "hero-en.svg":
-                    self.assertIn("PROVE", text, name)
-                    self.assertIn("controller", text.casefold(), name)
-                else:
-                    self.assertIn("PROVE", text, name)
-                    self.assertIn("CONTROLLER", text, name)
+                for token in ("ASTRA", "SOL", "TERRA", "LUNA"):
+                    self.assertIn(token, text, f"{name}: missing model {token}")
                 if name.startswith("hero-"):
                     self.assertNotRegex(text, r"\d+(?:\.\d+)?%", name)
-                    self.assertIn("FILES", text, name)
-                    self.assertIn("DIFF", text, name)
-                    self.assertIn("TEST", text, name)
                 else:
-                    for token in ("PASS", "FIX", "BLOCKED"):
-                        self.assertIn(token, text, f"{name}: missing {token}")
-                    for token in (
-                        "DIRECT",
-                        "CONTROLLER-ONLY",
-                        "SOL",
-                        "TERRA",
-                        "LUNA",
-                    ):
-                        self.assertIn(token, text, f"{name}: missing route {token}")
+                    # Keep the simple/planning/execution distinction visible;
+                    # internal route names are not required in public copy.
                     if name.endswith("-zh.svg"):
-                        self.assertIn("同一文件只能有一个 Owner", text, name)
-                        self.assertIn("重叠范围不得并发", text, name)
+                        self.assertIn("小任务", text, name)
+                        self.assertIn("讨论方案", text, name)
+                        self.assertIn("同一个文件，一次只交给一个子代理", text, name)
                     else:
-                        folded_text = text.casefold()
-                        self.assertIn("one file, one owner", folded_text, name)
-                        self.assertIn(
-                            "overlapping scopes never run concurrently",
-                            folded_text,
-                            name,
-                        )
+                        self.assertIn("SMALL TASK", text, name)
+                        self.assertIn("PLAN FIRST", text, name)
+                        self.assertIn("one agent edits a file at a time", text.casefold(), name)
+
+                for color in ("#0B1020", "#F7F3E8", "#65D6C4", "#8FA7FF", "#FF6B3D"):
+                    self.assertIn(color, source, name)
+                self.assertNotRegex(source, r"(?is)<linearGradient\b|<radialGradient\b")
 
                 ids = [element.attrib["id"] for element in root.iter() if "id" in element.attrib]
                 self.assertEqual(
@@ -382,6 +361,7 @@ class ControlOrbitAssetContractTests(unittest.TestCase):
                 for profile_id in ("prove-controller", *EXPECTED_WORKERS):
                     profile = tomllib.loads((ROOT / ".codex/agents" / f"{profile_id}.toml").read_text(encoding="utf-8"))
                     self.assertEqual(profile["model"], nodes[profile_id].get("data-model"), name)
+                    self.assertIn(profile["model_reasoning_effort"], element_text(nodes[profile_id]), name)
                 self.assertEqual([], worker_path_errors(root), name)
 
                 for element, node_text, font_size in iter_text_nodes(root):

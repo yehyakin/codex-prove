@@ -1,84 +1,55 @@
 [简体中文](README.md) · [English](README.en.md)
 
-![Codex PROVE 通过规划、路由、所有权、验证与证据完成复杂任务](docs/assets/readme/hero-zh.svg)
+![Codex PROVE：Astra 主控，Sol 专项，Terra 常规，Luna 批处理](docs/assets/readme/hero-zh.svg)
 
 <p align="center">
-  <a href="https://github.com/yehyakin/codex-prove/releases/tag/v1.0.0"><img alt="Release v1.0.0" src="https://img.shields.io/github/v/release/yehyakin/codex-prove?style=flat-square"></a>
-  <a href="https://github.com/yehyakin/codex-prove/actions/workflows/posix-validation.yml"><img alt="POSIX CI" src="https://img.shields.io/github/actions/workflow/status/yehyakin/codex-prove/posix-validation.yml?branch=main&amp;label=POSIX&amp;style=flat-square"></a>
+  <a href="https://github.com/yehyakin/codex-prove/releases"><img alt="Release" src="https://img.shields.io/github/v/release/yehyakin/codex-prove?style=flat-square"></a>
+  <a href="https://github.com/yehyakin/codex-prove/actions/workflows/posix-validation.yml"><img alt="Linux / macOS CI" src="https://img.shields.io/github/actions/workflow/status/yehyakin/codex-prove/posix-validation.yml?branch=main&amp;label=Linux%20%2F%20macOS&amp;style=flat-square"></a>
   <a href="https://github.com/yehyakin/codex-prove/actions/workflows/windows-validation.yml"><img alt="Windows CI" src="https://img.shields.io/github/actions/workflow/status/yehyakin/codex-prove/windows-validation.yml?branch=main&amp;label=Windows&amp;style=flat-square"></a>
   <a href="LICENSE"><img alt="Apache-2.0 License" src="https://img.shields.io/github/license/yehyakin/codex-prove?style=flat-square"></a>
-  <a href="https://github.com/yehyakin/codex-prove/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/yehyakin/codex-prove?style=flat-square"></a>
 </p>
 
 # Codex PROVE
 
-**规划任务，路由模型，用证据完成交付。**
+**让 Codex 自己分工，别什么活都用最贵的模型。**
 
-`codex-prove` 是一个显式调用、模型中立的 Codex 编排 Skill：**一个 Controller 做判断和终审，按需选择 worker 做有界执行。**
+PROVE 是一个给 Codex 用的模型分工 Skill。核心很简单：**Astra 主控、Sol 专项、Terra 常规、Luna 批处理。** 主控负责理解、拆分、分配和审核，具体执行交给合适的子代理。
 
-[60 秒开始](#60-秒开始) · [路由方式](#工作方式) · [成本模型](#为什么能节省成本) · [运行证据](#当前状态) · [安装维护](#安装检查与卸载)
+改个文案、修个小问题，当前 Codex 直接做。遇到跨模块开发、复杂排查，再让它拆开做。你不用自己切模型，也不用挨个给子代理派活。
 
-你只需要给出目标、完成条件和限制；PROVE 会自动完成规划、能力路由、文件 ownership、分阶段执行、验证和证据审核。
+[能省多少](#能省多少) · [安装](#安装) · [怎么用](#怎么用) · [这次更新](#这次更新了什么)
 
-- **Controller** 是唯一主控：理解目标、规划、路由、分配 ownership、调度并完成最终审核。
-- **Specialist worker** 处理困难但可独立验收的实现、根因分析或专项只读审核。
-- **Regular worker（Complex worker profile）** 处理方案明确的常规功能、修复、测试与集成。
-- **Efficient worker** 承接规则明确、可客观验证的机械批量执行；单行小改不必委派。
+## 能省多少
 
-简单任务仍由当前 Codex 直接完成。复杂、跨模块、可并行或高风险任务，再显式调用 `$codex-prove`。
+**一个预算例子：全程 Astra 约 $15.00，按任务分工后约 $5.66，省 62.3%。**
 
-运行时默认使用简体中文；如果用户明确指定其他语言，则遵循用户选择。
+| 执行方式 | API token 费用 | Codex credits | 预计节省 |
+| --- | ---: | ---: | ---: |
+| 全程 Astra | $15.00 | 375 | — |
+| PROVE 四模型分工（含编排开销） | $5.66 | 141.5 | **62.3%** |
 
-> **当前 main：**四角色升级已合并；含本次文档回归的 120 项本地测试通过。实现基线 `936cfca` 的 8 个 Linux / macOS / Windows CI 任务全部通过。[查看证据与运行边界](#当前状态)。最新稳定标签仍为 v1.0.0。
+原因很直接：规划和审核需要主控，但写测试、改配置、批量处理，不一定都需要最贵的模型。
 
-规范仓库：[yehyakin/codex-prove](https://github.com/yehyakin/codex-prove)。这是独立社区项目，不代表 OpenAI 官方产品或背书。
+| 模型 | 负责什么 | 输入 / 1M tokens | 输出 / 1M tokens |
+| --- | --- | ---: | ---: |
+| GPT-6 Astra | 理解需求、拆分任务、分配和审核 | $10.00 | $50.00 |
+| GPT-6 Sol | 难题攻坚、根因分析、专项检查 | $2.00 | $10.00 |
+| GPT-5.6 Terra | 常规功能、修 Bug、测试和集成 | $2.00 | $12.00 |
+| GPT-6 Luna | 按明确规则做批量修改、整理资料 | $0.10 | $0.50 |
 
-## v1.1 · 已合并 main：更强主控，更少流程
+上面的例子按累计 1M 输入、0.1M 输出计算，每类 token 分给 Astra / Sol / Terra / Luna 的比例是 20% / 20% / 40% / 20%，再加全 Astra 费用的 5% 作为编排开销。采用 2026-09-26 的 Standard 短上下文费率，不计缓存。
 
-**Astra 统筹，Sol 攻坚，Terra 主力，Luna 批量；小任务直接做。**
-主控为 GPT-6 Astra / high；按需选择 GPT-6 Sol / high、GPT-5.6 Terra / high 或 GPT-6 Luna / max 执行，
-不要求四个模型全部参与，也不按模型等级逐层接力。
+这是算给你看的预算例子，不是每个项目都能省 62.3%。算的是 token 费用，不含人工和等待时间；任务拆得不好、返工多了，也可能更贵。完整单价、credits 换算和旧版算法都放在[成本说明](docs/costs.md)里。
 
-- 小任务即使显式调用，也保持 **Direct、零委派**。
-- 有权威模型选择记录即可直接派发完整任务，不再空跑一轮“自证握手”。
-- 已授权的本地实现、测试和修正连续执行；缺少标题或一次测试失败不再机械 `BLOCKED`。
-- 同一范围只允许一个活跃写入者；停稳旧执行者及其进程、保留 Diff 后可以安全移交。
-- 融入 **Ponytail** 的最小实现思想：先复用现有代码、标准库和平台能力，不增加常驻 Hook、模式开关或审批。
+## 安装
 
-本节描述当前 main 的实现，尚未发布 v1.1 稳定标签。完整变更、修复和验证过程见 [v1.1 升级记录](docs/release/v1.1-gpt6-audit.md)。
-
-2026 年 9 月 26 日合并的默认分工：**Astra 主控、Sol 专项、Terra 常规、Luna 批处理**。
-Sol、Luna 升级代际，保留既有 effort、权限和角色标识；Terra 继续常规执行，
-不因新模型发布而自动替换。Jev 仅用于研发调研，不接入默认路由，也不成为安装或运行依赖。
-
-## 核心路由与成本
-
-**把判断留给 Astra，把执行交给合适的模型，而不是所有 token 都用最高价模型。**
-
-| 路由 | 默认模型 / effort | 适合的工作 | 输入 / 输出单价，相对 Astra |
-| --- | --- | --- | ---: |
-| 主控 | GPT-6 Astra / high | 理解、规划、调度、最终审核 | 100% / 100% |
-| 专项 | GPT-6 Sol / high | 困难但可独立验收的实现、根因分析或专项审核 | 20% / 20% |
-| 常规 | GPT-5.6 Terra / high | 方案明确的功能、修复、测试和集成 | 20% / 24% |
-| 批处理 | GPT-6 Luna / max | 规则明确、客观可验证的机械批量执行 | 1% / 1% |
-| Direct | 当前 Codex | 小任务直接完成，零委派 | 额外编排开销 0%；路由节省 0% |
-
-上述为 **2026-09-26、Standard、短上下文**的单价比，不是任务总成本降幅。[API 费率](https://developers.openai.com/api/docs/pricing) · [Terra 费率](https://developers.openai.com/api/docs/models/gpt-5.6-terra) · [Codex credits 费率](https://learn.chatgpt.com/docs/pricing)
-
-**预算算例：$15.00 → $5.66，约省 62.3%。** 假设累计 1M 非缓存输入 + 0.1M 输出，每类 token 按 Astra 20% / Sol 20% / Terra 40% / Luna 20% 分配，再加全 Astra 基线 5% 的编排开销。[计算与假设](#为什么能节省成本)
-
-这是 `scenario_model_projection`，不是当前用户样本的平均值或每个任务的保证，也不代表一定更快。模型份额和 5% 开销是明确列出的示例假设，不是固定路由配额；最终按实际用量、返工和质量验收计算。
-
-## 60 秒开始
-
-需要 Git、Python 3.11+，以及支持对应模型与自定义 Agent 的 Codex。以下默认安装当前 main；要使用稳定标签，在安装前执行 `git switch --detach v1.0.0`，该版本仍使用旧模型分工。
+需要 Git、Python 3.11+，以及支持自定义 Agent 和上面四个模型的 Codex。
 
 ### macOS / Linux
 
 ```sh
 git clone https://github.com/yehyakin/codex-prove.git
 cd codex-prove
-
 bash scripts/validate.sh
 bash scripts/install.sh
 ```
@@ -90,440 +61,134 @@ Windows PowerShell 5.1：
 ```powershell
 git clone https://github.com/yehyakin/codex-prove.git
 Set-Location codex-prove
-
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/validate.ps1
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/install.ps1
+```
+
+如果用 PowerShell 7，在仓库目录里运行：
+
+```powershell
+pwsh -NoProfile -File scripts/validate.ps1
+pwsh -NoProfile -File scripts/install.ps1
+```
+
+安装器会先备份旧版，不改你原有的 `~/.codex/config.toml`，也不动其他 Agent。装好后开一个新的 Codex 会话。
+
+以上安装的是当前 `main`，已经包含 GPT-6 分工。发布标签目前仍是 [v1.0.0](https://github.com/yehyakin/codex-prove/releases/tag/v1.0.0)，使用旧版模型配置。
+
+## 怎么用
+
+在任务前加上 `$codex-prove`，然后正常说你要做什么：
+
+```text
+$codex-prove 给项目加一个账号设置页，能改昵称和头像。
+沿用现有登录接口和 UI，别动支付模块，做好后跑一下测试。
+```
+
+不用填表，也不用指定开几个子代理。把目标和不能动的地方说清楚就行。
+
+![小任务直接做；复杂任务由 Astra 分给 Sol、Terra、Luna，做完再统一检查](docs/assets/readme/control-plane-zh.svg)
+
+比如做上面的账号设置页，Astra 会先看清现有接口和页面，再决定怎么分：常规页面和接口修改交给 Terra；有难点再找 Sol；大量重复修改才交给 Luna。没必要用到的模型就不开。
+
+互不影响的工作可以同时做，要用到前一步结果的就按顺序来。同一个文件不会让两个子代理抢着改。做完后，Astra 会对照你的要求检查代码和测试，再由当前 Codex 汇总结果。
+
+如果只想讨论方案，也可以直接说：
+
+```text
+$codex-prove 看看这个项目的登录方案，比较一下怎么改更合适，先别改代码。
+```
+
+**只有你写了 `$codex-prove` 才会启用。** 平时照常用 Codex；即使叫了 PROVE，简单任务也会直接完成，不额外开子代理。默认用简体中文回复，想换语言直接说。
+
+## 这次更新了什么
+
+之前有朋友反馈：维护太麻烦，经常被 `blocked`，还得反复批准。这次主要就是改这些。
+
+- **更新模型分工。** Astra 管全局，Sol 做专项，Terra 做常规，Luna 做批量，不要求每次四个全上。
+- **少跑空流程。** 能从调用记录确认模型，就直接开工，不再先让子代理回答一轮“我是谁”。
+- **能继续的就继续。** 已经授权的本地修改和测试，不会因为一次失败或少了一个标题就停下来找你批准。需要新权限或关键选择时才问你。
+- **少写没必要的代码。** 借鉴 Ponytail，先看项目里有没有、标准库能不能做，再考虑新依赖和新抽象。
+
+这些改动已在 `main`，v1.1 还没有打稳定标签。详细变更见[升级记录](docs/release/v1.1-gpt6-audit.md)；各平台和模型目前测到哪一步，见[兼容性与测试记录](docs/release/runtime-surface-matrix.md)。当前四模型完整联跑仍在补测。
+
+## 几个常见问题
+
+**子代理越多越快吗？**
+
+不一定。独立任务可以并行，但拆任务、传上下文、等结果也要花时间。PROVE 只开有必要的子代理，数量还受当前 Codex 的线程上限影响。
+
+**为什么还保留 Terra？**
+
+目前的分工是 Sol 做专项，Terra 做常规。按上面的价格，Sol 和 Terra 输入同价，Sol 输出还更便宜，所以不是“Terra 一定更省”。后续调整会看实际任务表现，不只看价格或模型名字。
+
+**我能改模型吗？**
+
+可以，配置在 [`.codex/agents/`](.codex/agents/prove-controller.toml)。默认 Astra、Sol、Terra 用 `high`，Luna 用 `max`。改之前确认你的 Codex 能调用对应模型和推理等级，改完重新检查、安装，再开新会话。详细设置见[模型配置说明](.agents/skills/codex-prove/references/runtime-notes.md)。
+
+**以前的 Sol Control 还能用吗？**
+
+可以，`$sol-control` 仍保留为兼容入口。项目现在叫 Codex PROVE，以后换模型不需要再改名字。[更名说明](CODEX_PROVE_V1_IMPLEMENTATION_REPORT.md)
+
+**装好了却找不到 Skill，或者模型调用失败？**
+
+先开新会话，确认安装成功、对应模型在你的 Codex 里可用。只拉取源码不会更新全局安装；旧会话也不会自动换配置。仍有问题可以发 [Issue](https://github.com/yehyakin/codex-prove/issues/new/choose)，附上系统版本、Codex 版本和去掉敏感信息的报错。
+
+## 更新和卸载
+
+更新前先运行 `git status --short`，有自己的改动就先保留。工作区干净后：
+
+```sh
+git switch main
+git pull --ff-only origin main
+```
+
+然后重跑上面对应系统的检查和安装命令，打开新会话。安装器会输出备份路径；遇到本地文件被手动修改的情况会停下来，不会直接覆盖。
+
+<details>
+<summary>卸载，或恢复上一次备份</summary>
+
+macOS / Linux：
+
+```sh
+bash scripts/uninstall.sh
+# 如果要恢复上一次备份，改用：
+bash scripts/uninstall.sh --restore-latest
+```
+
+Windows PowerShell 5.1：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/uninstall.ps1
+# 恢复上一次备份：
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/uninstall.ps1 -RestoreLatest
 ```
 
 PowerShell 7：
 
 ```powershell
-pwsh -NoProfile -File scripts/validate.ps1
-pwsh -NoProfile -File scripts/install.ps1
-```
-
-安装后打开一个新的 Codex 会话：
-
-```text
-$codex-prove
-
-目标：为现有项目增加账号设置功能。
-完成条件：用户可以修改昵称和头像；现有认证 API 保持兼容；测试和构建通过。
-限制：不修改支付模块，不更换现有 UI 框架。
-```
-
-也可以直接写：
-
-```text
-$codex-prove 重构认证模块，保持现有 API 兼容，测试和构建必须通过。
-```
-
-不需要指定 worker 数量或模型。Controller 会根据任务能力需求形成最小可执行图。
-
-## 先判断是否值得编排
-
-| 直接交给当前 Codex | 显式使用 `$codex-prove` |
-| --- | --- |
-| 单文件、小改动、已定位的问题 | 多模块、强依赖、共享接口或高后果修改 |
-| 简单回答、确定性命令、短文本 | 需要拆分、并行、ownership 或独立证据审核 |
-| 编排成本高于实现成本 | 返工代价明显高于规划和审核开销 |
-
-PROVE 不是默认模式，也不是固定 Agent 团队。它只在编排能提高交付质量或降低总成本时使用 worker。
-
-## 为什么能节省成本
-
-当前路线由 **Astra 判断和终审**，Sol / Terra / Luna 按任务边界执行；不是模型越便宜就包办一切，也不是四个模型逐层接力。Sol 与 Terra 当前输入同价、Sol 输出更低价；保留 Terra 是已确认的角色选择，不宣称它必然更便宜或更好。
-
-### 当前费率与算例 · 2026-09-26
-
-每 1M tokens，Standard、单次请求输入不超过 272K；API 与 Codex credits 分列：
-
-| 模型 | API 输入 | API 缓存输入 | API 输出 | Credits 输入 | Credits 缓存输入 | Credits 输出 |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| GPT-6 Astra | $10.00 | $1.00 | $50.00 | 250 | 25 | 1,250 |
-| GPT-6 Sol | $2.00 | $0.20 | $10.00 | 50 | 5 | 250 |
-| GPT-5.6 Terra | $2.00 | $0.20 | $12.00 | 50 | 5 | 300 |
-| GPT-6 Luna | $0.10 | $0.01 | $0.50 | 2.5 | 0.25 | 12.5 |
-
-来源：[API 定价](https://developers.openai.com/api/docs/pricing)、[Terra 模型页](https://developers.openai.com/api/docs/models/gpt-5.6-terra)、[Codex credits](https://learn.chatgpt.com/docs/pricing)。这是费率快照；账单以使用时适用费率为准。
-
-以前面的累计 token 量为例，各请求均在短上下文范围内、无缓存、无工具附加费：
-
-```text
-baseline = 1M × $10/M + 0.1M × $50/M = $15.00
-route = 20% × $15.00 + 20% × $3.00
-      + 40% × $3.20 + 20% × $0.15 = $4.91
-overhead = 5% × $15.00 = $0.75
-total = $4.91 + $0.75 = $5.66
-saving = 1 - $5.66 / $15.00 = 62.3% (rounded)
-```
-
-同一算例的 Codex token 费率结果为 **375 → 141.5 credits**，不是订阅月费减少 62.3%，也不直接等于每周可用额度增加。这里只比较 token 费用，**不计人工时间或等待时间**，也没有证明各模型产出质量等价。
-
-实际用量应逐模型相加：`非缓存输入 × 输入费率 + 缓存输入 × 缓存费率 + 输出（含计费推理）× 输出费率`，再计入适用的缓存写入、工具等费用。实际日志已包含规划、验证和返工时，不要再重复加示例开销。API 缓存写入通常按输入的 1.25× 计费；Codex credits 不单列缓存写入费。GPT-6 Fast mode 的 API 为适用 Standard 费率 2×，Codex credits 为 2.5×，不要混用。超长上下文、重复上下文和返工也会改变结果。
-
-<details>
-<summary><strong>v1.0 历史口径：旧模型成本区间、费率与公式</strong></summary>
-
-**历史口径：以下仅保留 2026-08-04 的 v1.0 快照，不适用于当前四角色配置，也不与 Ponytail 的上游成绩叠加。** 当时的基线是全程 GPT-5.6 Sol，不是当前全 Astra 基线。
-
-| 场景 | 示例 token 路由 | 编排开销 | 预计节省 |
-| --- | --- | ---: | ---: |
-| **普通明确型项目** | Sol 10% · Terra 20% · Luna 70% | 3%–7% | **72.2%–76.2%** |
-| **混合型项目** | Sol 20% · Terra 40% · Luna 40% | 2%–12% | **50.4%–60.4%** |
-| **复杂型项目** | Sol 25% · Terra 60% · Luna 15% | 7%–17% | **33.4%–43.4%** |
-
-旧版的节省逻辑为：
-
-> **把高成本的目标理解、边界判断与最终审核留给 Sol；把实际执行按复杂度路由给 Terra 或 Luna。**
-
-按 **2026-08-04** 的官方 API 价格与 Codex token-based rate card，同一种 token 类型下，三个模型的相对成本为：
-
-| 模型 | 相对成本 | v1.0 的职责 |
-| --- | ---: | --- |
-| **Sol** | **1.00×** | 理解、规划、分配、调度、最终审核 |
-| **Terra High** | **0.40×** | 复杂、跨模块、长上下文或高风险执行 |
-| **Luna Max** | **0.04×** | 清晰、低歧义、高吞吐执行 |
-
-也就是说，在相同 token 类型下：
-
-- Terra 的成本约为 Sol 的 **40%**；
-- Luna 的成本约为 Sol 的 **4%**；
-- Luna 不是 Sol 的替代品，而是把大量明确执行从 Sol 上移走，从而保留 Sol 的判断与审核能力。
-
-这些数字属于 `scenario_model_projection`：它们用于预算规划，**不是匹配 A/B 实验、不是每个任务的保证，也不代表一定更快**。上下文重复、错误拆分、并行等待、输出量、Fast mode 和返工都可能降低甚至反转节省。
-
-在这一历史假设下，预算示例是：
-
-> **普通明确型项目可投影节省约 72%–76%，典型混合项目约 50%–60%，复杂项目约 33%–43%；实际结果必须按真实路由和 token 使用复算。**
-
-而不是把所有任务概括成一个固定的“平均节省 56%”。
-
-### API 价格
-
-每 1M tokens：
-
-| Model | Input | Cached input | Output |
-| --- | ---: | ---: | ---: |
-| GPT-5.6 Sol | $5.00 | $0.50 | $30.00 |
-| GPT-5.6 Terra | $2.00 | $0.20 | $12.00 |
-| GPT-5.6 Luna | $0.20 | $0.02 | $1.20 |
-
-### Codex token-based credits
-
-每 1M tokens：
-
-| Model | Input | Cached input | Output |
-| --- | ---: | ---: | ---: |
-| GPT-5.6 Sol | 125 credits | 12.5 credits | 750 credits |
-| GPT-5.6 Terra | 50 credits | 5 credits | 300 credits |
-| GPT-5.6 Luna | 5 credits | 0.5 credits | 30 credits |
-
-当时两套口径的相对比例相同：
-
-```text
-Sol = 1.00
-Terra = 0.40
-Luna = 0.04
-```
-
-因此可以使用同一条相对成本公式：
-
-```text
-route_cost =
-  sol_share × 1.00
-  + terra_share × 0.40
-  + luna_share × 0.04
-  + orchestration_overhead
-
-saving = 1 - route_cost
-```
-
-普通明确型项目示例：
-
-```text
-route_cost
-= 0.10 × 1.00
-+ 0.20 × 0.40
-+ 0.70 × 0.04
-+ 0.03–0.07
-= 0.238–0.278
-
-saving
-= 1 - 0.238–0.278
-= 72.2%–76.2%
-```
-
-API 用户看到的是美元金额；ChatGPT / Codex 用户通常看到的是 credits 或订阅容量。两者是不同计费单位，不能把 API 美元节省直接描述成订阅账单节省。
-
-官方来源：
-
-- [OpenAI model comparison](https://developers.openai.com/api/docs/models/compare)
-- [OpenAI Codex rate card](https://help.openai.com/en/articles/20001106-codex-rate-card)
-
-少量仍使用 legacy rate card 的 Enterprise 工作区，应以其实际适用费率为准。
-
-</details>
-
-## 它解决什么问题
-
-| 常见问题 | Codex PROVE 的处理方式 |
-| --- | --- |
-| 同一个 Agent 同时规划、实现和验证，容易顾此失彼 | Controller 专注判断与审核，worker 专注有界执行 |
-| 所有工作都使用最高成本模型 | 按不确定性和验收方式选择 specialist、regular 或 efficient worker |
-| 多个执行者同时修改共享文件 | **一个文件，一个 owner**；重叠范围必须串行 |
-| “完成”只有口头总结，没有真实证据 | 必须返回 changed paths、diff、测试、构建或产物 |
-| 错误任务被无限重试 | 有新证据才继续；连续无进展或触及真实边界时停止该路径 |
-
-它的目标不是制造一个热闹的多 Agent 团队，而是为复杂任务建立一个清晰、可审核的控制面。
-
-## 工作方式
-
-![当前路由：Direct 零委派，Astra 按需选择 Sol、Terra、Luna，真实证据返回主控审核](docs/assets/readme/control-plane-zh.svg)
-
-图中三类 worker 是可选能力，不表示每次都创建三个 Agent。独立、无重叠任务可并行；依赖任务分 Wave，共享文件串行。
-
-```text
-用户目标
-   │
-   ▼
-Host：轻量路由
-   ├─ Direct：简单任务由当前 Codex 直接完成
-   └─ 复杂任务 → Controller：理解 → 规划 → 分配 → 调度
-                     ├─ Controller-only：计划、分析或审核
-                     ├─ Specialist worker：困难但独立的执行 / 审核
-                     ├─ Regular worker（Complex worker profile）：常规实现 / 测试
-                     └─ Efficient worker：机械批量执行
-   │
-   ▼
-真实文件 + Diff + 测试 / 构建 / 产物证据
-   │
-   ▼
-复杂任务由 Controller 按 REQ-ID 审核 → PASS / FIX / BLOCKED → Host 交付
-```
-
-<details>
-<summary><strong>角色、并行与恢复规则</strong></summary>
-
-### 当前默认配置
-
-| 角色 | 配置 | 边界 |
-| --- | --- | --- |
-| Controller | `prove-controller` → `gpt-6-astra` / `high` / `read-only` | 一个主控，负责规划、分配和终审 |
-| Specialist worker | `prove-specialist-worker` → `gpt-6-sol` / `high` / `workspace-write` | 困难但能独立验收的执行或专项只读审核，不是第二主控 |
-| Regular worker | `prove-complex-worker` → `gpt-5.6-terra` / `high` / `workspace-write` | 常规功能、修复、测试与集成；保留既有标识以兼容安装 |
-| Efficient worker | `prove-efficient-worker` → `gpt-6-luna` / `max` / `workspace-write` | 规则明确、客观可验证的机械批量执行 |
-
-最难且不可拆分的全局决策仍由 Astra 处理。所有 worker 禁止再创建子代理；
-只读任务的写入范围为空，即使技术权限允许写入也不得修改。
-
-v1.0 的主控为 `gpt-5.6-sol`。角色名不随模型代际改变；模型升级还需同步验证，不是改一个名字就算成功。
-
-### 必须保留的边界
-
-1. **一个活跃 owner。** 独立且无重叠的任务可以并行；共享配置、文件和副作用必须串行或分 Wave。并发量取决于实时容量。
-2. **允许安全交接。** 旧 worker 及其写入进程停止后，Host 检查并保留已有 Diff、用户修改和尝试记录，再指定新 owner。超时不代表已经停止。
-3. **真实证据。** 主控检查原始要求、实际文件、Diff、验证输出和覆盖情况；worker 的 `PASS` 或 transport 的 `completed` 不等于交付通过。
-4. **按影响验证。** 后续改动只使受影响的证据失效；沿用无变化候选上的新鲜证据。文案改动不全量构建，迁移不只做存在性检查。
-5. **按进展修正。** `FIX` 表示继续已授权的窄范围修复；连续两次无进展后停止该路径并重新判断，不通过换 Agent 重置历史。
-6. **真实阻塞才询问。** 新权限、重大未决选择或无安全下一步时才 `BLOCKED`；模型不可选仍必须如实报告，不静默替换。
-7. **精简不减功能。** Ponytail 思想用于复用和避免过度实现，不删除必要验证、错误处理、无障碍能力或用户明确要求。
-8. **不冒充隔离。** 工作区前后快照只能说明净变化，不能证明期间从未写入。高风险操作仍需要授权和实际可执行的权限边界。
-
-Native Nested 可用且经过真实调用验证时，主控直接调度 worker；否则由 Host 按同一计划派发，再交回主控审核，即 Compatibility。无需为了缺少嵌套能力反复请求批准。
-
-| 裁决 | 含义 |
-| --- | --- |
-| `PASS` | 全部要求由当前候选的真实证据支持 |
-| `FIX` | 存在可在授权范围内继续解决的问题 |
-| `BLOCKED` | 确实没有安全、授权内的下一步，并给出具体原因 |
-
-详细协议只维护在 [orchestration.md](.agents/skills/codex-prove/references/orchestration.md) 和按需读取的 [runtime-notes.md](.agents/skills/codex-prove/references/runtime-notes.md)。
-
-</details>
-
-## 什么时候不该使用
-
-以下情况通常直接交给当前 Codex 更合适：
-
-- 修改一个明确的小函数；
-- 修复已定位的拼写、文案或样式；
-- 只需要解释代码、回答问题或生成短文本；
-- 无法划分独立 write scope；
-- 编排、重复上下文与审核成本明显高于实现本身。
-
-`$codex-prove` 不是默认模式。**小任务保持 Direct，复杂任务才进入编排。**
-
-## 安装、检查与卸载
-
-### macOS / Linux
-
-```sh
-bash scripts/validate.sh
-bash scripts/install.sh --check
-bash scripts/install.sh
-
-bash scripts/uninstall.sh
-bash scripts/uninstall.sh --restore-latest
-```
-
-### Windows
-
-```powershell
-# Windows PowerShell 5.1
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/validate.ps1
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/install.ps1
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/uninstall.ps1
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/uninstall.ps1 -RestoreLatest
-
-# PowerShell 7
-pwsh -NoProfile -File scripts/validate.ps1
-pwsh -NoProfile -File scripts/install.ps1
 pwsh -NoProfile -File scripts/uninstall.ps1
+# 恢复上一次备份：
 pwsh -NoProfile -File scripts/uninstall.ps1 -RestoreLatest
 ```
 
-安装器只管理本项目拥有的 Skill 与 agent 文件，并保留无关 agent 和用户自己的 `~/.codex/config.toml`。隔离生命周期测试时可使用 `ORCHESTRATE_HOME` 指定临时 home。
-
-安装器支持从 v0.1–v0.5 的受管版本迁移，也支持既有 PROVE 安装的升级：先校验旧 Skill、Agent 与 ownership state，再备份并原子安装到 `~/.agents/skills/codex-prove` 和 `~/.codex/codex-prove`。当前仍安装 `$sol-control` 显式兼容入口和四份 Agent 配置。`--restore-latest` 可恢复升级前的完整可管理状态；检测到用户修改、无 ownership 的同名目标或校验失败时会停止，不会覆盖。
-
-已有源码副本时，先确认 `git status --short` 无用户改动，执行 `git switch main` 后再运行 `git pull --ff-only origin main`，重新验证、安装并打开全新 Codex 会话。安装脚本会输出备份位置；更新 GitHub 源码不会自动更新已有全局安装或旧会话中的 Agent。
-
-平台与证据覆盖详见 [`docs/release/runtime-surface-matrix.md`](docs/release/runtime-surface-matrix.md)。
-
-## 当前状态
-
-**当前 main 已包含 v1.1 四角色升级；最新稳定标签仍为 [v1.0.0](https://github.com/yehyakin/codex-prove/releases/tag/v1.0.0)。** 合并不是发布标签，也不是全局安装或新会话验证。
-
-> **迁移说明：**Sol Control 已更名为 Codex PROVE。入口为 `$codex-prove`；`$sol-control` 仍是显式兼容别名。安装器迁移、备份和恢复均只处理本项目受管文件。
-
-### 当前实现的证据
-
-| 验证面 | 结果与范围 |
-| --- | --- |
-| 合并基线 | [`936cfca`](https://github.com/yehyakin/codex-prove/commit/936cfca558600cbbe38dce19d5970aee4d3aadc5)：118 项测试通过；双入口 Skill Creator、YAML/TOML、Shell 与 PowerShell AST 验证通过 |
-| 本次文档更新 | 新增成本算例和版本状态回归，完整本地测试 120 项通过；中英 README 在 1200 / 390 px 宽度及四张 SVG 经 Chrome 渲染检查 |
-| Linux / macOS | [main POSIX CI](https://github.com/yehyakin/codex-prove/actions/runs/36242572791)：Ubuntu/macOS × Python 3.11/3.13，4/4 通过 |
-| Windows | [main Windows CI](https://github.com/yehyakin/codex-prove/actions/runs/36242572803)：Windows Server 2022 / `windows-latest` × PowerShell 5.1/7，4/4 通过；不等于物理 Windows 11 实机验证 |
-| 安装安全 | 隔离生命周期覆盖四份配置、无关文件保留、父路径链接拒绝、异常回滚、卸载与恢复；没有改动本机全局安装 |
-| 路由样本 | [一次 Astra high 只读检查](docs/release/gpt6-four-role-routing-probe.json)覆盖 5 个合成请求；[49 个 Forward 场景](tests/forward-tests.md)是场景规格，不是 49 次真实模型运行 |
-| Worker 对照 | [18 次 Sol / Terra CLI 试验](docs/research/2026-09-25-worker-pilot.md)保留测试通过和后验发现问题的两套结果，不包装成质量或成本赢家 |
-| 尚未确认 | 当前四模型完整端到端、升级后的全局安装和新会话发现、Native Nested / Compatibility 新配置实跑；旧版本证明不能替代这些检查 |
-
-上表绑定已验证的实现提交；后续文档回归和当前分支状态以顶部 CI 徽章为准。完整过程见 [升级记录](docs/release/v1.1-gpt6-audit.md)与[运行矩阵](docs/release/runtime-surface-matrix.md)。
-
-<details>
-<summary><strong>v1.0 稳定版历史证据</strong></summary>
-
-以下表格是 v1.0 历史证据，不是 v1.1 的测试报告。
-
-| 验证面 | 已记录证据 |
-| --- | --- |
-| 本地仓库 | v1.0.0 的 Skill Creator 双入口、静态验证、POSIX 生命周期与 115 项测试均通过；39 个 Forward 场景覆盖路由、所有权、证据与失败门禁 |
-| 匹配 smoke | v0.5.0 的一组真实匹配 smoke 已记录；v1.0 只重构品牌、角色名与安装迁移，不把旧 smoke 冒充为新角色运行证明 |
-| 托管 CI | [POSIX 工作流](https://github.com/yehyakin/codex-prove/actions/workflows/posix-validation.yml)：Ubuntu/macOS × Python 3.11/3.13；[Windows 工作流](https://github.com/yehyakin/codex-prove/actions/workflows/windows-validation.yml)：Windows Server 2022 / `windows-latest` × Windows PowerShell 5.1 / PowerShell 7 |
-| Windows 实机安装 | 用户报告安装成功；未收集 Windows 版本、安装日志或运行时身份载荷，因此不扩展为 Native Nested 证明 |
-| v1.0 运行证据 | 全新会话已发现 `$codex-prove` 与 `$sol-control` 兼容入口；`prove-controller`、`prove-complex-worker`、`prove-efficient-worker` 的 Host/tool 映射和两回合握手均通过 |
-| 运行表面 | Compatibility 已以新角色名完成 Controller 规划、Host 分派和同一 Controller 终审；Native Nested 与物理 Windows 11 运行时仍单独标注为未验证 |
-
-v1.0.0 将品牌、Skill 与 Agent 角色从具体模型名解耦，同时保留 Requirement ID、产物优先审核、验证者校验、有限只读挑战与恢复包；完整设计与证据见 [v1.0.0 实施报告](CODEX_PROVE_V1_IMPLEMENTATION_REPORT.md)。早期模型品牌版本保留在[历史实施报告](SOL_CONTROL_IMPLEMENTATION_REPORT.md)。
-
-这些状态描述的是已记录证据范围，不推断未验证运行表面。
+只卸载本项目安装的文件，不删除其他 Skill 或 Agent。
 
 </details>
 
-## 仓库结构
+## 反馈和参与
 
-```text
-.agents/skills/
-├─ codex-prove/                规范 Skill 与调用入口
-│  ├─ SKILL.md
-│  └─ references/
-│     ├─ orchestration.md      编排契约
-│     ├─ runtime-notes.md      运行时与能力 profile
-│     └─ ponytail-license.txt  上游 MIT 归属
-└─ sol-control/                显式兼容入口
+维护者：[@yehyakin](https://github.com/yehyakin)。支持 macOS、Linux 和 Windows，维护当前 `main` 和最新发布版，具体见 [SUPPORT.md](SUPPORT.md)。这是社区项目，不是 OpenAI 官方产品。
 
-.codex/agents/
-├─ prove-controller.toml
-├─ prove-specialist-worker.toml
-├─ prove-complex-worker.toml
-└─ prove-efficient-worker.toml
+欢迎提 Issue、发 PR，也欢迎直接说哪里不好用。贡献前看一下 [CONTRIBUTING.md](CONTRIBUTING.md) 和 [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)。想了解内部怎么分工，可以读 [Skill](.agents/skills/codex-prove/SKILL.md) 和[调度说明](.agents/skills/codex-prove/references/orchestration.md)。
 
-scripts/
-├─ validate.*
-├─ install.*
-├─ uninstall.*
-└─ test.sh
+安全问题请按 [SECURITY.md](SECURITY.md) 通过[私密漏洞报告](https://github.com/yehyakin/codex-prove/security/advisories/new)联系，不要把 Token、私有配置或项目代码贴进公开 Issue。
 
-tests/                         contract、生命周期与 forward-case 测试
-docs/                          发布证据、设计记录与 README 资源
-README.md                      简体中文
-README.en.md                   English
-```
+## 参考与许可
 
-## 文档入口
+这个项目参考了 [Ponytail](https://github.com/DietrichGebert/ponytail) 的精简思路、[Superpowers](https://github.com/obra/superpowers) 的任务拆分与审核，以及其他社区编排项目。[调研记录](docs/research/2026-09-25-peer-orchestration.md)和 [NOTICE](NOTICE) 保留了具体来源与归属。
 
-- [Public Skill](.agents/skills/codex-prove/SKILL.md)
-- [编排契约](.agents/skills/codex-prove/references/orchestration.md)
-- [运行时与能力 profile](.agents/skills/codex-prove/references/runtime-notes.md)
-- [Controller 配置](.codex/agents/prove-controller.toml)
-- [Specialist worker 配置](.codex/agents/prove-specialist-worker.toml)
-- [Complex worker 配置](.codex/agents/prove-complex-worker.toml)
-- [Efficient worker 配置](.codex/agents/prove-efficient-worker.toml)
-- [运行表面矩阵](docs/release/runtime-surface-matrix.md)
-- [v1.1 升级与验证记录](docs/release/v1.1-gpt6-audit.md)
-- [真实项目路由样本](tests/real-project-benchmark.md)
-- [v1.0 匹配 A/B 协议](tests/v100-ab-benchmark.md)
-- [v1.0 真实匹配 smoke 证据](tests/v100-live-smoke.md)
-- [v1.0 证据优先实现报告](CODEX_PROVE_V1_IMPLEMENTATION_REPORT.md)
-- [v0.4.0 实施报告](SOL_CONTROL_IMPLEMENTATION_REPORT.md)
-
-## 维护与支持
-
-主要维护者：[@yehyakin](https://github.com/yehyakin)。项目支持最新发布版本与当前 `main`；具体环境边界和求助渠道见 [SUPPORT.md](SUPPORT.md)。提交改进前请阅读 [CONTRIBUTING.md](CONTRIBUTING.md) 和 [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)，可复现问题请使用仓库的结构化 [Issue 模板](https://github.com/yehyakin/codex-prove/issues/new/choose)。
-
-## 安全
-
-安全问题不要提交公开 Issue，也不要附带 Token、私有路径或私有仓库内容。请阅读 [SECURITY.md](SECURITY.md)，并通过 GitHub [私密漏洞报告](https://github.com/yehyakin/codex-prove/security/advisories/new)提交。
-
-## 开发与测试
-
-需要 Python 3.11 或更高版本。
-
-```sh
-bash scripts/validate.sh
-bash scripts/test.sh
-python3 scripts/benchmark_ab.py validate tests/fixtures/v100-ab-benchmark.json
-```
-
-`scripts/test.sh` 会选择可用的 Python 3.11+，并运行完整 `unittest` 测试集。
-`benchmark_ab.py` 只冻结实验、生成交叉顺序并汇总完整结果；它不会调用模型，也不会在没有实测 cell 时宣布赢家。
-
-修改 README 时应同步更新双语版本与文档测试。测试应保护事实、链接、费率快照、公式、安全边界和平台命令，不应把某一种营销文案或首页章节顺序永久锁死。
-
-## 限制
-
-- 成本算例基于公开费率和显式假设；历史成本区间只适用于旧版，不是当前四模型的匹配 A/B benchmark。
-- 真实 token 总量可能因规划、上下文重复、验证和返工而变化。
-- Fast mode、超长上下文和不同输出比例可能改变实际消耗。
-- 精确 custom agent、model、reasoning effort 与权限选择取决于宿主运行表面。
-- 并行能力取决于实时容量和互不重叠的 write scope，不承诺固定 worker 数量。
-- GitHub 托管 Windows runner 证明的是 Windows Server 行为，不等同于物理 Windows 11。
-- Specialist 和 regular worker 都是执行层，不是第二 planner 或 controller。
-- PROVE 表示受证据约束的验证流程，不保证绝对正确。
-- 最终交付依赖真实文件、完整 diff 与新鲜验证；配置标签本身不是运行证据。
-
-## Inspirations / Prior Art
-
-- [Eric Provencher：Rethinking skills and prompts for GPT-6 Astra](https://x.com/pvncher/status/2095991462416490862)：缩短常驻指令、按需读取参考、避免流程压过用户目标。
-- [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail)：理解后再精简，复用现有能力，避免过度实现；保留 MIT 归属，不引入其常驻插件或上游成绩。
-- [近期同类实现复核](docs/research/2026-09-25-peer-orchestration.md)：对照 da34、joserey7、Sol Advisor、Superpowers 等项目的实际规则和验证机制，吸收避免重复劳动、按风险审核与评测校准，不引入固定团队。
-- 更早的编排与证据工作流来源见 [NOTICE](NOTICE)。借鉴思想与实质改写分别记录。
-
-## 许可证
-
-本仓库采用 [Apache License 2.0](LICENSE)。相关先例与归属记录见 [NOTICE](NOTICE)。
+采用 [Apache License 2.0](LICENSE)。
 
 **致谢 / Thanks**
 
