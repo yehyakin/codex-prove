@@ -134,7 +134,7 @@ class ReadmeContractTests(unittest.TestCase):
         ):
             self.assertEqual(label.lower().replace(" ", "-"), released[profile])
     def test_readme_model_table_matches_source_profiles(self):
-        profiles = [tomllib.loads(path.read_text()) for path in (ROOT / '.codex/agents').glob('prove-*.toml')]
+        profiles = [tomllib.loads(path.read_text(encoding='utf-8')) for path in (ROOT / '.codex/agents').glob('prove-*.toml')]
         expected = {profile['model']: profile['model_reasoning_effort'] for profile in profiles}
         self.assertEqual(3, len(expected))
         for path, text in self.documents().items():

@@ -31,12 +31,18 @@ def main():
     parser.add_argument("--codex", default=shutil.which("codex"))
     parser.add_argument("--timeout", type=int, default=240)
     parser.add_argument("--sandbox", choices=("read-only", "workspace-write"), default="workspace-write")
+    parser.add_argument("--max-agent-threads", type=int, default=2,
+                        help="Invocation-local open-agent limit (1..8); completed agents may retain slots")
+    parser.add_argument("--retain-session", action="store_true",
+                        help="Keep Codex's local session transcript for launch-evidence inspection")
     args = parser.parse_args()
     workspace, output = args.workspace.resolve(), args.output.resolve()
     if not args.run_model:
         parser.error("model calls require --run-model")
     if not args.codex or not 1 <= args.timeout <= 600:
         parser.error("Codex and a timeout of 1..600 seconds are required")
+    if not 1 <= args.max_agent_threads <= 8:
+        parser.error("max-agent-threads must be 1..8")
     if workspace == ROOT or ROOT in workspace.parents or not (workspace / ".git").is_dir():
         parser.error("use a disposable Git workspace outside the source repository")
     if output == ROOT or ROOT in output.parents or output.exists() or output == workspace or workspace in output.parents:
@@ -49,10 +55,11 @@ def main():
     before = task_snapshot(workspace)
     # Overrides are invocation-local. Never edit user config, copy credentials,
     # weaken the sandbox, or silently change models/retry a failed probe.
-    command = [args.codex, "exec", "--ignore-user-config", "--ephemeral",
+    command = [args.codex, "exec", "--ignore-user-config",
+               *([] if args.retain_session else ["--ephemeral"]),
                "--sandbox", args.sandbox, "-c", 'approval_policy="never"',
                "--model", "gpt-6.1-sol", "-c", 'model_reasoning_effort="high"',
-               "-c", "agents.max_concurrent_threads_per_session=2",
+               "-c", f"agents.max_concurrent_threads_per_session={args.max_agent_threads}",
                "-c", "sandbox_workspace_write.network_access=false",
                "--color", "never", "--json", "-C", str(workspace),
                "--output-last-message", str(output / "final.txt"), "-"]

@@ -362,7 +362,7 @@ class ControlOrbitAssetContractTests(unittest.TestCase):
                 nodes = {element.get("id"): element for element in root.iter() if element.get("id")}
                 # Public candidate art must match source defaults, not an older receipt.
                 for profile_id in ("prove-controller", *EXPECTED_WORKERS):
-                    profile = tomllib.loads((ROOT / f".codex/agents/{profile_id}.toml").read_text())
+                    profile = tomllib.loads((ROOT / f".codex/agents/{profile_id}.toml").read_text(encoding="utf-8"))
                     self.assertEqual(profile["model"], nodes[profile_id].get("data-model"), name)
                     self.assertIn(profile["model_reasoning_effort"], element_text(nodes[profile_id]), name)
                 self.assertEqual([], worker_path_errors(root), name)
