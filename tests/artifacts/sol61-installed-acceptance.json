@@ -1,0 +1,1268 @@
+{
+  "schema_version": 1,
+  "purpose": "Bounded installed custom-role Compatibility acceptance; not a quality, latency, cost, isolation, or Native Nested benchmark.",
+  "date": "2026-10-01",
+  "timezone": "Asia/Shanghai",
+  "source": {
+    "branch": "codex/sol61-lean-routing",
+    "initial_candidate": "0acdc957c3a47c63ee58b03455fae0887459e4be",
+    "verified_code_revision": "fa2c14735a33f2160033baa03834751279b4b414",
+    "unchanged_runtime_between_revisions": true
+  },
+  "install": {
+    "command": "ORCHESTRATE_HOME=/Users/kin3 bash scripts/install.sh",
+    "source_commit": "0acdc957c3a47c63ee58b03455fae0887459e4be",
+    "backup_id": "20260930T155235Z-2882",
+    "backup_root": "~/.codex/codex-prove/backups/20260930T155235Z-2882",
+    "before": [
+      {
+        "path": "~/.agents/skills/codex-prove/references/orchestration.md",
+        "sha256": "fcda53853671128585127496829c5de2a21b905f114ec586a30f0b8dad47ccfc"
+      },
+      {
+        "path": "~/.agents/skills/codex-prove/references/ponytail-license.txt",
+        "sha256": "ffc6f98c0e8e03c8eafe92f63c6f03ec517d860bccd833e16a1a8aa1d4b6ec95"
+      },
+      {
+        "path": "~/.agents/skills/codex-prove/references/runtime-notes.md",
+        "sha256": "e97d0ebba68dfb0fdb38b8d4b5081bdea8597687f5bfc7a625d34ee1b8722b32"
+      },
+      {
+        "path": "~/.agents/skills/codex-prove/agents/openai.yaml",
+        "sha256": "aa46c04369a5060d43c77904091ab33aeabce36e55ce496b513db66085e7e306"
+      },
+      {
+        "path": "~/.agents/skills/codex-prove/SKILL.md",
+        "sha256": "13ca8f28ba4b7e29325049d95e3b9a158b2e5d9074bb5ecb2d2a6c0ef19d33bf"
+      },
+      {
+        "path": "~/.agents/skills/sol-control/agents/openai.yaml",
+        "sha256": "4de77c8704a12646e8be94b90636dd00ff7f2dd7eec059bd16d6a64526d5a436"
+      },
+      {
+        "path": "~/.agents/skills/sol-control/SKILL.md",
+        "sha256": "4d8f5a4e1131d1e45059e8f402e63ee7bca90d66d4a1948192e8c4b43d01f20c"
+      },
+      {
+        "path": "~/.codex/agents/prove-controller.toml",
+        "sha256": "db0c32b5c18bc6218db5e12b936495230bb600ea941adec57830c0e3e6751567"
+      },
+      {
+        "path": "~/.codex/agents/prove-complex-worker.toml",
+        "sha256": "98ff01ab8155398a3518b975549054f0c12bd6f5ca3621e3081ba1cb4ad0ddc5"
+      },
+      {
+        "path": "~/.codex/agents/prove-efficient-worker.toml",
+        "sha256": "99c6bf16c7538add2f20ab748cc16cb1f1776098d30fb909b9ee0927d0a401e3"
+      },
+      {
+        "path": "~/.codex/agents/prove-specialist-worker.toml",
+        "sha256": "99813cb41fd86f77b3a09335a6e06d16c650e54f3b5c7de1891fc95abc0d716c"
+      },
+      {
+        "path": "~/.codex/codex-prove/install-state",
+        "sha256": "f13da422cd276d7de0335885fded1eebee433644f73fbe5018374a58319c8fdf"
+      },
+      {
+        "path": "~/.codex/config.toml",
+        "sha256": "427ac2004733432e42e91cc9d25278c9535c8bf75be9d5a64fa9cf4090bf4c7f"
+      }
+    ],
+    "verified_backup_file_count": 13,
+    "installed_runtime_files_equal_source": 11,
+    "config_sha256_before": "427ac2004733432e42e91cc9d25278c9535c8bf75be9d5a64fa9cf4090bf4c7f",
+    "config_equal_immediately_after": true,
+    "scope": "Two installed skill folders, four prove-* agent profiles, managed install-state and backup; no global model/provider edit.",
+    "config_runtime_side_effect": {
+      "key": "projects.\"/private/tmp/prove-installed-acceptance.c01JwG/workspace\".trust_level",
+      "observed_value": "trusted",
+      "config_sha256_during_probe": "23c3da3709f773ec8d2649a6846d120028e40061a97b031779958dfdd2d9d128",
+      "observed_mtime_local": "2026-09-30 23:55:19 +0800",
+      "cause_evidence": "Only semantic and byte diff from the installer backup was the new temporary fixture trust stanza, added at CLI startup despite --ignore-user-config.",
+      "cleanup": "After all bounded CLI processes ended, removed only this exact 3-line probe-owned stanza with apply_patch; did not restore the whole config.",
+      "final_sha256": "427ac2004733432e42e91cc9d25278c9535c8bf75be9d5a64fa9cf4090bf4c7f",
+      "byte_equal_to_preinstall_baseline": true
+    }
+  },
+  "verification": {
+    "local_unittest": {
+      "command": "bash scripts/test.sh",
+      "tests": 134,
+      "elapsed_seconds": 38.41,
+      "exit_code": 0,
+      "skipped": 0
+    },
+    "source_validation": "PASS",
+    "installed_skill_quick_validation": "PASS",
+    "git_diff_check": "PASS",
+    "ci": [
+      {
+        "sha": "0acdc957c3a47c63ee58b03455fae0887459e4be",
+        "posix": {
+          "run_id": 36739998704,
+          "status": "success",
+          "jobs": 4
+        },
+        "windows": {
+          "run_id": 36739997741,
+          "status": "failure",
+          "jobs": 4,
+          "details": "Native PowerShell validation/lifecycle passed. Python had 5 errors from two UTF-8 profile reads using the Windows locale; fixed in fa2c147."
+        }
+      },
+      {
+        "sha": "fa2c14735a33f2160033baa03834751279b4b414",
+        "posix": {
+          "run_id": 36740593495,
+          "status": "success",
+          "jobs": 4
+        },
+        "windows": {
+          "run_id": 36740593469,
+          "status": "success",
+          "jobs": 4,
+          "unittest_total": 134,
+          "unittest_skipped": 37,
+          "native_lifecycle": "PASS"
+        }
+      }
+    ],
+    "local_attempts": [
+      {
+        "command": "bash scripts/test.sh",
+        "outcome": "After adding the candidate surface table, the historical table assertion matched both versions: 134 tests, 39.422 seconds, one failure. Restricted that assertion to its v1.1.0 section without changing expected historical statuses."
+      },
+      {
+        "command": "python3 -B -m unittest discover -s tests -p test_skill_probe.py -v",
+        "outcome": "Default macOS Python was 3.9 and lacked tomllib; no model launched. Re-ran the same checks with installed Python 3.13, then full suite passed."
+      }
+    ]
+  },
+  "not_verified": [
+    "Native Nested",
+    "Physical Windows device runtime",
+    "Enforced read-only OS isolation for reviewer/controller",
+    "Broad real-project routing quality",
+    "Matched cost or speed A/B",
+    "Formal release"
+  ],
+  "status": "PASS_WITH_RECOVERY",
+  "release_status": "NOT_RELEASED",
+  "runtime": {
+    "source_runtime_sha256": {
+      ".agents/skills/codex-prove/SKILL.md": "18de108833f3b28edf2298067ee5ca35dfb636793253a8567e18e39c95ea658f",
+      ".agents/skills/codex-prove/agents/openai.yaml": "85fb79b39a6dcd7078bb4cd8aa502a68a6fb2490af4f503d019183b4ae622a0a",
+      ".agents/skills/codex-prove/references/orchestration.md": "38a0fdddb9cce93d84ee86bc95d692efdda4a598c33e52400be1641fc849000f",
+      ".agents/skills/codex-prove/references/ponytail-license.txt": "ffc6f98c0e8e03c8eafe92f63c6f03ec517d860bccd833e16a1a8aa1d4b6ec95",
+      ".agents/skills/codex-prove/references/runtime-notes.md": "d6271c0fa195f3f69358ec5830114a6023494100058ae0c87d10c963a5511b75",
+      ".agents/skills/sol-control/SKILL.md": "4d8f5a4e1131d1e45059e8f402e63ee7bca90d66d4a1948192e8c4b43d01f20c",
+      ".agents/skills/sol-control/agents/openai.yaml": "4de77c8704a12646e8be94b90636dd00ff7f2dd7eec059bd16d6a64526d5a436",
+      ".codex/agents/prove-complex-worker.toml": "242c635d0ea83d40dde2fdddaef0958acfd496aeeef32be937ebd70222bbc2e0",
+      ".codex/agents/prove-controller.toml": "1e0bca0e020142bebf884be12e99d1f9c442cc3bc7ed81e9d65609d387503d6a",
+      ".codex/agents/prove-efficient-worker.toml": "db8ab0dfe1a0d26eac6731fbf63027c9b47f0058eddc5a8040b7107ca484245d",
+      ".codex/agents/prove-specialist-worker.toml": "5287254e348d776701163162962171d80f137ed32aaff04d10a988cfafd82fe8"
+    },
+    "session_metadata": [
+      {
+        "id": "01a0f307-082c-7970-b6e1-9364b0faec81",
+        "source": "exec",
+        "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+        "raw_local_path": "/Users/kin3/.codex/sessions/2026/09/30/rollout-2026-09-30T23-55-19-01a0f307-082c-7970-b6e1-9364b0faec81.jsonl",
+        "raw_sha256": "97113eaf0a3838b70260306af837058ff4e4caec9be1ef45edb6ea661166ed58",
+        "turn_settings": [
+          {
+            "timestamp": "2026-09-30T15:55:27.069Z",
+            "model": "gpt-6.1-sol",
+            "effort": "high",
+            "sandbox_policy": {
+              "type": "workspace-write",
+              "network_access": false,
+              "exclude_tmpdir_env_var": false,
+              "exclude_slash_tmp": false
+            },
+            "approval_policy": "never"
+          },
+          {
+            "timestamp": "2026-09-30T16:08:25.066Z",
+            "model": "gpt-6.1-sol",
+            "effort": "high",
+            "sandbox_policy": {
+              "type": "read-only"
+            },
+            "approval_policy": "never"
+          }
+        ],
+        "lifecycle": [
+          {
+            "timestamp": "2026-09-30T15:55:19.670Z",
+            "type": "task_started"
+          },
+          {
+            "timestamp": "2026-09-30T16:08:18.632Z",
+            "type": "task_started"
+          },
+          {
+            "timestamp": "2026-09-30T16:11:16.691Z",
+            "type": "task_complete"
+          }
+        ]
+      },
+      {
+        "id": "01a0f308-1f5c-7de1-8e17-aada802fc57e",
+        "source": {
+          "subagent": {
+            "thread_spawn": {
+              "parent_thread_id": "01a0f307-082c-7970-b6e1-9364b0faec81",
+              "depth": 1,
+              "agent_path": "/root/controller",
+              "agent_nickname": "Erdos",
+              "agent_role": "prove-controller"
+            }
+          }
+        },
+        "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+        "raw_local_path": "/Users/kin3/.codex/sessions/2026/09/30/rollout-2026-09-30T23-56-30-01a0f308-1f5c-7de1-8e17-aada802fc57e.jsonl",
+        "raw_sha256": "4e20e9640e34d9e824cd898668fe7e1bed2224755c52dd6faae4d99813fbe742",
+        "turn_settings": [
+          {
+            "timestamp": "2026-09-30T15:56:35.201Z",
+            "model": "gpt-6.1-sol",
+            "effort": "high",
+            "sandbox_policy": {
+              "type": "workspace-write",
+              "network_access": false,
+              "exclude_tmpdir_env_var": false,
+              "exclude_slash_tmp": false
+            },
+            "approval_policy": "never"
+          },
+          {
+            "timestamp": "2026-09-30T16:05:11.356Z",
+            "model": "gpt-6.1-sol",
+            "effort": "high",
+            "sandbox_policy": {
+              "type": "workspace-write",
+              "network_access": false,
+              "exclude_tmpdir_env_var": false,
+              "exclude_slash_tmp": false
+            },
+            "approval_policy": "never"
+          },
+          {
+            "timestamp": "2026-09-30T16:09:04.385Z",
+            "model": "gpt-6.1-sol",
+            "effort": "high",
+            "sandbox_policy": {
+              "type": "read-only"
+            },
+            "approval_policy": "never"
+          }
+        ],
+        "lifecycle": [
+          {
+            "timestamp": "2026-09-30T15:56:31.087Z",
+            "type": "task_started"
+          },
+          {
+            "timestamp": "2026-09-30T15:57:07.959Z",
+            "type": "task_complete"
+          },
+          {
+            "timestamp": "2026-09-30T16:05:11.280Z",
+            "type": "task_started"
+          },
+          {
+            "timestamp": "2026-09-30T16:09:01.812Z",
+            "type": "task_started"
+          },
+          {
+            "timestamp": "2026-09-30T16:10:22.236Z",
+            "type": "task_complete"
+          }
+        ]
+      },
+      {
+        "id": "01a0f309-2ed8-72c3-9387-f074b8ff844d",
+        "source": {
+          "subagent": {
+            "thread_spawn": {
+              "parent_thread_id": "01a0f307-082c-7970-b6e1-9364b0faec81",
+              "depth": 1,
+              "agent_path": "/root/tags_worker",
+              "agent_nickname": "Locke",
+              "agent_role": "prove-complex-worker"
+            }
+          }
+        },
+        "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+        "raw_local_path": "/Users/kin3/.codex/sessions/2026/09/30/rollout-2026-09-30T23-57-40-01a0f309-2ed8-72c3-9387-f074b8ff844d.jsonl",
+        "raw_sha256": "bd2d92ede34ede53f5337a35ebdacd0993f200b0771f8e41aa41d9f357470670",
+        "turn_settings": [
+          {
+            "timestamp": "2026-09-30T15:57:44.933Z",
+            "model": "gpt-6.1-sol",
+            "effort": "high",
+            "sandbox_policy": {
+              "type": "workspace-write",
+              "network_access": false,
+              "exclude_tmpdir_env_var": false,
+              "exclude_slash_tmp": false
+            },
+            "approval_policy": "never"
+          }
+        ],
+        "lifecycle": [
+          {
+            "timestamp": "2026-09-30T15:57:40.600Z",
+            "type": "task_started"
+          },
+          {
+            "timestamp": "2026-09-30T15:59:09.051Z",
+            "type": "task_complete"
+          }
+        ]
+      },
+      {
+        "id": "01a0f309-800e-7531-a71a-bd7434039e91",
+        "source": {
+          "subagent": {
+            "thread_spawn": {
+              "parent_thread_id": "01a0f307-082c-7970-b6e1-9364b0faec81",
+              "depth": 1,
+              "agent_path": "/root/ranges_worker",
+              "agent_nickname": "McClintock",
+              "agent_role": "prove-complex-worker"
+            }
+          }
+        },
+        "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+        "raw_local_path": "/Users/kin3/.codex/sessions/2026/09/30/rollout-2026-09-30T23-58-01-01a0f309-800e-7531-a71a-bd7434039e91.jsonl",
+        "raw_sha256": "d6897435739c5a6b37ca3b7a67d7fa06bd89a17f0701647c51ac02f8360129b8",
+        "turn_settings": [
+          {
+            "timestamp": "2026-09-30T15:58:05.452Z",
+            "model": "gpt-6.1-sol",
+            "effort": "high",
+            "sandbox_policy": {
+              "type": "workspace-write",
+              "network_access": false,
+              "exclude_tmpdir_env_var": false,
+              "exclude_slash_tmp": false
+            },
+            "approval_policy": "never"
+          }
+        ],
+        "lifecycle": [
+          {
+            "timestamp": "2026-09-30T15:58:01.350Z",
+            "type": "task_started"
+          },
+          {
+            "timestamp": "2026-09-30T15:59:43.369Z",
+            "type": "task_complete"
+          }
+        ]
+      },
+      {
+        "id": "01a0f30a-d55e-75b0-9182-d596676a33f4",
+        "source": {
+          "subagent": {
+            "thread_spawn": {
+              "parent_thread_id": "01a0f307-082c-7970-b6e1-9364b0faec81",
+              "depth": 1,
+              "agent_path": "/root/batch_worker",
+              "agent_nickname": "Zeno",
+              "agent_role": "prove-efficient-worker"
+            }
+          }
+        },
+        "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+        "raw_local_path": "/Users/kin3/.codex/sessions/2026/09/30/rollout-2026-09-30T23-59-28-01a0f30a-d55e-75b0-9182-d596676a33f4.jsonl",
+        "raw_sha256": "36f0fe3bc23e197a3957585a144ef4c9c75a0ac2791970066f8b5dc3052f11c5",
+        "turn_settings": [
+          {
+            "timestamp": "2026-09-30T15:59:33.468Z",
+            "model": "gpt-6-luna",
+            "effort": "max",
+            "sandbox_policy": {
+              "type": "workspace-write",
+              "network_access": false,
+              "exclude_tmpdir_env_var": false,
+              "exclude_slash_tmp": false
+            },
+            "approval_policy": "never"
+          }
+        ],
+        "lifecycle": [
+          {
+            "timestamp": "2026-09-30T15:59:28.760Z",
+            "type": "task_started"
+          },
+          {
+            "timestamp": "2026-09-30T16:01:20.420Z",
+            "type": "task_complete"
+          }
+        ]
+      },
+      {
+        "id": "01a0f30c-ee2c-7452-9437-aad83e2a1ded",
+        "source": {
+          "subagent": {
+            "thread_spawn": {
+              "parent_thread_id": "01a0f307-082c-7970-b6e1-9364b0faec81",
+              "depth": 1,
+              "agent_path": "/root/specialist",
+              "agent_nickname": "Hume",
+              "agent_role": "prove-specialist-worker"
+            }
+          }
+        },
+        "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+        "raw_local_path": "/Users/kin3/.codex/sessions/2026/10/01/rollout-2026-10-01T00-01-46-01a0f30c-ee2c-7452-9437-aad83e2a1ded.jsonl",
+        "raw_sha256": "c880b5e0536b8be411bf23241769e65adb27c8ab5bd82f1ecd62bb09d9edbc13",
+        "turn_settings": [
+          {
+            "timestamp": "2026-09-30T16:01:50.779Z",
+            "model": "gpt-6-astra",
+            "effort": "high",
+            "sandbox_policy": {
+              "type": "workspace-write",
+              "network_access": false,
+              "exclude_tmpdir_env_var": false,
+              "exclude_slash_tmp": false
+            },
+            "approval_policy": "never"
+          }
+        ],
+        "lifecycle": [
+          {
+            "timestamp": "2026-09-30T16:01:46.252Z",
+            "type": "task_started"
+          },
+          {
+            "timestamp": "2026-09-30T16:02:50.452Z",
+            "type": "task_complete"
+          }
+        ]
+      }
+    ],
+    "launches": [
+      {
+        "timestamp": "2026-09-30T15:56:30.928Z",
+        "call_id": "call_yQQPN1X5RuappMzc2nT0nkW2",
+        "name": "spawn_agent",
+        "selection": {
+          "task_name": "controller",
+          "agent_type": "prove-controller",
+          "fork_turns": "none"
+        }
+      },
+      {
+        "timestamp": "2026-09-30T15:57:40.426Z",
+        "call_id": "call_SmGDGhfxplPRdmKFXaatNJBc",
+        "name": "spawn_agent",
+        "selection": {
+          "task_name": "tags_worker",
+          "agent_type": "prove-complex-worker",
+          "fork_turns": "none"
+        }
+      },
+      {
+        "timestamp": "2026-09-30T15:58:01.225Z",
+        "call_id": "call_k92xRCdqrxxDMih195vkDaeb",
+        "name": "spawn_agent",
+        "selection": {
+          "task_name": "ranges_worker",
+          "agent_type": "prove-complex-worker",
+          "fork_turns": "none"
+        }
+      },
+      {
+        "timestamp": "2026-09-30T15:59:28.593Z",
+        "call_id": "call_QsISBkemc7gcaRor7C1ZSDNm",
+        "name": "spawn_agent",
+        "selection": {
+          "task_name": "batch_worker",
+          "agent_type": "prove-efficient-worker",
+          "fork_turns": "none"
+        }
+      },
+      {
+        "timestamp": "2026-09-30T16:01:46.005Z",
+        "call_id": "call_UHtsJhIMyVR5cmSkJHd1zixL",
+        "name": "spawn_agent",
+        "selection": {
+          "task_name": "specialist",
+          "agent_type": "prove-specialist-worker",
+          "fork_turns": "none"
+        }
+      }
+    ],
+    "followups": [
+      {
+        "timestamp": "2026-09-30T16:05:11.249Z",
+        "call_id": "call_rELMUIsm3vIcpw97QmiKUbHO",
+        "name": "followup_task",
+        "selection": {
+          "target": "controller"
+        }
+      },
+      {
+        "timestamp": "2026-09-30T16:09:01.550Z",
+        "call_id": "call_LPsKYsoDev4aZ5y294k6s2tV",
+        "name": "followup_task",
+        "selection": {
+          "target": "/root/controller"
+        }
+      }
+    ],
+    "cli_phases": [
+      {
+        "name": "original",
+        "prompt": "使用已安装的 /Users/kin3/.agents/skills/codex-prove 的 $codex-prove 做一轮受限的安装验收。这是显式要求的四种自定义角色 Compatibility 调用测试，不是证明这个小夹具自然需要这么多代理。不要安装、联网、写全局配置、改源码仓库或提交。工作目录就是给定的一次性 Git 夹具，没有项目级 Skill/agent 配置。全程最多5个初始子代理，最多2个同时执行；完成但仍占名额的代理应计入容量。主会话参数允许5个开放名额。整轮10分钟硬截止，不得用新代理重置预算。所有子代理 fork_turns=none，后续同任务用原代理；子代理不得再委派。\n\n先读已安装 Skill 和委派参考。核对实际工具声明里的4个自定义角色：prove-controller 与 prove-complex-worker 应为 gpt-6.1-sol/high，prove-efficient-worker 为 gpt-6-luna/max，prove-specialist-worker 为 gpt-6-astra/high。如果声明缺失/陈旧，报告 BLOCKED，不能用 generic 显式模型替代或靠 TOML 冒充角色加载成功。\n\n为覆盖安装后的四个角色，这次明确要求启动一个 prove-controller，限定只读、Compatibility 模式、只做必要任务分配和一次最终验收；不允许它启动子代理。Host只负责实际派发/许可/收集证据，不重做控制者的最终审核。controller完成初始分配后，Host启动两个 prove-complex-worker，分别独占以下互不冲突的写入文件，必须让两者实际并行而非顺序等待：\n1. tags.py 的 normalize 接受 list[str]，strip 后 casefold，丢弃空项，去重并保留首次出现顺序；错误类型（含非list）ValueError；不改输入。只能写 tags.py。\n2. ranges.py 的 merge 接受 list[tuple[int,int]]，两端都是严格int（不含bool），start<=end；错误类型或形状ValueError。按起点排序合并重叠或相触区间，不合并有间隔的区间，不改输入。只能写 ranges.py。\n\n有空闲执行容量时，给一个 prove-efficient-worker 做 batch.json 的机械批量：只将 status=draft 改成 ready，其他值、顺序、字段不变。只能写 batch.json。这个小批量只作角色运行验证，不作效率结论。\n\n三个实现完成后，启动一个全新 prove-specialist-worker，独立只读检查“输入类型校验或Unicode归一化是否会让测试通过却违反需求”。只读 tags.py、ranges.py、batch.json、test_contract.py，可做不写文件的实际检查；不得修改/调度/批准整轮。没有缺陷就报告无发现，不需编造问题。\n\n保护 test_contract.py、user-notes.txt。告知所有worker不是唯一工作者，不得还原别人改动。测试需使用可用的python3，带-B防止__pycache__；不要修改测试。Host运行完整 python3 -B -m unittest -v，提供实际输出、最终文件及 git diff 给原controller做唯一最终验收；其只读检查实际候选并可复用这份证据，没有变化或缺口时不要重复跑相同检查。不要要求第二个controller或额外review。\n\n最后给 PASS/FIX/BLOCKED、实际角色启动ID/模型/effort/权限、每个任务覆盖及检查结果，明确实际工具权限与配置请求的边界。别把源码TOML、自报模型、CLI退出码0、净改动快照或一次成功推广成隐藏运行模型、OS隔离、无临时写入、普遍路由正确性或成本A/B证据。原始会话由调用方保留，Host应如实记录能力缺口。\n",
+        "prompt_sha256": "d6098b149aa4233d9b75da9cbbc1950ec0d6af0fc0b167b91f4c713bf76eaca5",
+        "invocation": {
+          "command": [
+            "/Applications/Codex.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex",
+            "exec",
+            "--ignore-user-config",
+            "--sandbox",
+            "workspace-write",
+            "-c",
+            "approval_policy=\"never\"",
+            "--model",
+            "gpt-6.1-sol",
+            "-c",
+            "model_reasoning_effort=\"high\"",
+            "-c",
+            "agents.max_concurrent_threads_per_session=5",
+            "-c",
+            "sandbox_workspace_write.network_access=false",
+            "--color",
+            "never",
+            "--json",
+            "-C",
+            "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+            "--output-last-message",
+            "/private/tmp/prove-installed-acceptance.c01JwG/run/final.txt",
+            "-"
+          ],
+          "codex_version": "codex-cli 0.159.2",
+          "prompt_sha256": "d6098b149aa4233d9b75da9cbbc1950ec0d6af0fc0b167b91f4c713bf76eaca5",
+          "initial_files": {
+            "batch.json": "e3a079a670bcee4bec60231fc5f4b03a71f447da8c2f0c5397ee44039ef02e99",
+            "ranges.py": "4db36a5474269dd387a882509c4a2c357f75c2aa90a2cf51a4e51451b7ec532d",
+            "tags.py": "fc7b81f1ccf84ddf79ee3fba6d15a73b5f90a97dc1ca6cf5aadddcfb667128bc",
+            "test_contract.py": "6f9f583f229bd465841441d4e449e175539dd85ae3fa24b6d0dd956f37d2aae9",
+            "user-notes.txt": "48e07b5dab67b65cbe4e54d11e8a7a984702f81e56ea80da22c757fc9c6c7556"
+          },
+          "evidence_scope": "selected CLI settings and actual tool/file behavior; no cost or general quality claim"
+        },
+        "result": {
+          "exit_code": -9,
+          "timed_out": true,
+          "elapsed_seconds": 600.025,
+          "usage": null,
+          "completed_event": false,
+          "error_event": false,
+          "final_files": {
+            "batch.json": "9a7271e63f396edfef9d586c1472038c82a6437847ca510cf9a4fa057bc0446e",
+            "ranges.py": "19e2bcabf7548230ea03e19edf6d60ddba817846e45530139b2e679d3c030ff4",
+            "tags.py": "54e9c614eeb3355b1ceb05c4288936397891722231217838e3bd13e3803a2798",
+            "test_contract.py": "6f9f583f229bd465841441d4e449e175539dd85ae3fa24b6d0dd956f37d2aae9",
+            "user-notes.txt": "48e07b5dab67b65cbe4e54d11e8a7a984702f81e56ea80da22c757fc9c6c7556"
+          },
+          "net_changes": [
+            "batch.json",
+            "ranges.py",
+            "tags.py"
+          ]
+        },
+        "raw_files_sha256": {
+          "runtime.stderr": "ce46bd9472891649b4c2661aca15216fa45d6c2570e46f4c0780a5c5a1faae81",
+          "result.json": "f11752a39ef28f349ef9c2bbc9dfcf511eb9e3b1262fb7fe789cdf60933e4154",
+          "prompt.txt": "d6098b149aa4233d9b75da9cbbc1950ec0d6af0fc0b167b91f4c713bf76eaca5",
+          "events.jsonl": "299267f8465bea9702f936e0a6f3f53230d9b3aab633586c9448834aae883079",
+          "invocation.json": "a7063cd30fd40baf064cadd02a7d3e937fffbb5e431fd8107b06aec99fd7a707"
+        },
+        "final_message": null
+      },
+      {
+        "name": "unsupported_child_resume",
+        "prompt": "继续你已收到的最终验收任务，不重新规划。这是原控制者同一会话的恢复：上级CLI在600秒外部硬截止时结束了自有进程组，你的最终审核刚开始而被中断。上级在外部核对未见该夹具关联的CLI/命令仍运行；三个实现者和Astra均有task_complete记录。此次仅允许一轮、240秒、有界只读恢复；不启动任何代理，不写文件，不安装、联网或改全局配置。\n\n请使用你已收到的最终候选、6项完整unittest成功输出、Astra独立类型/Unicode检查以及真实启动证据。文件没有交接给新写入者。只读核对当前真实文件、git diff和必要哈希；现有最终候选未改变时不要重跑同一套测试。给出PASS/FIX/BLOCKED、需求覆盖、证据与限制。最初整轮600秒超时必须保留，不能将这次恢复描述成原CLI无中断通过；你也不批准正式发布，只验收这次已安装四角色的Compatibility夹具。\n",
+        "prompt_sha256": "f1678cba67a20994695fb944fb1d667b713b388dcd053782d6c404dc9e9e6d8f",
+        "invocation": {
+          "command": [
+            "/Applications/Codex.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex",
+            "exec",
+            "resume",
+            "--ignore-user-config",
+            "-c",
+            "sandbox_mode=\"read-only\"",
+            "-c",
+            "approval_policy=\"never\"",
+            "--model",
+            "gpt-6.1-sol",
+            "-c",
+            "model_reasoning_effort=\"high\"",
+            "-c",
+            "agents.enabled=false",
+            "--json",
+            "--output-last-message",
+            "/tmp/prove-installed-acceptance.c01JwG/resume-run/final.txt",
+            "01a0f308-1f5c-7de1-8e17-aada802fc57e",
+            "-"
+          ],
+          "prompt_sha256": "f1678cba67a20994695fb944fb1d667b713b388dcd053782d6c404dc9e9e6d8f",
+          "initial_files": {
+            "batch.json": "9a7271e63f396edfef9d586c1472038c82a6437847ca510cf9a4fa057bc0446e",
+            "ranges.py": "19e2bcabf7548230ea03e19edf6d60ddba817846e45530139b2e679d3c030ff4",
+            "tags.py": "54e9c614eeb3355b1ceb05c4288936397891722231217838e3bd13e3803a2798",
+            "test_contract.py": "6f9f583f229bd465841441d4e449e175539dd85ae3fa24b6d0dd956f37d2aae9",
+            "user-notes.txt": "48e07b5dab67b65cbe4e54d11e8a7a984702f81e56ea80da22c757fc9c6c7556"
+          }
+        },
+        "result": {
+          "exit_code": 1,
+          "timed_out": false,
+          "elapsed_seconds": 1.144,
+          "usage": null,
+          "completed_event": false,
+          "error_event": false,
+          "final_files": {
+            "batch.json": "9a7271e63f396edfef9d586c1472038c82a6437847ca510cf9a4fa057bc0446e",
+            "ranges.py": "19e2bcabf7548230ea03e19edf6d60ddba817846e45530139b2e679d3c030ff4",
+            "tags.py": "54e9c614eeb3355b1ceb05c4288936397891722231217838e3bd13e3803a2798",
+            "test_contract.py": "6f9f583f229bd465841441d4e449e175539dd85ae3fa24b6d0dd956f37d2aae9",
+            "user-notes.txt": "48e07b5dab67b65cbe4e54d11e8a7a984702f81e56ea80da22c757fc9c6c7556"
+          },
+          "net_changes": []
+        },
+        "raw_files_sha256": {
+          "runtime.stderr": "13d1b720fe6e8a9b3e8b038ff6ea442dcc396a7de92c0b81057423f133992b0c",
+          "result.json": "3ef0d5c315a2457108291aeb38d6910012a72ac28dfb16944e99f323719b48bf",
+          "events.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "invocation.json": "ae6107582c3237948886efb71a20593f0048d70e927b4e72302731f7d52cf34e"
+        },
+        "final_message": null,
+        "stderr": "2026-09-30T16:06:53.921344Z  WARN codex_app_server::request_processors::thread_processor: failed to resume a multi-agent v2 child through its parent thread_id=01a0f308-1f5c-7de1-8e17-aada802fc57e error=cannot resume multi-agent v2 child 01a0f308-1f5c-7de1-8e17-aada802fc57e: parent 01a0f307-082c-7970-b6e1-9364b0faec81 is not loaded; resume the parent first\nError: thread/resume: thread/resume failed: cannot resume an unloaded multi-agent v2 sub-agent through its parent; resume the parent first, or use thread/read to inspect it (code -32600)\n"
+      },
+      {
+        "name": "bounded_parent_resume",
+        "prompt": "恢复这次安装验收的最后只读审核阶段。上一轮600秒外部硬截止已经结束其自有进程组；不得抹掉或重置这一条超时结果。外部确认三个实现worker与Astra已完成；你的最后动作是16:05:11对原controller发followup_task，它刚开始审核就被截止中断。实际夹具仍在原目录，没有新的写入者。\n\n仅完成剩余步骤：使用原controller的同一上下文，让它读当前文件/diff/哈希，并复用你此前取得的6项完整unittest成功输出及Astra独立检查。controller可以获得完整原始要求和证据；没有候选变化/缺口时不要重复跑同一测试。不得重新规划、实现、启动新代理、联网、写文件/全局配置或批准正式发布。给原controller的恢复packet说明中断事实和同一候选不变即可，不要再准备冗长资料。不要复制controller的最终审核。\n\n注意：直接以CLI恢复child被运行时拒绝，报错“parent is not loaded; resume the parent first”。这不是角色模型失败；现在恢复的是你这个原parent。只允许复用现有controller；若运行时仍不能找到/恢复它，报告BLOCKED，不要用新controller冒充同一上下文。本阶段独立硬截止240秒，作为一次有界恢复，最多一次controller followup。\n\n最终如实报告这是一轮600秒超时后恢复的Compatibility验收，而非一次无中断通过。四角色实际模型已从子会话turn_context核对，缺陷/第一次Luna解析失败已保留。只读能力由此次CLI明确收窄为read-only；原运行的controller/Astra实际是workspace-write下的操作只读约束。\n",
+        "prompt_sha256": "fd4bfb9cc9dd64694754353fd45385c773410f7ed6277a845cc43000dd2766f3",
+        "invocation": {
+          "command": [
+            "/Applications/Codex.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex",
+            "exec",
+            "resume",
+            "--ignore-user-config",
+            "-c",
+            "sandbox_mode=\"read-only\"",
+            "-c",
+            "approval_policy=\"never\"",
+            "--model",
+            "gpt-6.1-sol",
+            "-c",
+            "model_reasoning_effort=\"high\"",
+            "-c",
+            "agents.max_concurrent_threads_per_session=5",
+            "--json",
+            "--output-last-message",
+            "/tmp/prove-installed-acceptance.c01JwG/resume-parent-run/final.txt",
+            "01a0f307-082c-7970-b6e1-9364b0faec81",
+            "-"
+          ],
+          "prompt_sha256": "fd4bfb9cc9dd64694754353fd45385c773410f7ed6277a845cc43000dd2766f3",
+          "initial_files": {
+            "batch.json": "9a7271e63f396edfef9d586c1472038c82a6437847ca510cf9a4fa057bc0446e",
+            "ranges.py": "19e2bcabf7548230ea03e19edf6d60ddba817846e45530139b2e679d3c030ff4",
+            "tags.py": "54e9c614eeb3355b1ceb05c4288936397891722231217838e3bd13e3803a2798",
+            "test_contract.py": "6f9f583f229bd465841441d4e449e175539dd85ae3fa24b6d0dd956f37d2aae9",
+            "user-notes.txt": "48e07b5dab67b65cbe4e54d11e8a7a984702f81e56ea80da22c757fc9c6c7556"
+          }
+        },
+        "result": {
+          "exit_code": 0,
+          "timed_out": false,
+          "elapsed_seconds": 180.631,
+          "usage": {
+            "input_tokens": 1081856,
+            "cached_input_tokens": 1037184,
+            "output_tokens": 9251
+          },
+          "completed_event": true,
+          "error_event": false,
+          "final_files": {
+            "batch.json": "9a7271e63f396edfef9d586c1472038c82a6437847ca510cf9a4fa057bc0446e",
+            "ranges.py": "19e2bcabf7548230ea03e19edf6d60ddba817846e45530139b2e679d3c030ff4",
+            "tags.py": "54e9c614eeb3355b1ceb05c4288936397891722231217838e3bd13e3803a2798",
+            "test_contract.py": "6f9f583f229bd465841441d4e449e175539dd85ae3fa24b6d0dd956f37d2aae9",
+            "user-notes.txt": "48e07b5dab67b65cbe4e54d11e8a7a984702f81e56ea80da22c757fc9c6c7556"
+          },
+          "net_changes": []
+        },
+        "raw_files_sha256": {
+          "runtime.stderr": "59eeb5b9db66f760b5068065e8e8aceefea06ccb91706b5514fea187d3377f3c",
+          "result.json": "f10146416ba7043036b90c2bebf9c55312239f7acbec62d0e7a2b6fb5679a18e",
+          "final.txt": "551102d8fc3fee393dd187046b958942e13ae6b081f0f17cbae3dd69d730445b",
+          "events.jsonl": "bd5c4fa1e860fdf2a59640b79c7d3e87acd7babad5e447b3561017f04813c466",
+          "invocation.json": "688f57b0a392cafa289a024432e58ceaf30eb20ae587cb96cfb946251001bd1c"
+        },
+        "final_message": "**PASS——这是原轮 600 秒超时后，经一次有界恢复完成的 Compatibility 验收，并非无中断通过。** 原 controller 在恢复阶段完成唯一最终验收；候选核对时间为 16:09:33 UTC，距恢复开始 58 秒，在 240 秒限制内。\n\n工具返回的启动 ID 为以下 canonical task_name。工具角色声明与调用记录匹配；实际模型另由调用方核对子会话 `turn_context` 确认。\n\n| 启动 ID | 自定义角色 | 模型 / effort | 操作授权 |\n|---|---|---|---|\n| `/root/controller` | prove-controller | gpt-6.1-sol / high | 只读、唯一最终验收 |\n| `/root/tags_worker` | prove-complex-worker | gpt-6.1-sol / high | 仅写 tags.py |\n| `/root/ranges_worker` | prove-complex-worker | gpt-6.1-sol / high | 仅写 ranges.py |\n| `/root/batch_worker` | prove-efficient-worker | gpt-6-luna / max | 仅写 batch.json |\n| `/root/specialist` | prove-specialist-worker | gpt-6-astra / high | 指定四文件只读检查 |\n\n共启动 5 个子代理，均 `fork_turns=none`，无再委派；两个 complex 实际并行，最多 2 个同时执行。恢复只复用原 controller，一次 followup，无新代理。\n\ncontroller 验收结果：\n\n- `tags.py`：类型校验、strip 后 casefold、去空、稳定去重及输入不变符合要求。\n- `ranges.py`：形状与严格整数校验、排序合并、保留间隔及输入不变符合要求。\n- `batch.json`：仅 ID 1、3、5、7 的 status 改为 ready。\n- Astra 独立类型与 Unicode 检查无发现。\n- 五文件哈希匹配原证据；diff 仅涉及三个授权文件，两保护文件保持不变。\n\n复用的 Host 完整测试命令为 `python3 -B -m unittest -v`，退出状态 **0**：\n\n```text\ntest_batch (test_contract.Contract) ... ok\ntest_integration (test_contract.Contract) ... ok\ntest_merge (test_contract.Contract) ... ok\ntest_range_validation (test_contract.Contract) ... ok\ntest_tag_types (test_contract.Contract) ... ok\ntest_tags (test_contract.Contract) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.001s\n\nOK\n```\n\n原超时、Luna 首次写入前解析失败及修正记录均保留。恢复审核出现工具缓存写入被沙箱拒绝的诊断，读取检查成功。\n\n原轮实际权限为 `workspace-write`，controller/Astra 只读属于操作约束；恢复阶段 CLI 明确为 `read-only`。本验收不证明原轮 OS 隔离、零临时写入、普遍路由正确性或成本优势，也不批准正式发布。"
+      }
+    ],
+    "fixture": {
+      "tags.py": {
+        "initial_text": "def normalize(values):\n    raise NotImplementedError\n",
+        "initial_sha256": "fc7b81f1ccf84ddf79ee3fba6d15a73b5f90a97dc1ca6cf5aadddcfb667128bc",
+        "final_text": "def normalize(values):\n    if not isinstance(values, list):\n        raise ValueError(\"values must be a list of strings\")\n\n    normalized = []\n    seen = set()\n    for value in values:\n        if not isinstance(value, str):\n            raise ValueError(\"values must contain only strings\")\n        tag = value.strip().casefold()\n        if tag and tag not in seen:\n            seen.add(tag)\n            normalized.append(tag)\n    return normalized\n",
+        "final_sha256": "54e9c614eeb3355b1ceb05c4288936397891722231217838e3bd13e3803a2798"
+      },
+      "ranges.py": {
+        "initial_text": "def merge(values):\n    raise NotImplementedError\n",
+        "initial_sha256": "4db36a5474269dd387a882509c4a2c357f75c2aa90a2cf51a4e51451b7ec532d",
+        "final_text": "def merge(values):\n    if not isinstance(values, list):\n        raise ValueError(\"values must be a list\")\n\n    for interval in values:\n        if not isinstance(interval, tuple) or len(interval) != 2:\n            raise ValueError(\"each range must be a tuple of two integers\")\n        start, end = interval\n        if type(start) is not int or type(end) is not int:\n            raise ValueError(\"range endpoints must be integers\")\n        if start > end:\n            raise ValueError(\"range start must not exceed its end\")\n\n    merged = []\n    for start, end in sorted(values, key=lambda interval: interval[0]):\n        if merged and start <= merged[-1][1]:\n            merged[-1] = (merged[-1][0], max(merged[-1][1], end))\n        else:\n            merged.append((start, end))\n    return merged\n",
+        "final_sha256": "19e2bcabf7548230ea03e19edf6d60ddba817846e45530139b2e679d3c030ff4"
+      },
+      "batch.json": {
+        "initial_text": "[\n  {\"id\":1,\"label\":\"Alpha\",\"status\":\"draft\",\"note\":\"draft remains in note\"},\n  {\"id\":2,\"label\":\"Beta\",\"status\":\"ready\"},\n  {\"id\":3,\"label\":\"Gamma\",\"status\":\"draft\"},\n  {\"id\":4,\"label\":\"Delta\",\"status\":\"archived\"},\n  {\"id\":5,\"label\":\"Epsilon\",\"status\":\"draft\"},\n  {\"id\":6,\"label\":\"Zeta\",\"status\":\"ready\"},\n  {\"id\":7,\"label\":\"Eta\",\"status\":\"draft\"},\n  {\"id\":8,\"label\":\"Theta\",\"status\":\"archived\"}\n]\n",
+        "initial_sha256": "e3a079a670bcee4bec60231fc5f4b03a71f447da8c2f0c5397ee44039ef02e99",
+        "final_text": "[\n  {\"id\":1,\"label\":\"Alpha\",\"status\":\"ready\",\"note\":\"draft remains in note\"},\n  {\"id\":2,\"label\":\"Beta\",\"status\":\"ready\"},\n  {\"id\":3,\"label\":\"Gamma\",\"status\":\"ready\"},\n  {\"id\":4,\"label\":\"Delta\",\"status\":\"archived\"},\n  {\"id\":5,\"label\":\"Epsilon\",\"status\":\"ready\"},\n  {\"id\":6,\"label\":\"Zeta\",\"status\":\"ready\"},\n  {\"id\":7,\"label\":\"Eta\",\"status\":\"ready\"},\n  {\"id\":8,\"label\":\"Theta\",\"status\":\"archived\"}\n]\n",
+        "final_sha256": "9a7271e63f396edfef9d586c1472038c82a6437847ca510cf9a4fa057bc0446e"
+      },
+      "test_contract.py": {
+        "initial_text": "import json\nfrom pathlib import Path\nimport unittest\n\nimport ranges\nimport tags\n\n\nclass Contract(unittest.TestCase):\n    def test_tags(self):\n        values = [' B ', 'a', 'b', '', ' Straße ', 'STRASSE']\n        before = values[:]\n        self.assertEqual(['b', 'a', 'strasse'], tags.normalize(values))\n        self.assertEqual(before, values)\n        self.assertEqual([], tags.normalize([]))\n\n    def test_tag_types(self):\n        for values in ('abc', [1], [None], [True]):\n            with self.subTest(values=values), self.assertRaises(ValueError):\n                tags.normalize(values)\n\n    def test_merge(self):\n        values = [(7, 9), (1, 4), (3, 6), (9, 10), (20, 20)]\n        before = values[:]\n        self.assertEqual([(1, 6), (7, 10), (20, 20)], ranges.merge(values))\n        self.assertEqual(before, values)\n        self.assertEqual([], ranges.merge([]))\n\n    def test_range_validation(self):\n        for value in ([(2, 1)], [(1,)], [(1, 2, 3)], [('1', 2)], [(True, 2)], [(1.0, 2)], '12'):\n            with self.subTest(value=value), self.assertRaises(ValueError):\n                ranges.merge(value)\n\n    def test_batch(self):\n        rows = json.loads(Path('batch.json').read_text())\n        self.assertEqual([1,2,3,4,5,6,7,8], [x['id'] for x in rows])\n        self.assertEqual(['ready','ready','ready','archived','ready','ready','ready','archived'], [x['status'] for x in rows])\n        self.assertEqual('draft remains in note', rows[0]['note'])\n        self.assertEqual(['Alpha','Beta','Gamma','Delta','Epsilon','Zeta','Eta','Theta'], [x['label'] for x in rows])\n\n    def test_integration(self):\n        self.assertEqual({'tags':['a'], 'ranges':[[1,4]]}, json.loads(json.dumps({'tags': tags.normalize([' A ','a']), 'ranges': ranges.merge([(1,2),(2,4)])})))\n\n\nif __name__ == '__main__':\n    unittest.main()\n",
+        "initial_sha256": "6f9f583f229bd465841441d4e449e175539dd85ae3fa24b6d0dd956f37d2aae9",
+        "final_text": "import json\nfrom pathlib import Path\nimport unittest\n\nimport ranges\nimport tags\n\n\nclass Contract(unittest.TestCase):\n    def test_tags(self):\n        values = [' B ', 'a', 'b', '', ' Straße ', 'STRASSE']\n        before = values[:]\n        self.assertEqual(['b', 'a', 'strasse'], tags.normalize(values))\n        self.assertEqual(before, values)\n        self.assertEqual([], tags.normalize([]))\n\n    def test_tag_types(self):\n        for values in ('abc', [1], [None], [True]):\n            with self.subTest(values=values), self.assertRaises(ValueError):\n                tags.normalize(values)\n\n    def test_merge(self):\n        values = [(7, 9), (1, 4), (3, 6), (9, 10), (20, 20)]\n        before = values[:]\n        self.assertEqual([(1, 6), (7, 10), (20, 20)], ranges.merge(values))\n        self.assertEqual(before, values)\n        self.assertEqual([], ranges.merge([]))\n\n    def test_range_validation(self):\n        for value in ([(2, 1)], [(1,)], [(1, 2, 3)], [('1', 2)], [(True, 2)], [(1.0, 2)], '12'):\n            with self.subTest(value=value), self.assertRaises(ValueError):\n                ranges.merge(value)\n\n    def test_batch(self):\n        rows = json.loads(Path('batch.json').read_text())\n        self.assertEqual([1,2,3,4,5,6,7,8], [x['id'] for x in rows])\n        self.assertEqual(['ready','ready','ready','archived','ready','ready','ready','archived'], [x['status'] for x in rows])\n        self.assertEqual('draft remains in note', rows[0]['note'])\n        self.assertEqual(['Alpha','Beta','Gamma','Delta','Epsilon','Zeta','Eta','Theta'], [x['label'] for x in rows])\n\n    def test_integration(self):\n        self.assertEqual({'tags':['a'], 'ranges':[[1,4]]}, json.loads(json.dumps({'tags': tags.normalize([' A ','a']), 'ranges': ranges.merge([(1,2),(2,4)])})))\n\n\nif __name__ == '__main__':\n    unittest.main()\n",
+        "final_sha256": "6f9f583f229bd465841441d4e449e175539dd85ae3fa24b6d0dd956f37d2aae9"
+      },
+      "user-notes.txt": {
+        "initial_text": "Do not edit this unrelated user file.\n",
+        "initial_sha256": "48e07b5dab67b65cbe4e54d11e8a7a984702f81e56ea80da22c757fc9c6c7556",
+        "final_text": "Do not edit this unrelated user file.\n",
+        "final_sha256": "48e07b5dab67b65cbe4e54d11e8a7a984702f81e56ea80da22c757fc9c6c7556"
+      }
+    },
+    "root_verification": [
+      {
+        "id": "item_13",
+        "type": "command_execution",
+        "command": "/bin/zsh -lc 'python3 -B -m unittest -v'",
+        "aggregated_output": "test_batch (test_contract.Contract) ... ok\ntest_integration (test_contract.Contract) ... ok\ntest_merge (test_contract.Contract) ... ok\ntest_range_validation (test_contract.Contract) ... ok\ntest_tag_types (test_contract.Contract) ... ok\ntest_tags (test_contract.Contract) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.001s\n\nOK\n",
+        "exit_code": 0,
+        "status": "completed"
+      }
+    ],
+    "method": "Forced five-agent Compatibility coverage: controller, two parallel complex workers, efficient batch, fresh specialist, same controller final review. Agent role comes from recorded spawn selection; actual resolved model/effort and sandbox come from persisted child turn_context, not self-report.",
+    "provenance": "Local raw archives are hashed, not published in full. This receipt exports task-scoped commands/results and selected runtime metadata only; omits account identifiers, encrypted payloads, instructions unrelated to the fixture and reasoning.",
+    "agent_evidence": {
+      "controller": {
+        "thread_id": "01a0f308-1f5c-7de1-8e17-aada802fc57e",
+        "turns": [
+          {
+            "id": "01a0f313-9467-7920-95bc-d0f0cefe6205",
+            "status": "completed",
+            "error": null,
+            "startedAt": 1790784541,
+            "completedAt": 1790784622,
+            "durationMs": 80425,
+            "items": [
+              {
+                "type": "agentMessage",
+                "id": "msg_03b35c10595c6778016abd34280a9887d0b8909d5b75bb4f4e",
+                "text": "我会继续尚未完成的只读验收，并保留原轮超时中断记录。先核对当前五个文件、哈希和差异；候选一致时复用已有测试与独立审查证据。",
+                "phase": "commentary"
+              },
+              {
+                "type": "commandExecution",
+                "id": "exec-843977e3-e3bb-43da-bfc6-6700671ff186",
+                "command": "/bin/zsh -lc 'git --no-optional-locks status --short'",
+                "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+                "status": "completed",
+                "exitCode": 0,
+                "durationMs": 4197,
+                "output": {
+                  "text": "git: warning: confstr() failed with code 5: couldn't get path of DARWIN_USER_TEMP_DIR; using /tmp instead\ngit: error: couldn't create cache file '/tmp/xcrun_db-l1ZsmAiE' (errno=Operation not permitted)\n2026-10-01 00:09:30.006 xcodebuild[28749:16145606]  DVTFilePathFSEvents: Failed to start fs event stream.\n2026-10-01 00:09:30.308 xcodebuild[28749:16145604] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 \"Input/output error\". Using NSCachesDirectory instead.\ngit: warning: confstr() failed with code 5: couldn't get path of DARWIN_USER_TEMP_DIR; using /tmp instead\ngit: error: couldn't create cache file '/tmp/xcrun_db-zPTO7V6Z' (errno=Operation not permitted)\n2026-10-01 00:09:31.069 xcodebuild[28757:16145681]  DVTFilePathFSEvents: Failed to start fs event stream.\n2026-10-01 00:09:31.308 xcodebuild[28757:16145677] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 \"Input/output error\". Using NSCachesDirectory instead.\n M batch.json\n M ranges.py\n M tags.py\n",
+                  "truncated": false
+                }
+              },
+              {
+                "type": "commandExecution",
+                "id": "exec-577ffbc0-f5ef-4c6f-816e-45c103a88c48",
+                "command": "/bin/zsh -lc 'git --no-optional-locks diff'",
+                "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+                "status": "completed",
+                "exitCode": 0,
+                "durationMs": 4197,
+                "output": {
+                  "text": "git: warning: confstr() failed with code 5: couldn't get path of DARWIN_USER_TEMP_DIR; using /tmp instead\ngit: error: couldn't create cache file '/tmp/xcrun_db-hI81jxQi' (errno=Operation not permitted)\n2026-10-01 00:09:30.006 xcodebuild[28750:16145607]  DVTFilePathFSEvents: Failed to start fs event stream.\n2026-10-01 00:09:30.309 xcodebuild[28750:16145605] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 \"Input/output error\". Using NSCachesDirectory instead.\ngit: warning: confstr() failed with code 5: couldn't get path of DARWIN_USER_TEMP_DIR; using /tmp instead\ngit: error: couldn't create cache file '/tmp/xcrun_db-WinCYsjy' (errno=Operation not permitted)\n2026-10-01 00:09:31.068 xcodebuild[28760:16145684]  DVTFilePathFSEvents: Failed to start fs event stream.\n2026-10-01 00:09:31.306 xcodebuild[28760:16145680] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 \"Input/output error\". Using NSCachesDirectory instead.\ndiff --git a/batch.json b/batch.json\nindex bbc76d4..e6f2dfb 100644\n--- a/batch.json\n+++ b/batch.json\n@@ -1,10 +1,10 @@\n [\n-  {\"id\":1,\"label\":\"Alpha\",\"status\":\"draft\",\"note\":\"draft remains in note\"},\n+  {\"id\":1,\"label\":\"Alpha\",\"status\":\"ready\",\"note\":\"draft remains in note\"},\n   {\"id\":2,\"label\":\"Beta\",\"status\":\"ready\"},\n-  {\"id\":3,\"label\":\"Gamma\",\"status\":\"draft\"},\n+  {\"id\":3,\"label\":\"Gamma\",\"status\":\"ready\"},\n   {\"id\":4,\"label\":\"Delta\",\"status\":\"archived\"},\n-  {\"id\":5,\"label\":\"Epsilon\",\"status\":\"draft\"},\n+  {\"id\":5,\"label\":\"Epsilon\",\"status\":\"ready\"},\n   {\"id\":6,\"label\":\"Zeta\",\"status\":\"ready\"},\n-  {\"id\":7,\"label\":\"Eta\",\"status\":\"draft\"},\n+  {\"id\":7,\"label\":\"Eta\",\"status\":\"ready\"},\n   {\"id\":8,\"label\":\"Theta\",\"status\":\"archived\"}\n ]\ndiff --git a/ranges.py b/ranges.py\nindex 33225d9..f9c7dee 100644\n--- a/ranges.py\n+++ b/ranges.py\n@@ -1,2 +1,20 @@\n def merge(values):\n-    raise NotImplementedError\n+    if not isinstance(values, list):\n+        raise ValueError(\"values must be a list\")\n+\n+    for interval in values:\n+        if not isinstance(interval, tuple) or len(interval) != 2:\n+            raise ValueError(\"each range must be a tuple of two integers\")\n+        start, end = interval\n+        if type(start) is not int or type(end) is not int:\n+            raise ValueError(\"range endpoints must be integers\")\n+        if start > end:\n+            raise ValueError(\"range start must not exceed its end\")\n+\n+    merged = []\n+    for start, end in sorted(values, key=lambda interval: interval[0]):\n+        if merged and start <= merged[-1][1]:\n+            merged[-1] = (merged[-1][0], max(merged[-1][1], end))\n+        else:\n+            merged.append((start, end))\n+    return merged\ndiff --git a/tags.py b/tags.py\nindex d9512d6..386b7fd 100644\n--- a/tags.py\n+++ b/tags.py\n@@ -1,2 +1,14 @@\n def normalize(values):\n-    raise NotImplementedError\n+    if not isinstance(values, list):\n+        raise ValueError(\"values must be a list of strings\")\n+\n+    normalized = []\n+    seen = set()\n+    for value in values:\n+        if not isinstance(value, str):\n+            raise ValueError(\"values must contain only strings\")\n+        tag = value.strip().casefold()\n+        if tag and tag not in seen:\n+            seen.add(tag)\n+            normalized.append(tag)\n+    return normalized\n",
+                  "truncated": false
+                }
+              },
+              {
+                "type": "commandExecution",
+                "id": "exec-22f41334-d56c-465e-8574-00f5a1462e36",
+                "command": "/bin/zsh -lc 'git --no-optional-locks diff --check'",
+                "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+                "status": "completed",
+                "exitCode": 0,
+                "durationMs": 4197,
+                "output": {
+                  "text": "git: warning: confstr() failed with code 5: couldn't get path of DARWIN_USER_TEMP_DIR; using /tmp instead\ngit: error: couldn't create cache file '/tmp/xcrun_db-VrwsMiTO' (errno=Operation not permitted)\n2026-10-01 00:09:30.006 xcodebuild[28748:16145611]  DVTFilePathFSEvents: Failed to start fs event stream.\n2026-10-01 00:09:30.309 xcodebuild[28748:16145603] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 \"Input/output error\". Using NSCachesDirectory instead.\ngit: warning: confstr() failed with code 5: couldn't get path of DARWIN_USER_TEMP_DIR; using /tmp instead\ngit: error: couldn't create cache file '/tmp/xcrun_db-YPkS46B6' (errno=Operation not permitted)\n2026-10-01 00:09:31.069 xcodebuild[28759:16145682]  DVTFilePathFSEvents: Failed to start fs event stream.\n2026-10-01 00:09:31.307 xcodebuild[28759:16145678] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 \"Input/output error\". Using NSCachesDirectory instead.\n",
+                  "truncated": false
+                }
+              },
+              {
+                "type": "commandExecution",
+                "id": "exec-9994d59c-b241-48b9-8ed0-1c841152b9b0",
+                "command": "/bin/zsh -lc \"python3 -B -c 'from pathlib import Path; import hashlib; names = [\\\"tags.py\\\", \\\"ranges.py\\\", \\\"batch.json\\\", \\\"test_contract.py\\\", \\\"user-notes.txt\\\"]; [(print(\\\"FILE\\\", name, \\\"SHA256\\\", hashlib.sha256(Path(name).read_bytes()).hexdigest()), print(Path(name).read_text())) for name in names]'\"",
+                "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+                "status": "completed",
+                "exitCode": 0,
+                "durationMs": 4245,
+                "output": {
+                  "text": "python3: warning: confstr() failed with code 5: couldn't get path of DARWIN_USER_TEMP_DIR; using /tmp instead\npython3: error: couldn't create cache file '/tmp/xcrun_db-yjB48BBH' (errno=Operation not permitted)\n2026-10-01 00:09:30.006 xcodebuild[28747:16145610]  DVTFilePathFSEvents: Failed to start fs event stream.\n2026-10-01 00:09:30.308 xcodebuild[28747:16145601] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 \"Input/output error\". Using NSCachesDirectory instead.\npython3: warning: confstr() failed with code 5: couldn't get path of DARWIN_USER_TEMP_DIR; using /tmp instead\npython3: error: couldn't create cache file '/tmp/xcrun_db-dHVdnLvK' (errno=Operation not permitted)\n2026-10-01 00:09:31.068 xcodebuild[28758:16145683]  DVTFilePathFSEvents: Failed to start fs event stream.\n2026-10-01 00:09:31.310 xcodebuild[28758:16145679] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 \"Input/output error\". Using NSCachesDirectory instead.\nFILE tags.py SHA256 54e9c614eeb3355b1ceb05c4288936397891722231217838e3bd13e3803a2798\ndef normalize(values):\n    if not isinstance(values, list):\n        raise ValueError(\"values must be a list of strings\")\n\n    normalized = []\n    seen = set()\n    for value in values:\n        if not isinstance(value, str):\n            raise ValueError(\"values must contain only strings\")\n        tag = value.strip().casefold()\n        if tag and tag not in seen:\n            seen.add(tag)\n            normalized.append(tag)\n    return normalized\n\nFILE ranges.py SHA256 19e2bcabf7548230ea03e19edf6d60ddba817846e45530139b2e679d3c030ff4\ndef merge(values):\n    if not isinstance(values, list):\n        raise ValueError(\"values must be a list\")\n\n    for interval in values:\n        if not isinstance(interval, tuple) or len(interval) != 2:\n            raise ValueError(\"each range must be a tuple of two integers\")\n        start, end = interval\n        if type(start) is not int or type(end) is not int:\n            raise ValueError(\"range endpoints must be integers\")\n        if start > end:\n            raise ValueError(\"range start must not exceed its end\")\n\n    merged = []\n    for start, end in sorted(values, key=lambda interval: interval[0]):\n        if merged and start <= merged[-1][1]:\n            merged[-1] = (merged[-1][0], max(merged[-1][1], end))\n        else:\n            merged.append((start, end))\n    return merged\n\nFILE batch.json SHA256 9a7271e63f396edfef9d586c1472038c82a6437847ca510cf9a4fa057bc0446e\n[\n  {\"id\":1,\"label\":\"Alpha\",\"status\":\"ready\",\"note\":\"draft remains in note\"},\n  {\"id\":2,\"label\":\"Beta\",\"status\":\"ready\"},\n  {\"id\":3,\"label\":\"Gamma\",\"status\":\"ready\"},\n  {\"id\":4,\"label\":\"Delta\",\"status\":\"archived\"},\n  {\"id\":5,\"label\":\"Epsilon\",\"status\":\"ready\"},\n  {\"id\":6,\"label\":\"Zeta\",\"status\":\"ready\"},\n  {\"id\":7,\"label\":\"Eta\",\"status\":\"ready\"},\n  {\"id\":8,\"label\":\"Theta\",\"status\":\"archived\"}\n]\n\nFILE test_contract.py SHA256 6f9f583f229bd465841441d4e449e175539dd85ae3fa24b6d0dd956f37d2aae9\nimport json\nfrom pathlib import Path\nimport unittest\n\nimport ranges\nimport tags\n\n\nclass Contract(unittest.TestCase):\n    def test_tags(self):\n        values = [' B ', 'a', 'b', '', ' Straße ', 'STRASSE']\n        before = values[:]\n        self.assertEqual(['b', 'a', 'strasse'], tags.normalize(values))\n        self.assertEqual(before, values)\n        self.assertEqual([], tags.normalize([]))\n\n    def test_tag_types(self):\n        for values in ('abc', [1], [None], [True]):\n            with self.subTest(values=values), self.assertRaises(ValueError):\n                tags.normalize(values)\n\n    def test_merge(self):\n        values = [(7, 9), (1, 4), (3, 6), (9, 10), (20, 20)]\n        before = values[:]\n        self.assertEqual([(1, 6), (7, 10), (20, 20)], ranges.merge(values))\n        self.assertEqual(before, values)\n        self.assertEqual([], ranges.merge([]))\n\n    def test_range_validation(self):\n        for value in ([(2, 1)], [(1,)], [(1, 2, 3)], [('1', 2)], [(True, 2)], [(1.0, 2)], '12'):\n            with self.subTest(value=value), self.assertRaises(ValueError):\n                ranges.merge(value)\n\n    def test_batch(self):\n        rows = json.loads(Path('batch.json').read_text())\n        self.assertEqual([1,2,3,4,5,6,7,8], [x['id'] for x in rows])\n        self.assertEqual(['ready','ready','ready','archived','ready','ready','ready','archived'], [x['status'] for x in rows])\n        self.assertEqual('draft remains in note', rows[0]['note'])\n        self.assertEqual(['Alpha','Beta','Gamma','Delta','Epsilon','Zeta','Eta','Theta'], [x['label'] for x in rows])\n\n    def test_integration(self):\n        self.assertEqual({'tags':['a'], 'ranges':[[1,4]]}, json.loads(json.dumps({'tags': tags.normalize([' A ','a']), 'ranges': ranges.merge([(1,2),(2,4)])})))\n\n\nif __name__ == '__main__':\n    unittest.main()\n\nFILE user-notes.txt SHA256 48e07b5dab67b65cbe4e54d11e8a7a984702f81e56ea80da22c757fc9c6c7556\nDo not edit this unrelated user file.\n\n",
+                  "truncated": false
+                }
+              },
+              {
+                "type": "agentMessage",
+                "id": "msg_03b35c10595c6778016abd345714ec87d0bb1355127cc7339c",
+                "text": "**PASS：最终候选及四角色验收通过；原600秒轮次超时中断，验收经本次有界恢复完成。不能记为一次无中断成功。**\n\n| 需求 | 验收结果 |\n|---|---|\n| `tags.py` | 类型错误抛 `ValueError`；strip 后 casefold；丢弃空项、稳定去重；不修改输入，不增加 Unicode 规范化 |\n| `ranges.py` | 校验 list、二元 tuple、严格 int（排除 bool）及端点顺序；排序并合并重叠或共享端点；保留间隔，不修改输入 |\n| `batch.json` | 仅修改 ID 1、3、5、7 的 draft 状态；其他值和顺序保持不变 |\n| 保护文件 | 两文件当前哈希均匹配基线 |\n| 最终验证 | 五文件哈希全部匹配原证据包；实际 diff 仅涉及三个授权文件；复用同一候选的六项 unittest 成功输出（exit 0）及全新 specialist 的独立无发现检查 |\n\n未发现必需修复。当前读取及 Git 检查均退出0；工具启动产生缓存写入被沙箱拒绝的诊断，未影响文件、哈希和差异输出。Luna 首次解析失败及随后成功修正记录保留。\n\nHost 提供的启动记录支持四种角色覆盖、两个 complex 实际并行、共五个子代理且最多两个同时执行；模型核对依据是用户确认的子会话 `turn_context`，并非本 controller 独立读取的隐藏 telemetry。\n\n原截止为16:05:40 UTC；本次恢复从16:08:35开始，最终候选核对于16:09:33完成，处于240秒恢复预算内。当前阶段实际沙箱为只读；原 controller/Astra 的操作只读授权不能证明原阶段独立 OS 隔离。现有证据也不证明零临时写入、普遍路由正确性或成本优势。本结论仅覆盖本次候选与安装验收，不批准正式发布。",
+                "phase": "final_answer"
+              }
+            ]
+          },
+          {
+            "id": "01a0f310-0fe4-7581-ad50-f27c1cb5a210",
+            "status": "interrupted",
+            "error": null,
+            "startedAt": 1790784311,
+            "completedAt": null,
+            "durationMs": null,
+            "items": [
+              {
+                "type": "agentMessage",
+                "id": "msg_0750e35922a6f1c7016abd333ad55087d08c277af5361d49f4",
+                "text": "我会只读核对最终文件和差异，并结合已有测试及角色启动证据完成一次最终验收，不重复运行已通过的测试。",
+                "phase": "commentary"
+              }
+            ]
+          },
+          {
+            "id": "01a0f308-1fcc-7f83-b8c6-a43fdb11b940",
+            "status": "completed",
+            "error": null,
+            "startedAt": 1790783791,
+            "completedAt": 1790783827,
+            "durationMs": 36903,
+            "items": [
+              {
+                "type": "agentMessage",
+                "id": "msg_0750e35922a6f1c7016abd313e058487d0840c7d69104f4d75",
+                "text": "初始分配交由 Host 执行；本轮仅分配，不作最终验收。\n\n| 执行角色 | 独占写入范围 | 验收要求 |\n|---|---|---|\n| complex A | `tags.py` | `normalize` 接受 `list[str]`；逐项 strip 后 casefold；丢弃空项；去重并保留首次顺序；非 list 或非字符串元素抛 `ValueError`；不修改输入 |\n| complex B | `ranges.py` | `merge` 接受 `list[tuple[int,int]]`；端点严格为 int，排除 bool；校验形状及 start≤end，错误抛 `ValueError`；排序后合并重叠或共享端点区间，不跨间隔合并；不修改输入 |\n| efficient | `batch.json` | 仅把 `status=draft` 改为 `ready`；其他字段值及顺序保持不变 |\n| 全新 specialist | 只读指定四文件 | 三项实现完成后，独立检查 `tags.py`、`ranges.py`、`batch.json`、`test_contract.py`，重点找出测试通过但类型校验或 Unicode 处理违反需求的情况；只提供发现，不调度、不批准 |\n\nHost 必须让 A、B 实际并行；有执行空位后运行 efficient；三项实现结束后运行 specialist。所有 worker 不得再委派，须明确告知“你不是唯一工作者，不得还原他人改动”。保护 `test_contract.py`、`user-notes.txt`。\n\n最终回传最小证据：四角色启动记录、A/B 并行证据、最终真实文件、完整 `git diff`、保护文件基线与最终比对、specialist 发现，以及最终候选上 `python3 -B -m unittest -v` 的完整输出和退出状态。收到后由此 controller 做一次最终验收；候选未变且无证据缺口时不重复检查。",
+                "phase": "final_answer"
+              }
+            ]
+          }
+        ]
+      },
+      "tags": {
+        "thread_id": "01a0f309-2ed8-72c3-9387-f074b8ff844d",
+        "turns": [
+          {
+            "id": "01a0f309-2f47-72e3-a9ef-bb77da78f28c",
+            "status": "completed",
+            "error": null,
+            "startedAt": 1790783860,
+            "completedAt": 1790783949,
+            "durationMs": 88494,
+            "items": [
+              {
+                "type": "agentMessage",
+                "id": "msg_0ae567c2fb321c20016abd317b4edc87d09681f68b8da29c4c",
+                "text": "我先只读检查 `tags.py` 和契约测试；收到 `PARALLEL_START` 后再实现并验证，写入仅限 `tags.py`。",
+                "phase": "commentary"
+              },
+              {
+                "type": "commandExecution",
+                "id": "exec-ffc74492-3670-4aba-851a-4e697c239947",
+                "command": "/bin/zsh -lc 'cat tags.py'",
+                "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+                "status": "completed",
+                "exitCode": 0,
+                "durationMs": 0,
+                "output": {
+                  "text": "def normalize(values):\n    raise NotImplementedError\n",
+                  "truncated": false
+                }
+              },
+              {
+                "type": "commandExecution",
+                "id": "exec-215e5b45-4a86-430b-b030-c596d413b694",
+                "command": "/bin/zsh -lc 'cat test_contract.py'",
+                "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+                "status": "completed",
+                "exitCode": 0,
+                "durationMs": 0,
+                "output": {
+                  "text": "import json\nfrom pathlib import Path\nimport unittest\n\nimport ranges\nimport tags\n\n\nclass Contract(unittest.TestCase):\n    def test_tags(self):\n        values = [' B ', 'a', 'b', '', ' Straße ', 'STRASSE']\n        before = values[:]\n        self.assertEqual(['b', 'a', 'strasse'], tags.normalize(values))\n        self.assertEqual(before, values)\n        self.assertEqual([], tags.normalize([]))\n\n    def test_tag_types(self):\n        for values in ('abc', [1], [None], [True]):\n            with self.subTest(values=values), self.assertRaises(ValueError):\n                tags.normalize(values)\n\n    def test_merge(self):\n        values = [(7, 9), (1, 4), (3, 6), (9, 10), (20, 20)]\n        before = values[:]\n        self.assertEqual([(1, 6), (7, 10), (20, 20)], ranges.merge(values))\n        self.assertEqual(before, values)\n        self.assertEqual([], ranges.merge([]))\n\n    def test_range_validation(self):\n        for value in ([(2, 1)], [(1,)], [(1, 2, 3)], [('1', 2)], [(True, 2)], [(1.0, 2)], '12'):\n            with self.subTest(value=value), self.assertRaises(ValueError):\n                ranges.merge(value)\n\n    def test_batch(self):\n        rows = json.loads(Path('batch.json').read_text())\n        self.assertEqual([1,2,3,4,5,6,7,8], [x['id'] for x in rows])\n        self.assertEqual(['ready','ready','ready','archived','ready','ready','ready','archived'], [x['status'] for x in rows])\n        self.assertEqual('draft remains in note', rows[0]['note'])\n        self.assertEqual(['Alpha','Beta','Gamma','Delta','Epsilon','Zeta','Eta','Theta'], [x['label'] for x in rows])\n\n    def test_integration(self):\n        self.assertEqual({'tags':['a'], 'ranges':[[1,4]]}, json.loads(json.dumps({'tags': tags.normalize([' A ','a']), 'ranges': ranges.merge([(1,2),(2,4)])})))\n\n\nif __name__ == '__main__':\n    unittest.main()\n",
+                  "truncated": false
+                }
+              },
+              {
+                "type": "fileChange",
+                "id": "exec-625ff3ce-1c42-45e8-94f2-e44b0c89f60c",
+                "status": "completed",
+                "changes": [
+                  {
+                    "path": "/private/tmp/prove-installed-acceptance.c01JwG/workspace/tags.py",
+                    "kind": {
+                      "type": "update",
+                      "move_path": null
+                    },
+                    "diff": {
+                      "text": "@@ -1,2 +1,14 @@\n def normalize(values):\n-    raise NotImplementedError\n+    if not isinstance(values, list):\n+        raise ValueError(\"values must be a list of strings\")\n+\n+    normalized = []\n+    seen = set()\n+    for value in values:\n+        if not isinstance(value, str):\n+            raise ValueError(\"values must contain only strings\")\n+        tag = value.strip().casefold()\n+        if tag and tag not in seen:\n+            seen.add(tag)\n+            normalized.append(tag)\n+    return normalized\n",
+                      "truncated": false
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "commandExecution",
+                "id": "exec-57d387ac-03c9-4740-aa3f-083779e2ddc3",
+                "command": "/bin/zsh -lc 'cat tags.py'",
+                "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+                "status": "completed",
+                "exitCode": 0,
+                "durationMs": 0,
+                "output": {
+                  "text": "def normalize(values):\n    if not isinstance(values, list):\n        raise ValueError(\"values must be a list of strings\")\n\n    normalized = []\n    seen = set()\n    for value in values:\n        if not isinstance(value, str):\n            raise ValueError(\"values must contain only strings\")\n        tag = value.strip().casefold()\n        if tag and tag not in seen:\n            seen.add(tag)\n            normalized.append(tag)\n    return normalized\n",
+                  "truncated": false
+                }
+              },
+              {
+                "type": "commandExecution",
+                "id": "exec-7403b076-496e-4565-b1df-7ee7da64c04f",
+                "command": "/bin/zsh -lc \"python3 -B - <<'PY'\nimport tags\n\nvalues = [' B ', 'a', 'b', '', ' Straße ', 'STRASSE']\nbefore = values[:]\nassert tags.normalize(values) == ['b', 'a', 'strasse']\nassert values == before\nassert tags.normalize([]) == []\nassert tags.normalize(['  ', '\\\\t\\\\n', 'A', ' a ', 'B', 'b', 'A']) == ['a', 'b']\nassert tags.normalize(['É', 'E\\\\u0301']) == ['é', 'e\\\\u0301']\nfor invalid in ('abc', None, (), {}, 1, True, [1], [None], [True], ['valid', 1]):\n    try:\n        tags.normalize(invalid)\n    except ValueError:\n        pass\n    else:\n        raise AssertionError(f'ValueError missing for {invalid\"'!r}'\"')\nmixed = [' A ', 1]\nmixed_before = mixed[:]\ntry:\n    tags.normalize(mixed)\nexcept ValueError:\n    pass\nassert mixed == mixed_before\nassert tags.normalize([' A ', 'a']) == ['a']\nprint('PASS: strip, casefold, blank removal, stable deduplication, empty list, type validation, input immutability, no Unicode normalization, integration tag input')\nPY\"",
+                "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+                "status": "completed",
+                "exitCode": 0,
+                "durationMs": 0,
+                "output": {
+                  "text": "PASS: strip, casefold, blank removal, stable deduplication, empty list, type validation, input immutability, no Unicode normalization, integration tag input\n",
+                  "truncated": false
+                }
+              },
+              {
+                "type": "commandExecution",
+                "id": "exec-5d1ee11e-779b-40d0-ab00-c5aec2366142",
+                "command": "/bin/zsh -lc 'git diff -- tags.py'",
+                "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+                "status": "completed",
+                "exitCode": 0,
+                "durationMs": 0,
+                "output": {
+                  "text": "diff --git a/tags.py b/tags.py\nindex d9512d6..386b7fd 100644\n--- a/tags.py\n+++ b/tags.py\n@@ -1,2 +1,14 @@\n def normalize(values):\n-    raise NotImplementedError\n+    if not isinstance(values, list):\n+        raise ValueError(\"values must be a list of strings\")\n+\n+    normalized = []\n+    seen = set()\n+    for value in values:\n+        if not isinstance(value, str):\n+            raise ValueError(\"values must contain only strings\")\n+        tag = value.strip().casefold()\n+        if tag and tag not in seen:\n+            seen.add(tag)\n+            normalized.append(tag)\n+    return normalized\n",
+                  "truncated": false
+                }
+              },
+              {
+                "type": "agentMessage",
+                "id": "msg_0ae567c2fb321c20016abd31bad7d887d09f4c58d9a0825528",
+                "text": "PASS（任务A模块检查；整轮验收由 Host 执行）。\n\n已读取 `tags.py`、`test_contract.py`；仅修改 `tags.py`。实现覆盖 strip → casefold、空项丢弃、稳定去重、类型错误 `ValueError`、输入不变；未添加 Unicode 规范化规则。\n\n最终候选已实读，并执行 `git diff -- tags.py`，两者退出状态均为 0。差异：\n\n```diff\n def normalize(values):\n-    raise NotImplementedError\n+    if not isinstance(values, list):\n+        raise ValueError(\"values must be a list of strings\")\n+\n+    normalized = []\n+    seen = set()\n+    for value in values:\n+        if not isinstance(value, str):\n+            raise ValueError(\"values must contain only strings\")\n+        tag = value.strip().casefold()\n+        if tag and tag not in seen:\n+            seen.add(tag)\n+            normalized.append(tag)\n+    return normalized\n```\n\n验证命令：`python3 -B - <<'PY'`，内联脚本断言契约示例、空列表、空白字符、重复项首次顺序、Unicode casefold、组合字符保持区别、10 类非法输入、成功及失败路径输入不变、集成所用标签输入。\n\n实际输出：\n\n```text\nPASS: strip, casefold, blank removal, stable deduplication, empty list, type validation, input immutability, no Unicode normalization, integration tag input\n```\n\n退出状态：`0`。未运行全套、未写测试或临时文件。无已知模块风险；采用 `isinstance` 接受 list/str 子类。",
+                "phase": "final_answer"
+              }
+            ]
+          }
+        ]
+      },
+      "ranges": {
+        "thread_id": "01a0f309-800e-7531-a71a-bd7434039e91",
+        "turns": [
+          {
+            "id": "01a0f309-8068-7972-8c77-f39e5122b76d",
+            "status": "completed",
+            "error": null,
+            "startedAt": 1790783881,
+            "completedAt": 1790783983,
+            "durationMs": 102047,
+            "items": [
+              {
+                "type": "agentMessage",
+                "id": "msg_085b5d3aeadce637016abd3190a2a487d0a189528b2e8b1b05",
+                "text": "我先读取 `ranges.py` 和契约测试，确认现有行为与边界；收到并行启动信号后，只修改 `ranges.py` 并运行不写文件的模块检查。",
+                "phase": "commentary"
+              },
+              {
+                "type": "commandExecution",
+                "id": "exec-c0a84114-c4e1-4592-9772-6e01719f641a",
+                "command": "/bin/zsh -lc 'cat ranges.py test_contract.py'",
+                "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+                "status": "completed",
+                "exitCode": 0,
+                "durationMs": 0,
+                "output": {
+                  "text": "def merge(values):\n    raise NotImplementedError\nimport json\nfrom pathlib import Path\nimport unittest\n\nimport ranges\nimport tags\n\n\nclass Contract(unittest.TestCase):\n    def test_tags(self):\n        values = [' B ', 'a', 'b', '', ' Straße ', 'STRASSE']\n        before = values[:]\n        self.assertEqual(['b', 'a', 'strasse'], tags.normalize(values))\n        self.assertEqual(before, values)\n        self.assertEqual([], tags.normalize([]))\n\n    def test_tag_types(self):\n        for values in ('abc', [1], [None], [True]):\n            with self.subTest(values=values), self.assertRaises(ValueError):\n                tags.normalize(values)\n\n    def test_merge(self):\n        values = [(7, 9), (1, 4), (3, 6), (9, 10), (20, 20)]\n        before = values[:]\n        self.assertEqual([(1, 6), (7, 10), (20, 20)], ranges.merge(values))\n        self.assertEqual(before, values)\n        self.assertEqual([], ranges.merge([]))\n\n    def test_range_validation(self):\n        for value in ([(2, 1)], [(1,)], [(1, 2, 3)], [('1', 2)], [(True, 2)], [(1.0, 2)], '12'):\n            with self.subTest(value=value), self.assertRaises(ValueError):\n                ranges.merge(value)\n\n    def test_batch(self):\n        rows = json.loads(Path('batch.json').read_text())\n        self.assertEqual([1,2,3,4,5,6,7,8], [x['id'] for x in rows])\n        self.assertEqual(['ready','ready','ready','archived','ready','ready','ready','archived'], [x['status'] for x in rows])\n        self.assertEqual('draft remains in note', rows[0]['note'])\n        self.assertEqual(['Alpha','Beta','Gamma','Delta','Epsilon','Zeta','Eta','Theta'], [x['label'] for x in rows])\n\n    def test_integration(self):\n        self.assertEqual({'tags':['a'], 'ranges':[[1,4]]}, json.loads(json.dumps({'tags': tags.normalize([' A ','a']), 'ranges': ranges.merge([(1,2),(2,4)])})))\n\n\nif __name__ == '__main__':\n    unittest.main()\n",
+                  "truncated": false
+                }
+              },
+              {
+                "type": "fileChange",
+                "id": "exec-3bb0aa2c-21b2-4e43-bdef-93559f93f31c",
+                "status": "completed",
+                "changes": [
+                  {
+                    "path": "/private/tmp/prove-installed-acceptance.c01JwG/workspace/ranges.py",
+                    "kind": {
+                      "type": "update",
+                      "move_path": null
+                    },
+                    "diff": {
+                      "text": "@@ -1,2 +1,20 @@\n def merge(values):\n-    raise NotImplementedError\n+    if not isinstance(values, list):\n+        raise ValueError(\"values must be a list\")\n+\n+    for interval in values:\n+        if not isinstance(interval, tuple) or len(interval) != 2:\n+            raise ValueError(\"each range must be a tuple of two integers\")\n+        start, end = interval\n+        if type(start) is not int or type(end) is not int:\n+            raise ValueError(\"range endpoints must be integers\")\n+        if start > end:\n+            raise ValueError(\"range start must not exceed its end\")\n+\n+    merged = []\n+    for start, end in sorted(values, key=lambda interval: interval[0]):\n+        if merged and start <= merged[-1][1]:\n+            merged[-1] = (merged[-1][0], max(merged[-1][1], end))\n+        else:\n+            merged.append((start, end))\n+    return merged\n",
+                      "truncated": false
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "commandExecution",
+                "id": "exec-6ff4f83b-e6b5-4bef-8bab-9a2533a95d2a",
+                "command": "/bin/zsh -lc \"python3 -B - <<'PY'\nimport ranges\n\nclass IntSubclass(int):\n    pass\n\nvalid = [\n    ([], []),\n    ([(7, 9), (1, 4), (3, 6), (9, 10), (20, 20)], [(1, 6), (7, 10), (20, 20)]),\n    ([(1, 6), (7, 10)], [(1, 6), (7, 10)]),\n    ([(1, 2), (2, 4)], [(1, 4)]),\n    ([(3, 3), (1, 9), (1, 4), (1, 9)], [(1, 9)]),\n    ([(-5, -2), (-2, 0), (1, 1)], [(-5, 0), (1, 1)]),\n    ([(5, 6), (1, 2), (2, 5)], [(1, 6)]),\n]\nfor values, expected in valid:\n    before = values[:]\n    assert ranges.merge(values) == expected, (values, expected)\n    assert values == before, values\n\ninvalid = [\n    None, '12', ((1, 2),), {1: 2}, 12,\n    [None], [[1, 2]], [(1,)], [(1, 2, 3)],\n    [('1', 2)], [(True, 2)], [(1, False)], [(1.0, 2)],\n    [(IntSubclass(1), 2)], [(1, IntSubclass(2))], [(2, 1)],\n]\nfor values in invalid:\n    before = values[:] if isinstance(values, list) else values\n    try:\n        ranges.merge(values)\n    except ValueError:\n        pass\n    else:\n        raise AssertionError(('missing ValueError', values))\n    assert values == before, values\n\nprint(f'PASS: {len(valid)} valid cases and {len(invalid)} invalid cases; input preservation verified')\nPY\"",
+                "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+                "status": "completed",
+                "exitCode": 0,
+                "durationMs": 0,
+                "output": {
+                  "text": "PASS: 7 valid cases and 16 invalid cases; input preservation verified\n",
+                  "truncated": false
+                }
+              },
+              {
+                "type": "commandExecution",
+                "id": "exec-2511758d-1470-4796-a838-adca8528b3c5",
+                "command": "/bin/zsh -lc 'git diff -- ranges.py'",
+                "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+                "status": "completed",
+                "exitCode": 0,
+                "durationMs": 0,
+                "output": {
+                  "text": "diff --git a/ranges.py b/ranges.py\nindex 33225d9..f9c7dee 100644\n--- a/ranges.py\n+++ b/ranges.py\n@@ -1,2 +1,20 @@\n def merge(values):\n-    raise NotImplementedError\n+    if not isinstance(values, list):\n+        raise ValueError(\"values must be a list\")\n+\n+    for interval in values:\n+        if not isinstance(interval, tuple) or len(interval) != 2:\n+            raise ValueError(\"each range must be a tuple of two integers\")\n+        start, end = interval\n+        if type(start) is not int or type(end) is not int:\n+            raise ValueError(\"range endpoints must be integers\")\n+        if start > end:\n+            raise ValueError(\"range start must not exceed its end\")\n+\n+    merged = []\n+    for start, end in sorted(values, key=lambda interval: interval[0]):\n+        if merged and start <= merged[-1][1]:\n+            merged[-1] = (merged[-1][0], max(merged[-1][1], end))\n+        else:\n+            merged.append((start, end))\n+    return merged\n",
+                  "truncated": false
+                }
+              },
+              {
+                "type": "commandExecution",
+                "id": "exec-aad0e2c2-943a-46a4-8dda-2ac1f2b0c781",
+                "command": "/bin/zsh -lc 'cat ranges.py'",
+                "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+                "status": "completed",
+                "exitCode": 0,
+                "durationMs": 0,
+                "output": {
+                  "text": "def merge(values):\n    if not isinstance(values, list):\n        raise ValueError(\"values must be a list\")\n\n    for interval in values:\n        if not isinstance(interval, tuple) or len(interval) != 2:\n            raise ValueError(\"each range must be a tuple of two integers\")\n        start, end = interval\n        if type(start) is not int or type(end) is not int:\n            raise ValueError(\"range endpoints must be integers\")\n        if start > end:\n            raise ValueError(\"range start must not exceed its end\")\n\n    merged = []\n    for start, end in sorted(values, key=lambda interval: interval[0]):\n        if merged and start <= merged[-1][1]:\n            merged[-1] = (merged[-1][0], max(merged[-1][1], end))\n        else:\n            merged.append((start, end))\n    return merged\n",
+                  "truncated": false
+                }
+              },
+              {
+                "type": "commandExecution",
+                "id": "exec-322207b4-9748-4539-acce-bef1dfa34afc",
+                "command": "/bin/zsh -lc 'python3 -B -m unittest -v test_contract.Contract.test_merge test_contract.Contract.test_range_validation'",
+                "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+                "status": "completed",
+                "exitCode": 0,
+                "durationMs": 0,
+                "output": {
+                  "text": "test_merge (test_contract.Contract) ... ok\ntest_range_validation (test_contract.Contract) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n",
+                  "truncated": false
+                }
+              },
+              {
+                "type": "agentMessage",
+                "id": "msg_085b5d3aeadce637016abd31e131ec87d08c76a63d367dc8ee",
+                "text": "PASS（任务 B，整体验收由 Host 负责）。\n\n仅修改 `ranges.py`，读取 `ranges.py`、`test_contract.py` 并检查实际文件及 `git diff -- ranges.py`。实现验证列表、二元 tuple、严格整数端点与顺序；排序不修改输入；合并重叠和共享端点，保留间隔。\n\n最终候选验证：\n\n- `python3 -B -m unittest -v test_contract.Contract.test_merge test_contract.Contract.test_range_validation`：2 tests，`OK`，退出码 0。\n- `python3 -B - <<'PY'` 内联断言检查：`PASS: 7 valid cases and 16 invalid cases; input preservation verified`，退出码 0。覆盖空输入、乱序、共享端点、间隔、包含、重复、负数、连续合并，以及非列表、错误形状、bool、浮点、整数子类、倒置端点。\n- `git diff -- ranges.py`：退出码 0，唯一差异将 `NotImplementedError` 替换为 19 行验证与合并实现。\n\n未运行全套、写测试或临时文件；无依赖新增。列表与 tuple 接受其子类，端点仅接受 `type(x) is int`，符合指定边界。",
+                "phase": "final_answer"
+              }
+            ]
+          }
+        ]
+      },
+      "batch": {
+        "thread_id": "01a0f30a-d55e-75b0-9182-d596676a33f4",
+        "turns": [
+          {
+            "id": "01a0f30a-d5d2-7880-9a6e-9d60dc521513",
+            "status": "completed",
+            "error": null,
+            "startedAt": 1790783968,
+            "completedAt": 1790784080,
+            "durationMs": 111723,
+            "items": [
+              {
+                "type": "agentMessage",
+                "id": "msg_0af24b53fe31dc27016abd31eb11f087d0a5f23ed75aeb0e54",
+                "text": "我先检查 `batch.json` 当前内容和它的现有 diff，再只把记录状态 `draft` 改为 `ready`，随后按指定的 4 条 ID 和字段保持条件核验。",
+                "phase": "commentary"
+              },
+              {
+                "type": "commandExecution",
+                "id": "exec-64015d72-24a3-4be2-8cd2-ae6b5fcdc374",
+                "command": "/bin/zsh -lc 'cat batch.json'",
+                "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+                "status": "completed",
+                "exitCode": 0,
+                "durationMs": 0,
+                "output": {
+                  "text": "[\n  {\"id\":1,\"label\":\"Alpha\",\"status\":\"draft\",\"note\":\"draft remains in note\"},\n  {\"id\":2,\"label\":\"Beta\",\"status\":\"ready\"},\n  {\"id\":3,\"label\":\"Gamma\",\"status\":\"draft\"},\n  {\"id\":4,\"label\":\"Delta\",\"status\":\"archived\"},\n  {\"id\":5,\"label\":\"Epsilon\",\"status\":\"draft\"},\n  {\"id\":6,\"label\":\"Zeta\",\"status\":\"ready\"},\n  {\"id\":7,\"label\":\"Eta\",\"status\":\"draft\"},\n  {\"id\":8,\"label\":\"Theta\",\"status\":\"archived\"}\n]\n",
+                  "truncated": false
+                }
+              },
+              {
+                "type": "commandExecution",
+                "id": "exec-4dbc480c-1b79-4816-9f02-84663452f805",
+                "command": "/bin/zsh -lc 'git diff -- batch.json'",
+                "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+                "status": "completed",
+                "exitCode": 0,
+                "durationMs": 0
+              },
+              {
+                "type": "commandExecution",
+                "id": "exec-10d88e59-c34e-4c4f-9011-4c3eca5a3487",
+                "command": "/bin/zsh -lc \"python3 -B - <<'PY'\nfrom pathlib import Path\nimport json\nimport re\n\npath = Path('batch.json')\nwith path.open('r', encoding='utf-8', newline='') as stream:\n    before_text = stream.read()\nbefore = json.loads(before_text)\ntarget_ids = {1, 3, 5, 7}\nassert isinstance(before, list), 'top-level JSON value must be a list'\nassert {row['id'] for row in before if row['id'] in target_ids} == target_ids, 'target IDs missing'\nassert all(row['status'] == 'draft' for row in before if row['id'] in target_ids), 'target status mismatch'\n\nchanged_lines = []\nupdated_parts = []\nfor line in before_text.splitlines(keepends=True):\n    stripped = line.strip()\n    if stripped.startswith('{'):\n        row = json.loads(stripped)\n        if row.get('id') in target_ids:\n            changed, count = re.subn(r'(\\\"status\\\"\\\\s*:\\\\s*)\\\"draft\\\"(?=\\\\s*[,}])', r'\\\\1\\\"ready\\\"', line, count=1)\n            assert count == 1, f\\\"could not update only status for id {row['id']}\\\"\n            line = changed\n            changed_lines.append(row['id'])\n    updated_parts.append(line)\n\nassert changed_lines == [1, 3, 5, 7], f'unexpected target changes: {changed_lines\"'!r}'\"'\nafter_text = ''.join(updated_parts)\nwith path.open('w', encoding='utf-8', newline='') as stream:\n    stream.write(after_text)\nwith path.open('r', encoding='utf-8', newline='') as stream:\n    actual_text = stream.read()\nafter = json.loads(actual_text)\n\nassert actual_text == after_text, 'written candidate differs from generated text'\nassert len(before) == len(after), 'record count changed'\nchanges = []\nfor old_row, new_row in zip(before, after):\n    assert list(old_row.keys()) == list(new_row.keys()), f\\\"field order changed for id {old_row['id']}\\\"\n    for key in old_row:\n        expected = 'ready' if old_row['id'] in target_ids and key == 'status' else old_row[key]\n        assert new_row[key] == expected, f\\\"unexpected value change for id {old_row['id']} field {key}\\\"\n        if old_row[key] \"'!= new_row[key]:\n            changes.append((old_row['\"'id'], key, old_row[key], new_row[key]))\nexpected_changes = [(record_id, 'status', 'draft', 'ready') for record_id in [1, 3, 5, 7]]\nassert changes == expected_changes, f'unexpected structural diff: {changes\"'!r}'\"'\nprint('PASS: updated status for ids 1, 3, 5, 7 only')\nprint('PASS: structural comparison found exactly 4 changes; all other fields, values, and field order are unchanged')\nprint('PASS: actual file content matches the generated candidate')\nPY\"",
+                "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+                "status": "failed",
+                "exitCode": 1,
+                "durationMs": 0,
+                "output": {
+                  "text": "Traceback (most recent call last):\n  File \"<stdin>\", line 19, in <module>\n  File \"/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/json/__init__.py\", line 346, in loads\n    return _default_decoder.decode(s)\n  File \"/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/json/decoder.py\", line 340, in decode\n    raise JSONDecodeError(\"Extra data\", s, end)\njson.decoder.JSONDecodeError: Extra data: line 1 column 73 (char 72)\n",
+                  "truncated": false
+                }
+              },
+              {
+                "type": "agentMessage",
+                "id": "msg_0af24b53fe31dc27016abd3219285c87d0be901597bcd44d98",
+                "text": "首次脚本在逐行解析带尾随逗号的 JSON 记录时退出，写入步骤尚未执行，文件未改动。我已定位到格式原因，现在用去除记录行末尾逗号的解析方式重跑相同的结构核验和更新。",
+                "phase": "commentary"
+              },
+              {
+                "type": "commandExecution",
+                "id": "exec-fd63b6b5-2c59-4a57-bba6-5a82a01313b4",
+                "command": "/bin/zsh -lc \"python3 -B - <<'PY'\nfrom pathlib import Path\nimport json\nimport re\n\npath = Path('batch.json')\nwith path.open('r', encoding='utf-8', newline='') as stream:\n    before_text = stream.read()\nbefore = json.loads(before_text)\ntarget_ids = {1, 3, 5, 7}\nassert isinstance(before, list), 'top-level JSON value must be a list'\nassert {row['id'] for row in before if row['id'] in target_ids} == target_ids, 'target IDs missing'\nassert all(row['status'] == 'draft' for row in before if row['id'] in target_ids), 'target status mismatch'\n\nchanged_lines = []\nupdated_parts = []\nfor line in before_text.splitlines(keepends=True):\n    stripped = line.strip()\n    if stripped.startswith('{'):\n        record_text = stripped[:-1] if stripped.endswith(',') else stripped\n        row = json.loads(record_text)\n        if row.get('id') in target_ids:\n            changed, count = re.subn(r'(\\\"status\\\"\\\\s*:\\\\s*)\\\"draft\\\"(?=\\\\s*[,}])', r'\\\\1\\\"ready\\\"', line, count=1)\n            assert count == 1, f\\\"could not update only status for id {row['id']}\\\"\n            line = changed\n            changed_lines.append(row['id'])\n    updated_parts.append(line)\n\nassert changed_lines == [1, 3, 5, 7], f'unexpected target changes: {changed_lines\"'!r}'\"'\nafter_text = ''.join(updated_parts)\nwith path.open('w', encoding='utf-8', newline='') as stream:\n    stream.write(after_text)\nwith path.open('r', encoding='utf-8', newline='') as stream:\n    actual_text = stream.read()\nafter = json.loads(actual_text)\n\nassert actual_text == after_text, 'written candidate differs from generated text'\nassert len(before) == len(after), 'record count changed'\nchanges = []\nfor old_row, new_row in zip(before, after):\n    assert list(old_row.keys()) == list(new_row.keys()), f\\\"field order changed for id {old_row['id']}\\\"\n    for key in old_row:\n        expected = 'ready' if old_row['id'] in target_ids and key == 'status' else old_row[key]\n        assert new_row[key] == expected, f'unexpected value change for id {old_row[\\\"id\\\"]} field {key}'\n        if old_row[key] \"'!= new_row[key]:\n            changes.append((old_row['\"'id'], key, old_row[key], new_row[key]))\nexpected_changes = [(record_id, 'status', 'draft', 'ready') for record_id in [1, 3, 5, 7]]\nassert changes == expected_changes, f'unexpected structural diff: {changes\"'!r}'\"'\nprint('PASS: updated status for ids 1, 3, 5, 7 only')\nprint('PASS: structural comparison found exactly 4 changes; all other fields, values, and field order are unchanged')\nprint('PASS: actual file content matches the generated candidate')\nPY\"",
+                "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+                "status": "completed",
+                "exitCode": 0,
+                "durationMs": 0,
+                "output": {
+                  "text": "PASS: updated status for ids 1, 3, 5, 7 only\nPASS: structural comparison found exactly 4 changes; all other fields, values, and field order are unchanged\nPASS: actual file content matches the generated candidate\n",
+                  "truncated": false
+                }
+              },
+              {
+                "type": "commandExecution",
+                "id": "exec-02bd63eb-ddf7-4b11-b624-b6c663ec5ad2",
+                "command": "/bin/zsh -lc 'git diff -- batch.json'",
+                "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+                "status": "completed",
+                "exitCode": 0,
+                "durationMs": 0,
+                "output": {
+                  "text": "diff --git a/batch.json b/batch.json\nindex bbc76d4..e6f2dfb 100644\n--- a/batch.json\n+++ b/batch.json\n@@ -1,10 +1,10 @@\n [\n-  {\"id\":1,\"label\":\"Alpha\",\"status\":\"draft\",\"note\":\"draft remains in note\"},\n+  {\"id\":1,\"label\":\"Alpha\",\"status\":\"ready\",\"note\":\"draft remains in note\"},\n   {\"id\":2,\"label\":\"Beta\",\"status\":\"ready\"},\n-  {\"id\":3,\"label\":\"Gamma\",\"status\":\"draft\"},\n+  {\"id\":3,\"label\":\"Gamma\",\"status\":\"ready\"},\n   {\"id\":4,\"label\":\"Delta\",\"status\":\"archived\"},\n-  {\"id\":5,\"label\":\"Epsilon\",\"status\":\"draft\"},\n+  {\"id\":5,\"label\":\"Epsilon\",\"status\":\"ready\"},\n   {\"id\":6,\"label\":\"Zeta\",\"status\":\"ready\"},\n-  {\"id\":7,\"label\":\"Eta\",\"status\":\"draft\"},\n+  {\"id\":7,\"label\":\"Eta\",\"status\":\"ready\"},\n   {\"id\":8,\"label\":\"Theta\",\"status\":\"archived\"}\n ]\n",
+                  "truncated": false
+                }
+              },
+              {
+                "type": "agentMessage",
+                "id": "msg_0af24b53fe31dc27016abd323aff9487d0b8f40fc78fc76b5e",
+                "text": "**PASS — 仅报告本批次结果，不批准整轮。**\n\n检查并修改了 `batch.json`；初始 `git diff -- batch.json` 为空。唯一变化是 ID 1、3、5、7 的 `status` 从 `draft` 改为 `ready`。结构核验确认只有这 4 个值变化，字段、值、字段顺序及记录顺序均保持不变；ID 1 的 note 仍为 `draft remains in note`。\n\n使用的通过检查命令：\n\n```sh\npython3 -B - <<'PY'\nfrom pathlib import Path\nimport json\nimport re\n\npath = Path('batch.json')\nwith path.open('r', encoding='utf-8', newline='') as stream:\n    before_text = stream.read()\nbefore = json.loads(before_text)\ntarget_ids = {1, 3, 5, 7}\nassert isinstance(before, list), 'top-level JSON value must be a list'\nassert {row['id'] for row in before if row['id'] in target_ids} == target_ids, 'target IDs missing'\nassert all(row['status'] == 'draft' for row in before if row['id'] in target_ids), 'target status mismatch'\n\nchanged_lines = []\nupdated_parts = []\nfor line in before_text.splitlines(keepends=True):\n    stripped = line.strip()\n    if stripped.startswith('{'):\n        record_text = stripped[:-1] if stripped.endswith(',') else stripped\n        row = json.loads(record_text)\n        if row.get('id') in target_ids:\n            changed, count = re.subn(r'(\"status\"\\s*:\\s*)\"draft\"(?=\\s*[,}])', r'\\1\"ready\"', line, count=1)\n            assert count == 1, f\"could not update only status for id {row['id']}\"\n            line = changed\n            changed_lines.append(row['id'])\n    updated_parts.append(line)\n\nassert changed_lines == [1, 3, 5, 7], f'unexpected target changes: {changed_lines!r}'\nafter_text = ''.join(updated_parts)\nwith path.open('w', encoding='utf-8', newline='') as stream:\n    stream.write(after_text)\nwith path.open('r', encoding='utf-8', newline='') as stream:\n    actual_text = stream.read()\nafter = json.loads(actual_text)\n\nassert actual_text == after_text, 'written candidate differs from generated text'\nassert len(before) == len(after), 'record count changed'\nchanges = []\nfor old_row, new_row in zip(before, after):\n    assert list(old_row.keys()) == list(new_row.keys()), f\"field order changed for id {old_row['id']}\"\n    for key in old_row:\n        expected = 'ready' if old_row['id'] in target_ids and key == 'status' else old_row[key]\n        assert new_row[key] == expected, f'unexpected value change for id {old_row[\"id\"]} field {key}'\n        if old_row[key] != new_row[key]:\n            changes.append((old_row['id'], key, old_row[key], new_row[key]))\nexpected_changes = [(record_id, 'status', 'draft', 'ready') for record_id in [1, 3, 5, 7]]\nassert changes == expected_changes, f'unexpected structural diff: {changes!r}'\nprint('PASS: updated status for ids 1, 3, 5, 7 only')\nprint('PASS: structural comparison found exactly 4 changes; all other fields, values, and field order are unchanged')\nprint('PASS: actual file content matches the generated candidate')\nPY\n```\n\n退出状态 **0**；完整输出：\n\n```text\nPASS: updated status for ids 1, 3, 5, 7 only\nPASS: structural comparison found exactly 4 changes; all other fields, values, and field order are unchanged\nPASS: actual file content matches the generated candidate\n```\n\n最终 `git diff -- batch.json` 退出状态 **0**，输出：\n\n```diff\ndiff --git a/batch.json b/batch.json\nindex bbc76d4..e6f2dfb 100644\n--- a/batch.json\n+++ b/batch.json\n@@ -1,10 +1,10 @@\n [\n-  {\"id\":1,\"label\":\"Alpha\",\"status\":\"draft\",\"note\":\"draft remains in note\"},\n+  {\"id\":1,\"label\":\"Alpha\",\"status\":\"ready\",\"note\":\"draft remains in note\"},\n   {\"id\":2,\"label\":\"Beta\",\"status\":\"ready\"},\n-  {\"id\":3,\"label\":\"Gamma\",\"status\":\"draft\"},\n+  {\"id\":3,\"label\":\"Gamma\",\"status\":\"ready\"},\n   {\"id\":4,\"label\":\"Delta\",\"status\":\"archived\"},\n-  {\"id\":5,\"label\":\"Epsilon\",\"status\":\"draft\"},\n+  {\"id\":5,\"label\":\"Epsilon\",\"status\":\"ready\"},\n   {\"id\":6,\"label\":\"Zeta\",\"status\":\"ready\"},\n-  {\"id\":7,\"label\":\"Eta\",\"status\":\"draft\"},\n+  {\"id\":7,\"label\":\"Eta\",\"status\":\"ready\"},\n   {\"id\":8,\"label\":\"Theta\",\"status\":\"archived\"}\n ]\n```\n\n首个脚本尝试因逐行解析时未去除记录末尾逗号而以状态 1 退出，错误为 `JSONDecodeError: Extra data`；该错误发生在写入步骤前。修正解析后通过上述核验。没有剩余阻碍或额外假设。",
+                "phase": "final_answer"
+              }
+            ]
+          }
+        ]
+      },
+      "specialist": {
+        "thread_id": "01a0f30c-ee2c-7452-9437-aad83e2a1ded",
+        "turns": [
+          {
+            "id": "01a0f30c-eed8-7b22-9d95-468ec245dc4f",
+            "status": "completed",
+            "error": null,
+            "startedAt": 1790784106,
+            "completedAt": 1790784170,
+            "durationMs": 64248,
+            "items": [
+              {
+                "type": "agentMessage",
+                "id": "msg_07b0a8e227da87ae016abd32718f1487d0ae04efd9be283ade",
+                "text": "我会只读检查这四个文件，重点核对严格类型校验与 Unicode 处理，并用不写文件的 Python 检查验证可能的测试缺口。",
+                "phase": "commentary"
+              },
+              {
+                "type": "commandExecution",
+                "id": "exec-7cef6c6f-65ba-4a1f-af48-56f5dc2b802c",
+                "command": "/bin/zsh -lc 'cat tags.py ranges.py batch.json test_contract.py'",
+                "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+                "status": "completed",
+                "exitCode": 0,
+                "durationMs": 0,
+                "output": {
+                  "text": "def normalize(values):\n    if not isinstance(values, list):\n        raise ValueError(\"values must be a list of strings\")\n\n    normalized = []\n    seen = set()\n    for value in values:\n        if not isinstance(value, str):\n            raise ValueError(\"values must contain only strings\")\n        tag = value.strip().casefold()\n        if tag and tag not in seen:\n            seen.add(tag)\n            normalized.append(tag)\n    return normalized\ndef merge(values):\n    if not isinstance(values, list):\n        raise ValueError(\"values must be a list\")\n\n    for interval in values:\n        if not isinstance(interval, tuple) or len(interval) != 2:\n            raise ValueError(\"each range must be a tuple of two integers\")\n        start, end = interval\n        if type(start) is not int or type(end) is not int:\n            raise ValueError(\"range endpoints must be integers\")\n        if start > end:\n            raise ValueError(\"range start must not exceed its end\")\n\n    merged = []\n    for start, end in sorted(values, key=lambda interval: interval[0]):\n        if merged and start <= merged[-1][1]:\n            merged[-1] = (merged[-1][0], max(merged[-1][1], end))\n        else:\n            merged.append((start, end))\n    return merged\n[\n  {\"id\":1,\"label\":\"Alpha\",\"status\":\"ready\",\"note\":\"draft remains in note\"},\n  {\"id\":2,\"label\":\"Beta\",\"status\":\"ready\"},\n  {\"id\":3,\"label\":\"Gamma\",\"status\":\"ready\"},\n  {\"id\":4,\"label\":\"Delta\",\"status\":\"archived\"},\n  {\"id\":5,\"label\":\"Epsilon\",\"status\":\"ready\"},\n  {\"id\":6,\"label\":\"Zeta\",\"status\":\"ready\"},\n  {\"id\":7,\"label\":\"Eta\",\"status\":\"ready\"},\n  {\"id\":8,\"label\":\"Theta\",\"status\":\"archived\"}\n]\nimport json\nfrom pathlib import Path\nimport unittest\n\nimport ranges\nimport tags\n\n\nclass Contract(unittest.TestCase):\n    def test_tags(self):\n        values = [' B ', 'a', 'b', '', ' Straße ', 'STRASSE']\n        before = values[:]\n        self.assertEqual(['b', 'a', 'strasse'], tags.normalize(values))\n        self.assertEqual(before, values)\n        self.assertEqual([], tags.normalize([]))\n\n    def test_tag_types(self):\n        for values in ('abc', [1], [None], [True]):\n            with self.subTest(values=values), self.assertRaises(ValueError):\n                tags.normalize(values)\n\n    def test_merge(self):\n        values = [(7, 9), (1, 4), (3, 6), (9, 10), (20, 20)]\n        before = values[:]\n        self.assertEqual([(1, 6), (7, 10), (20, 20)], ranges.merge(values))\n        self.assertEqual(before, values)\n        self.assertEqual([], ranges.merge([]))\n\n    def test_range_validation(self):\n        for value in ([(2, 1)], [(1,)], [(1, 2, 3)], [('1', 2)], [(True, 2)], [(1.0, 2)], '12'):\n            with self.subTest(value=value), self.assertRaises(ValueError):\n                ranges.merge(value)\n\n    def test_batch(self):\n        rows = json.loads(Path('batch.json').read_text())\n        self.assertEqual([1,2,3,4,5,6,7,8], [x['id'] for x in rows])\n        self.assertEqual(['ready','ready','ready','archived','ready','ready','ready','archived'], [x['status'] for x in rows])\n        self.assertEqual('draft remains in note', rows[0]['note'])\n        self.assertEqual(['Alpha','Beta','Gamma','Delta','Epsilon','Zeta','Eta','Theta'], [x['label'] for x in rows])\n\n    def test_integration(self):\n        self.assertEqual({'tags':['a'], 'ranges':[[1,4]]}, json.loads(json.dumps({'tags': tags.normalize([' A ','a']), 'ranges': ranges.merge([(1,2),(2,4)])})))\n\n\nif __name__ == '__main__':\n    unittest.main()\n",
+                  "truncated": false
+                }
+              },
+              {
+                "type": "commandExecution",
+                "id": "exec-537bb034-d96a-4ed0-92e5-3e6b55ac2f64",
+                "command": "/bin/zsh -lc \"python3 -B - <<'PY'\nimport hashlib\nimport tags\nimport ranges\n\nclass IntSubclass(int):\n    pass\n\ndef rejects(fn, value):\n    try:\n        fn(value)\n    except ValueError:\n        return\n    raise AssertionError((fn.__name__, repr(value), 'expected ValueError'))\n\nfor value in (None, (), {}, {'a'}, iter(['a']), 1, True, [b'a'], ['ok', None], ['ok', []]):\n    rejects(tags.normalize, value)\nprint('PASS tags: 10 additional invalid container/element cases')\nvalues = [' É ', 'E\\\\u0301', 'Ａ', 'A', '\\\\u200b', '\\\\u00a0', ' Σ ', 'ς', 'İ', 'i\\\\u0307', 'ﬀ', 'FF']\nbefore = values[:]\nexpected = ['é', 'e\\\\u0301', 'ａ', 'a', '\\\\u200b', 'σ', 'i\\\\u0307', 'ff']\nassert tags.normalize(values) == expected\nassert values == before\nprint('PASS tags: Unicode strip/casefold, no extra NFC/NFKC, order/dedup and input preservation:', ascii(expected))\nfor value in (None, (), {}, iter([(1, 2)]), [[1, 2]], [(1, False)], [(False, 1)], [(IntSubclass(1), 2)], [(1, IntSubclass(2))], [(1, None)], [(1, 2.0)], [()], [(1, 2), (3, 2)]):\n    rejects(ranges.merge, value)\nprint('PASS ranges: 13 additional invalid container/shape/endpoint cases, including both bool and int-subclass positions')\nvalues = [(5, 5), (2, 4), (1, 2), (9, 11), (10, 10), (7, 8), (-2, -1)]\nbefore = values[:]\nassert ranges.merge(values) == [(-2, -1), (1, 4), (5, 5), (7, 8), (9, 11)]\nassert values == before\nprint('PASS ranges: shared endpoint merge, gap preservation, containment, sorting, negative endpoints and input preservation')\nfor path in ('tags.py', 'ranges.py', 'batch.json', 'test_contract.py'):\n    with open(path, 'rb') as file:\n        print('SHA256', path, hashlib.sha256(file.read()).hexdigest())\nPY\"",
+                "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
+                "status": "completed",
+                "exitCode": 0,
+                "durationMs": 0,
+                "output": {
+                  "text": "PASS tags: 10 additional invalid container/element cases\nPASS tags: Unicode strip/casefold, no extra NFC/NFKC, order/dedup and input preservation: ['\\xe9', 'e\\u0301', '\\uff41', 'a', '\\u200b', '\\u03c3', 'i\\u0307', 'ff']\nPASS ranges: 13 additional invalid container/shape/endpoint cases, including both bool and int-subclass positions\nPASS ranges: shared endpoint merge, gap preservation, containment, sorting, negative endpoints and input preservation\nSHA256 tags.py 54e9c614eeb3355b1ceb05c4288936397891722231217838e3bd13e3803a2798\nSHA256 ranges.py 19e2bcabf7548230ea03e19edf6d60ddba817846e45530139b2e679d3c030ff4\nSHA256 batch.json 9a7271e63f396edfef9d586c1472038c82a6437847ca510cf9a4fa057bc0446e\nSHA256 test_contract.py 6f9f583f229bd465841441d4e449e175539dd85ae3fa24b6d0dd956f37d2aae9\n",
+                  "truncated": false
+                }
+              },
+              {
+                "type": "agentMessage",
+                "id": "msg_07b0a8e227da87ae016abd32953f2487d0b8b3c083a317b1ae",
+                "text": "**PASS（仅限本次独立类型与 Unicode 审查）**。未发现“现有测试通过但违反指定需求”的缺陷。\n\n只读检查了 `tags.py`、`ranges.py`、`batch.json`、`test_contract.py`，未修改任何文件。\n\n- `tags.normalize` 按 `strip().casefold()` 执行，没有额外 NFC/NFKC。实际验证预组合 `É` 与组合字符 `E\\u0301` 保持不同，全角 `Ａ` 与 `A` 保持不同；Unicode 空白移除、零宽空格保留、希腊 sigma 和 casefold 展开去重均符合需求。顺序与输入保持不变。\n- `ranges.merge` 使用 `type(endpoint) is int`，两端的 `bool` 和 `int` 子类均实际验证抛出 `ValueError`。非法外层容器、内部 list、错误 tuple 长度及非法端点均拒绝；共享端点合并、有间隔不合并。\n- 现有测试未覆盖上述全部情况，但补充检查通过，因此这些是覆盖缺口，没有证据表明存在实现缺陷。\n\n实际执行命令及结果：\n\n1. `cat tags.py ranges.py batch.json test_contract.py`：完整读取四文件，exit status **0**。\n2. `python3 -B - <<'PY' … PY`：完整断言脚本见本次工具调用记录；无文件写入，exit status **0**。输出：\n   ```text\n   PASS tags: 10 additional invalid container/element cases\n   PASS tags: Unicode strip/casefold, no extra NFC/NFKC, order/dedup and input preservation: ['\\xe9', 'e\\u0301', '\\uff41', 'a', '\\u200b', '\\u03c3', 'i\\u0307', 'ff']\n   PASS ranges: 13 additional invalid container/shape/endpoint cases, including both bool and int-subclass positions\n   PASS ranges: shared endpoint merge, gap preservation, containment, sorting, negative endpoints and input preservation\n   ```\n\n本次候选 SHA256：\n\n```text\ntags.py          54e9c614eeb3355b1ceb05c4288936397891722231217838e3bd13e3803a2798\nranges.py        19e2bcabf7548230ea03e19edf6d60ddba817846e45530139b2e679d3c030ff4\nbatch.json       9a7271e63f396edfef9d586c1472038c82a6437847ca510cf9a4fa057bc0446e\ntest_contract.py 6f9f583f229bd465841441d4e449e175539dd85ae3fa24b6d0dd956f37d2aae9\n```\n\n限制：未复跑完整 unittest；未读取 Git 基线或 diff，因此不能独立证明 batch 历史变更仅涉及 draft→ready，或测试文件相对基线未变。该部分由 Host 的最终差异检查与全套验证覆盖。本结论不构成整轮验收批准。",
+                "phase": "final_answer"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "failures_retained": [
+      "Original CLI reached its 600-second deadline after final review was dispatched; exit -9, timed_out=true. This is not an uninterrupted successful run.",
+      "Luna's first JSON-line parse failed before writing; its original worker corrected the parse and completed the exact transformation.",
+      "Direct resume of the unloaded controller child was rejected before a model turn; the runtime required loading the parent.",
+      "One 240-second parent continuation restored the same controller thread. No new agent was spawned; controller accepted the unchanged candidate and parent exited 0 after 180.631 seconds.",
+      "Read-only recovery checks emitted xcrun cache-write denial diagnostics but read the complete files and Git diff with exit 0. No sandbox bypass was used.",
+      "Controller-reported timing estimates are advisory; driver elapsed times and raw lifecycle timestamps in this receipt are authoritative."
+    ],
+    "fixture_checks": {
+      "known_bad_baseline": {
+        "tests": 6,
+        "exit_code": 1,
+        "failures": 1,
+        "errors": 14
+      },
+      "complete_suite": {
+        "tests": 6,
+        "skipped": 0,
+        "exit_code": 0
+      },
+      "exact_batch_transform": "PASS (all fields/order compared against Git HEAD with only draft status replaced)",
+      "protected_files": "Byte-equal to Git HEAD",
+      "final_resume_net_changes": [],
+      "independent_review": "23 additional invalid-type cases and Unicode/interval boundary assertions, exit 0; read-only scoped Astra; not whole-run acceptance",
+      "controller_final_verdict": "PASS_WITH_RECOVERY",
+      "total_initial_child_launches": 5,
+      "new_child_launches_in_recovery": 0
+    }
+  }
+}

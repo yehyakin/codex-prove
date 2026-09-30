@@ -251,7 +251,10 @@ class ReadmeContractTests(unittest.TestCase):
         current, history = matrix.split("## v1.0 model-neutral roles", 1)
         for value in ("936cfca", "118", "36242572791", "36242572803", "49", "18", "gpt6-four-role-routing-probe.json"):
             self.assertIn(value, current)
-        live = current.split("## 2026-09-26 implementation baseline", 1)[0]
+        # A newer candidate table must not be mistaken for this release's receipt.
+        live = current.split("## v1.1.0: live release checks", 1)[1].split(
+            "## 2026-09-26 implementation baseline", 1
+        )[0]
         statuses = {
             "Complete end-to-end runtime": "VERIFIED",
             "Compatibility (explicit-profile)": "VERIFIED",

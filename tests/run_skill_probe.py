@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Opt-in, bounded POSIX CLI probe in a disposable workspace; not a benchmark."""
+"""Opt-in, bounded POSIX CLI probe in a disposable workspace; not a benchmark.
+
+Codex may persist a project-trust entry even with --ignore-user-config. The caller
+must compare its config baseline and clean only the probe-owned entry afterward;
+this harness never restores an entire shared config file automatically.
+"""
 
 from __future__ import annotations
 
@@ -53,8 +58,8 @@ def main():
     version = subprocess.run([args.codex, "--version"], check=True, capture_output=True, text=True).stdout.strip()
     output.mkdir(parents=True)
     before = task_snapshot(workspace)
-    # Overrides are invocation-local. Never edit user config, copy credentials,
-    # weaken the sandbox, or silently change models/retry a failed probe.
+    # These overrides are invocation-local; Codex itself may persist project trust.
+    # Never copy credentials, weaken the sandbox, or silently change models/retry.
     command = [args.codex, "exec", "--ignore-user-config",
                *([] if args.retain_session else ["--ephemeral"]),
                "--sandbox", args.sandbox, "-c", 'approval_policy="never"',

@@ -17,10 +17,24 @@ exercised fresh-CLI Direct, naturally selected Solo with timeout recovery, and
 holding scope while an old writer remained active. A forced CLI collaboration
 trial was incomplete at its thread limit; its export lacks raw child launches.
 Separate explicit Desktop Luna/Astra supplements passed their assigned checks,
-not the original run as a whole. Candidate installed-role discovery, a fully
-evidenced uninterrupted collaborative run, native Windows, and paired cost/quality
-comparisons remain unverified. See the [release gate](../docs/release/sol61-readiness.md).
+not the original run as a whole. These were the pre-installation results.
 Earlier simulations are not relabeled as live runs.
+
+After authorized installation, the [2026-10-01 installed-role receipt](artifacts/sol61-installed-acceptance.json)
+records real custom-role selections and persisted child model/effort settings.
+The six-test Compatibility fixture passed after its original controller resumed
+the interrupted final review. The first 600-second timeout, failed child-only
+resume, Luna parse correction and successful parent recovery remain recorded;
+this was not an uninterrupted pass. Four native Windows installer CI jobs passed.
+Desktop installed-role execution, physical Windows, Native Nested and matched
+cost/quality comparisons remain unverified. See the [release gate](../docs/release/sol61-readiness.md).
+
+The opt-in POSIX harness accepts `--max-agent-threads` (1..8, default 2) because
+completed agents can retain open slots; the prompt still bounds active work.
+`--retain-session` keeps local transcripts for actual launch evidence. Codex can
+persist a project-trust entry even with `--ignore-user-config`; compare a config
+baseline and remove only the probe-owned entry after execution. Never restore an
+entire shared config file to hide unrelated changes.
 
 The [initial evaluator artifact](artifacts/sol61-forward-evaluation.md) records
 those 16 decisions without a self-assigned score. After clarifying narrow routing
