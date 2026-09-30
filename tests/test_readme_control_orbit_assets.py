@@ -80,10 +80,9 @@ GEOMETRY_ATTRIBUTES = {
 KEY_LABELS = (
     "CODEX PROVE",
     "SMALL TASK",
-    "PLAN FIRST",
+    "COMPLETE TASK",
     "ASTRA",
     "SOL",
-    "TERRA",
     "LUNA",
 )
 
@@ -321,8 +320,9 @@ class ControlOrbitAssetContractTests(unittest.TestCase):
                 self.assertIn("PROVE", text, name)
                 if name.endswith("-zh.svg"):
                     self.assertRegex(text, CHINESE_TEXT_RE, f"{name}: missing Chinese copy")
-                for token in ("ASTRA", "SOL", "TERRA", "LUNA"):
+                for token in ("ASTRA", "SOL", "LUNA"):
                     self.assertIn(token, text, f"{name}: missing model {token}")
+                self.assertNotIn("TERRA", text, name)
                 if name.startswith("hero-"):
                     self.assertNotRegex(text, r"\d+(?:\.\d+)?%", name)
                 else:
@@ -330,11 +330,13 @@ class ControlOrbitAssetContractTests(unittest.TestCase):
                     # internal route names are not required in public copy.
                     if name.endswith("-zh.svg"):
                         self.assertIn("小任务", text, name)
+                        self.assertIn("完整任务", text, name)
                         self.assertIn("讨论方案", text, name)
                         self.assertIn("同一个文件，一次只交给一个子代理", text, name)
                     else:
                         self.assertIn("SMALL TASK", text, name)
-                        self.assertIn("PLAN FIRST", text, name)
+                        self.assertIn("COMPLETE TASK", text, name)
+                        self.assertIn("Assist stays read-only", text, name)
                         self.assertIn("one agent edits a file at a time", text.casefold(), name)
 
                 for color in ("#0B1020", "#F7F3E8", "#65D6C4", "#8FA7FF", "#FF6B3D"):
@@ -358,8 +360,9 @@ class ControlOrbitAssetContractTests(unittest.TestCase):
                     f"{name}: expected exactly the current three worker profiles",
                 )
                 nodes = {element.get("id"): element for element in root.iter() if element.get("id")}
+                # Public candidate art must match source defaults, not an older receipt.
                 for profile_id in ("prove-controller", *EXPECTED_WORKERS):
-                    profile = tomllib.loads((ROOT / ".codex/agents" / f"{profile_id}.toml").read_text(encoding="utf-8"))
+                    profile = tomllib.loads((ROOT / f".codex/agents/{profile_id}.toml").read_text())
                     self.assertEqual(profile["model"], nodes[profile_id].get("data-model"), name)
                     self.assertIn(profile["model_reasoning_effort"], element_text(nodes[profile_id]), name)
                 self.assertEqual([], worker_path_errors(root), name)

@@ -4,7 +4,10 @@ Release-time evidence for Codex PROVE. Configuration, an agent label, or a child
 self-report is not runtime proof. Statuses are `VERIFIED`, `FAILED`, or
 `UNVERIFIED`.
 
-Current release evidence: 2026-09-27, v1.1.0. Runtime files are bound by SHA-256
+Sol 6.1 candidate evidence is tracked separately in [release preparation](sol61-readiness.md).
+The tables below are historical and do not validate its changed profiles.
+
+Published release evidence: 2026-09-27, v1.1.0. Runtime files are bound by SHA-256
 in the [release receipt](v1.1.0-runtime.json); the source baseline is `93e1c35`.
 The release changes documentation and evidence, not those runtime files.
 

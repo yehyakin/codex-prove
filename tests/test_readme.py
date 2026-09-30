@@ -6,6 +6,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import subprocess
 import tomllib
 import unittest
 from decimal import Decimal
@@ -124,49 +125,33 @@ class ReadmeContractTests(unittest.TestCase):
             self.assertTrue(all(alt.strip() for alt, _ in images))
             self.assertEqual(text.count("<details>"), text.count("</details>"))
 
-    def test_model_names_match_configuration(self):
+    def test_historical_release_receipt_keeps_its_mapping(self):
+        receipt = json.loads((ROOT / "docs/release/v1.1.0-runtime.json").read_text(encoding="utf-8"))
+        released = {launch["profile"]: launch["model"] for launch in receipt["runtime"]["launches"]}
         for label, profile in (
             ("GPT-6 Astra", "prove-controller"), ("GPT-6 Sol", "prove-specialist-worker"),
             ("GPT-5.6 Terra", "prove-complex-worker"), ("GPT-6 Luna", "prove-efficient-worker"),
         ):
-            config = tomllib.loads((ROOT / f".codex/agents/{profile}.toml").read_text(encoding="utf-8"))
-            self.assertEqual(label.lower().replace(" ", "-"), config["model"])
-            for path, text in self.documents().items():
-                self.assertEqual(1, sum(r[0] == label for r in table_rows(text)), f"{path.name}: {label}")
-
-    def test_homepage_prices_and_assumptions(self):
+            self.assertEqual(label.lower().replace(" ", "-"), released[profile])
+    def test_readme_model_table_matches_source_profiles(self):
+        profiles = [tomllib.loads(path.read_text()) for path in (ROOT / '.codex/agents').glob('prove-*.toml')]
+        expected = {profile['model']: profile['model_reasoning_effort'] for profile in profiles}
+        self.assertEqual(3, len(expected))
         for path, text in self.documents().items():
-            for row in table_rows(text):
-                if row[0] in RATES:
-                    rate = RATES[row[0]]
-                    self.assertEqual(("$" + rate[0], "$" + rate[2]), row[-2:])
-            for fact in ("2026-09-26", "Standard", "1M", "0.1M", "20% / 20% / 40% / 20%", "5%", "docs/costs.md"):
+            rows = {row[0].lower().replace(' ', '-'): row[-1] for row in table_rows(text) if row[0].startswith('GPT-')}
+            self.assertEqual(expected, rows, path.name)
+
+    def test_candidate_routes_and_evidence_boundary(self):
+        for path, text in self.documents().items():
+            for fact in ('Direct', 'Solo', 'Assist', 'Coordinated', 'A/B', 'docs/costs.md', 'docs/release/sol61-readiness.md'):
                 self.assertIn(fact, text, path.name)
+            self.assertNotIn('62.3%', text)
+            self.assertNotIn('$15.00', text)
+            self.assertNotIn('$5.66', text)
+        self.assertIn('尚未发布', self.documents()[READMES[0]])
+        self.assertIn('not released', self.documents()[READMES[1]])
 
-    def test_budget_has_nearby_context(self):
-        patterns = (
-            ("预算例子", "不是每个项目", "不含人工和等待时间", "返工", "也可能更贵"),
-            ("budget example", "not a promise", "not your time or the wait", "rework", "more expensive"),
-        )
-        for (path, text), required in zip(self.documents().items(), patterns):
-            section = next(s for s in re.split(r"(?m)^## ", visible_markdown(text)) if "$15.00" in s)
-            for value in ("$15.00", "$5.66", "62.3%", "docs/costs.md", *required):
-                self.assertIn(value, section, path.name)
-
-    def test_cost_comparison_table_matches_the_budget_example(self):
-        for path, text in self.documents().items():
-            comparisons = [row for row in table_rows(text) if len(row) == 4 and row[1] in ("$15.00", "$5.66")]
-            self.assertEqual(2, len(comparisons), path.name)
-            baseline, routed = comparisons
-            self.assertIn("Astra", baseline[0])
-            self.assertIn("PROVE", routed[0])
-            self.assertEqual(("$15.00", "375", "—"), baseline[1:])
-            self.assertEqual(("$5.66", "141.5", "62.3%"), tuple(cell.strip("*") for cell in routed[1:]))
-            for column in (1, 2):
-                saving = (1 - Decimal(routed[column].lstrip("$")) / Decimal(baseline[column].lstrip("$"))) * 100
-                self.assertEqual(Decimal("62.3"), saving.quantize(Decimal("0.1")))
-
-    def test_current_rates_and_sources(self):
+    def test_historical_v110_rates_and_sources(self):
         current = COSTS.read_text(encoding="utf-8").split("## v1.0")[0]
         for model, values in RATES.items():
             self.assertIn((model, *("$" + v if i < 3 else v for i, v in enumerate(values))), table_rows(current))
@@ -177,7 +162,7 @@ class ReadmeContractTests(unittest.TestCase):
         ):
             self.assertIn(value, current)
 
-    def test_current_budget_math(self):
+    def test_historical_v110_budget_math(self):
         shares = tuple(map(Decimal, ("0.2", "0.2", "0.4", "0.2")))
         output = Decimal("0.1")
         api = [Decimal(r[0]) + output * Decimal(r[2]) for r in RATES.values()]
@@ -197,7 +182,7 @@ class ReadmeContractTests(unittest.TestCase):
         for value in (
             "不代表订阅月费", "每周可用额度", "人工成本", "等待时间", "not routing quotas, observed averages, or a guarantee",
             "subscription price", "weekly usage", "human effort and elapsed time", "don't add the example's 5% again",
-            "not establish equal output quality", "不适用于当前", "do not apply to the current four-model setup",
+            "not establish equal output quality", "不适用于当前", "do not apply to the current Sol 6.1 candidate",
         ):
             self.assertIn(value, notes)
 
@@ -258,7 +243,7 @@ class ReadmeContractTests(unittest.TestCase):
         for text, required in zip(self.documents().values(), patterns):
             for pattern in required:
                 self.assertRegex(text, pattern)
-            for value in (f"{REPO}/releases/tag/v1.1.0", "docs/release/v1.1.0.md", "docs/release/runtime-surface-matrix.md", "docs/release/v1.1-gpt6-audit.md"):
+            for value in (f"{REPO}/releases/tag/v1.1.0", "docs/release/v1.1.0.md", "docs/release/runtime-surface-matrix.md", "docs/release/sol61-readiness.md"):
                 self.assertIn(value, text)
 
     def test_runtime_history_stays_in_linked_docs(self):
@@ -282,13 +267,15 @@ class ReadmeContractTests(unittest.TestCase):
             self.assertEqual(expected_status, matching[0][2])
         receipt = json.loads((ROOT / "docs/release/v1.1.0-runtime.json").read_text(encoding="utf-8"))
         self.assertEqual("v1.1.0", receipt["release"])
-        for relative, expected_hash in receipt["source_runtime_sha256"].items():
-            source_bytes = (ROOT / relative).read_bytes().replace(b"\r\n", b"\n")
-            self.assertEqual(expected_hash, hashlib.sha256(source_bytes).hexdigest(), relative)
         self.assertEqual(4, len(receipt["runtime"]["launches"]))
+        released_profiles = {
+            "prove-controller": ("gpt-6-astra", "high"),
+            "prove-specialist-worker": ("gpt-6-sol", "high"),
+            "prove-complex-worker": ("gpt-5.6-terra", "high"),
+            "prove-efficient-worker": ("gpt-6-luna", "max"),
+        }
         for launch in receipt["runtime"]["launches"]:
-            profile = tomllib.loads((ROOT / f'.codex/agents/{launch["profile"]}.toml').read_text(encoding="utf-8"))
-            self.assertEqual((profile["model"], profile["model_reasoning_effort"]),
+            self.assertEqual(released_profiles[launch["profile"]],
                              (launch["model"], launch["reasoning_effort"]))
         self.assertEqual("Compatibility", receipt["runtime"]["execution_mode"])
         self.assertEqual("PASS", receipt["runtime"]["controller_verdict"])
@@ -298,6 +285,32 @@ class ReadmeContractTests(unittest.TestCase):
         self.assertTrue(receipt["smoke"]["user_change_preserved"])
         self.assertIn("| Desktop | Compatibility | VERIFIED |", history)
         self.assertIn("| Desktop | Native Nested | UNVERIFIED |", history)
+
+    def test_historical_runtime_hashes_match_the_recorded_revision(self):
+        # Never rewrite an old live receipt to match a new, untested candidate.
+        receipt = json.loads((ROOT / "docs/release/v1.1.0-runtime.json").read_text(encoding="utf-8"))
+        revision = receipt["source_baseline"]
+        try:
+            available = subprocess.run(
+                ["git", "cat-file", "-e", revision + "^{commit}"], cwd=ROOT, capture_output=True,
+            )
+        except FileNotFoundError:
+            self.skipTest("Git history unavailable in this source archive")
+        if available.returncode:
+            self.skipTest("Historical receipt revision unavailable in this shallow checkout")
+        for relative, expected_hash in receipt["source_runtime_sha256"].items():
+            archived = subprocess.run(["git", "show", revision + ":" + relative], cwd=ROOT, capture_output=True)
+            self.assertEqual(0, archived.returncode, relative)
+            self.assertEqual(expected_hash, hashlib.sha256(archived.stdout.replace(b"\r\n", b"\n")).hexdigest(), relative)
+
+    def test_candidate_status_does_not_relabel_stable_budgets(self):
+        for path, text in self.documents().items():
+            intro = "\n".join(text.splitlines()[:5])
+            self.assertIn("Sol 6.1", intro, path.name)
+            self.assertIn("docs/release/sol61-readiness.md", intro, path.name)
+            self.assertNotIn("62.3%", text, path.name)
+        self.assertIn("尚未发布", self.documents()[READMES[0]])
+        self.assertIn("not released", self.documents()[READMES[1]])
 
     def test_support_security_and_prior_art(self):
         for path, text in self.documents().items():

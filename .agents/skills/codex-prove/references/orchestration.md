@@ -1,11 +1,16 @@
 # Orchestration protocol
 
-Read for Assist planning or coordinated execution, not for ordinary Direct work.
+Read for delegated work, not for ordinary Direct work.
 Use the user's requested outcome as the boundary; a Skill does not add scope.
 
 ## Plan and schedule
 
-For one decision, return a recommendation and acceptance criteria in prose.
+Start Solo for a cohesive task: one context plans, implements, and checks the
+result. A self-contained mechanical batch can go straight to one Luna worker
+when delegation is worthwhile; it needs no separate Sol planner. A multi-file
+change or a database → API → UI dependency chain may stay
+with one Sol owner. A graph is useful only when work actually needs splitting.
+For analysis-only Assist, return a recommendation and acceptance criteria in prose.
 For coordinated work, use the smallest useful graph. Equivalent concise formats
 are valid; field spelling is not a safety boundary.
 
@@ -39,23 +44,33 @@ Select each worker directly; no task must visit every tier:
 
 | Profile | Default | Assignment boundary |
 | --- | --- | --- |
-| controller | Astra / high | Sole planning, architecture, arbitration, and final review owner; keep hard inseparable decisions here. |
-| specialist | Sol / high | Difficult but independently contractible reasoning, root-cause diagnosis, implementation, or targeted read-only review. |
-| complex | Terra / high | Regular implementation, routine debugging, tests, and integration under settled requirements; the ID is retained for compatibility. |
+| controller | Sol 6.1 / high | Read-only coordinator when the Host is not already Sol 6.1; not an extra planner for a Solo worker. |
+| complex | Sol 6.1 / high | Complete Solo task or one independent module: local planning, implementation, investigation, tests. Stable ID retained. |
+| specialist | Astra / high | Read-only advice on a named hard question, conflicting evidence, or independent risk review. No overall scheduling or final acceptance. |
 | efficient | Luna / max | Mechanical batches with explicit transformation rules, little judgment, and objective checks. |
 
-Terra is the normal implementation choice when delegation helps. A tiny edit or
-one command stays Direct; a large deterministic batch may suit Luna. Sol is not
-a mandatory reviewer or a second scheduler. An unclear overall goal or tightly
-coupled architecture remains with Astra until a useful task can be separated.
-Do not split work simply because there are many files or launch a worker just
-to demonstrate that its model is available.
+Use Sol for judgment-heavy work; Terra has no default assignment in this candidate.
+Astra is optional expertise, not the next stage of every task. Give it the precise
+question, competing explanations, relevant files, and a discriminating check.
+It returns findings to the current owner. Even when a hard question deserves
+Astra immediately, do not move the entire workflow there or require a cheaper
+model to fail first. Keep one initial consultation; a follow-up needs new evidence
+or a concrete unanswered requirement, not a routine second sign-off.
+
+A tiny edit or one command stays Direct; a large deterministic batch may suit
+Luna. Do not split work simply because there are many files or launch a worker
+just to demonstrate that its model is available.
 
 Delegate when a bounded handoff enables useful independent progress, contains
 bulky exploration, or supplies needed independent scrutiny. Complexity alone is
 not a reason. Batch related same-rule edits under one owner. While a worker owns
 a task, the Host does separate integration or prerequisite work, not a duplicate
 implementation or investigation. Inspect the handoff instead of replaying it.
+
+Plan once at the useful level. Reuse the same worker for same-scope corrections;
+send the failed check and changed facts, not a fresh full-history packet. When a
+serial chain fits one owner, keep that context through the dependent steps. Do
+not create a second controller to review the first controller's review.
 
 Launch the minimum sufficient dependency-ready frontier, usually 1–3 workers,
 within **live capacity**, accounting for the Host, controller, and other active
@@ -165,8 +180,9 @@ file snapshot). After a change, invalidate affected evidence only. Inspect the
 actual diff before accepting claimed paths; before/after snapshots show net
 changes, not who wrote them or proof that no temporary write occurred.
 
-The controller reviews the original request, real files/diff, verification,
-requirement coverage, and finally worker summaries. **Verify the verifier**:
+The Host in Solo, or the controller in Coordinated, reviews the original request,
+real files/diff, verification, requirement coverage, and finally worker summaries.
+**Verify the verifier**:
 right candidate, right requirement, meaningful passing condition. File existence,
 tautologies, skipped tests, wrong scope, or unexpected check-induced mutations
 do not justify success. Use focused existing tests; broaden only when risk or
@@ -180,6 +196,25 @@ use a fresh context that did not implement the candidate, supply the original
 requirements and actual diff, and keep the reviewer read-only. It produces
 evidence, not a second controller or automatic approval.
 
+Use Astra for difficult independent risk scrutiny, or a fresh Sol context for
+an ordinary explicitly requested independent review; honor an exact requested
+model and effort. Being a different model is not enough if it helped design or
+implement the candidate. An advisor who helped choose the fix is not its later
+independent reviewer. Ordinary Solo work uses self-checks plus Host acceptance,
+not a hidden claim of independent review.
+
+Normal review feedback and checking the writer's corrections stay in the same
+reviewer context; do not launch another reviewer per fix. Naming a defect and a
+needed check does not make the reviewer the designer. A fresh replacement is
+needed if that reviewer takes over substantive design or implementation, not
+merely because the reviewed diff changes after its findings.
+
+Do one final acceptance pass over the integrated candidate. The Host consumes a
+coordinated controller's fresh files/diff/check review instead of repeating it.
+Integration changes trigger only affected checks; retain evidence whose files,
+inputs, dependencies, and assumptions did not change. A multi-module integration
+check is still required when separate unit results cannot establish compatibility.
+
 ## Recovery and final review
 
 Distinguish FIX (work remains) from BLOCKED (no safe next action). A failing
@@ -189,10 +224,10 @@ A Correction Packet can be brief: failed requirement, Failure class, exact
 evidence, same-scope Delta, and the check that must pass. Fix the packet before
 retrying; a new attempt needs a changed hypothesis or meaningful new evidence.
 A worker may repair and rerun within its existing task authorization. The
-controller may reassign a mechanical task to Terra or a difficult independent
-unit to Sol when new evidence warrants it. Skip intermediate tiers when they
-add no value; do not require a failed lower-tier attempt first. Astra retains
-inseparable decisions. Use the safe handoff above, not a new user approval.
+controller may reassign a mechanical task to Sol when judgment becomes necessary,
+or ask Astra about one unresolved issue. Astra does not take over the writer or
+restart its attempt budget. Skip intermediate tiers when they add no value. Use
+the safe handoff above, not a new user approval.
 
 Track consecutive no-progress attempts. Stop that path after two, or earlier
 on a user limit, exhausted budget, safety boundary, or no safe next action.

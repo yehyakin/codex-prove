@@ -1,6 +1,8 @@
 [简体中文](README.md) · [English](README.en.md)
 
-![Codex PROVE: Astra leads, Sol handles hard problems, Terra handles everyday work, Luna handles batches](docs/assets/readme/hero-en.svg)
+> **Sol 6.1 candidate, not released.** This page and its illustrations describe the candidate. Installed-profile loading and cross-platform acceptance are still pending. See the [release preparation record](docs/release/sol61-readiness.md).
+
+![Codex PROVE: Sol does the main work, Astra tackles hard questions, Luna handles batches](docs/assets/readme/hero-en.svg)
 
 <p align="center">
   <a href="https://github.com/yehyakin/codex-prove/releases"><img alt="Release" src="https://img.shields.io/github/v/release/yehyakin/codex-prove?style=flat-square"></a>
@@ -11,39 +13,38 @@
 
 # Codex PROVE
 
-**Let Codex split the work. Stop using the most expensive model for everything.**
+**Let Sol finish the task. Bring in help when it helps.**
 
-PROVE is a model-routing skill for Codex. The idea is simple: **Astra leads, Sol tackles hard problems, Terra handles everyday development, and Luna handles batches.** Astra plans, assigns work, and reviews the result. The other models do the work that fits them.
+PROVE is a model-routing skill for Codex. **Sol 6.1 does the main work, Astra tackles hard questions, and Luna handles batches.** Keep a cohesive task in one context; split it only when separate work can make useful progress.
 
-A copy change or a small fix stays with your current Codex. For cross-module work or a tricky investigation, bring in PROVE. You don't need to switch models yourself or brief every agent separately.
+A copy change or small fix stays with your current Codex. A feature can span several files without needing a planning agent followed by an implementation agent. Describe the goal and boundaries; PROVE decides whether help is useful and checks the real result.
 
-[Cost](#how-much-can-it-save) · [Install](#install) · [Usage](#usage) · [What's new](#whats-new)
+[Routing](#how-work-is-routed) · [Install](#install) · [Usage](#usage) · [What's new](#whats-new)
 
-## How much can it save?
+## How work is routed
 
-**One budget example: $15.00 with Astra throughout, or $5.66 with work split across models. That's 62.3% less.**
+Start with the simplest useful route. No task has to use every model.
 
-| Approach | API token cost | Codex credits | Estimated saving |
-| --- | ---: | ---: | ---: |
-| Astra throughout | $15.00 | 375 | — |
-| PROVE four-model split (including coordination) | $5.66 | 141.5 | **62.3%** |
+| Task | Route |
+| --- | --- |
+| Small edit or clear question (Direct) | Your current Codex completes it, with zero agents |
+| One cohesive feature or investigation (Solo) | Sol plans, implements, and checks it; no separate planner |
+| Analysis or review only (Assist) | Sol analyzes; Astra handles a specific hard question or independent risk review; no implementation |
+| Multiple independent workstreams (Coordinated) | Sol coordinates parallel work with explicit file ownership |
 
-The reason is straightforward. Planning and review need the lead model; writing tests, editing configuration, and repetitive changes don't always need the most expensive one.
+| Model | What it does | Default effort |
+| --- | --- | --- |
+| GPT-6.1 Sol | Complete tasks, routine development, and useful coordination and acceptance | high |
+| GPT-6 Astra | One hard question or independent risk review; read-only | high |
+| GPT-6 Luna | Mechanical batches with explicit rules and objective checks | max |
 
-| Model | What it does | Input / 1M tokens | Output / 1M tokens |
-| --- | --- | ---: | ---: |
-| GPT-6 Astra | Understand the task, plan, assign, and review | $10.00 | $50.00 |
-| GPT-6 Sol | Hard problems, root-cause analysis, focused review | $2.00 | $10.00 |
-| GPT-5.6 Terra | Everyday features, bug fixes, tests, and integration | $2.00 | $12.00 |
-| GPT-6 Luna | Repetitive edits and information gathering with clear rules | $0.10 | $0.50 |
+If your current Codex is already Sol 6.1, reuse it and its verified effort setting. A self-contained mechanical batch can go straight to Luna. Astra is not a mandatory approval stage.
 
-That example uses 1M input and 0.1M output tokens in total, with each token category split 20% / 20% / 40% / 20% across Astra / Sol / Terra / Luna. It adds 5% of the all-Astra cost for coordination, using the 2026-09-26 Standard short-context rates without caching.
-
-It's a budget example, not a promise that every project saves 62.3%. It covers token cost, not your time or the wait. Poor task splitting and rework can make a run more expensive. See the [cost notes](docs/costs.md#english) for full prices, credits, and the older calculations.
+Less context transfer and fewer unnecessary agents are design goals, not measured savings. **There is no same-task cost or speed A/B result for this candidate.** Count planning, review, and rework in real costs. The [cost notes](docs/costs.md#english) retain historical budgets, not results for this version.
 
 ## Install
 
-You need Git, Python 3.11+, and a Codex setup that supports custom agents and the four models above.
+You need Git, Python 3.11+, and Codex with custom-agent support. The defaults use the three models above; a task needs only the models it actually invokes. Check account availability and supported effort settings before installation.
 
 ### macOS / Linux
 
@@ -74,7 +75,7 @@ pwsh -NoProfile -File scripts/install.ps1
 
 The installer backs up the previous version, leaves your existing `~/.codex/config.toml` alone, and doesn't touch unrelated agents. Open a new Codex session when it's done.
 
-The current stable release is [v1.1.0](https://github.com/yehyakin/codex-prove/releases/tag/v1.1.0), including the GPT-6 model split. These commands install `main` and follow subsequent repository updates.
+These commands fetch `main`, not this candidate branch. The published [v1.1.0](https://github.com/yehyakin/codex-prove/releases/tag/v1.1.0) uses the old routing; its runtime records do not validate the candidate. Candidate installation is for explicitly authorized release checks, not routine upgrades.
 
 ## Usage
 
@@ -87,11 +88,11 @@ Use the existing login API and UI components. Leave payments alone and run the t
 
 No form to fill out. No agent count to choose. Say what you want and what should stay untouched.
 
-![Small tasks stay direct; Astra splits larger tasks among Sol, Terra, and Luna, then reviews the work](docs/assets/readme/control-plane-en.svg)
+![Small tasks stay direct; Sol completes cohesive work; independent work can be split when useful](docs/assets/readme/control-plane-en.svg)
 
-For that settings page, Astra would first look at the existing API and UI, then decide how to split the work. Terra could handle the routine page and API changes; Sol would join if there's a hard problem; Luna would handle repetitive edits if there are enough to justify it. Models that aren't needed stay out.
+For that settings page, one Sol would normally inspect the API, edit the page, and run tests. Split off a module only when it can progress independently. Consult Astra about a concrete unresolved problem; use Luna when there is enough repetitive work to justify delegation.
 
-Independent work can run in parallel. Work that needs an earlier result waits its turn. Two agents don't edit the same file at once. Astra checks the code and tests against your request, and your current Codex brings the result back to you.
+Each write scope has one active owner. Before a handoff, stop the old agent and its mutating processes, then inspect and preserve its changes. Check real files, tests, and requirement coverage before delivery. These are workflow rules, not file locks or enforced isolation.
 
 If you only want to discuss a plan, say so:
 
@@ -103,14 +104,16 @@ $codex-prove Look at this project's login setup and compare ways to improve it. 
 
 ## What's new
 
-People told us the old workflow took too much upkeep, got `blocked` too often, and kept asking for approval. This update focuses on that.
+This candidate reduces context handoffs and unnecessary role changes.
 
-- **Updated model split.** Astra leads, Sol handles specialist work, Terra handles routine work, and Luna handles batches. A task doesn't have to use all four.
+- **Sol first.** Sol 6.1 takes routine execution and coordination; Terra leaves the defaults. The four stable role IDs remain, without requiring a four-agent team.
+- **Keep cohesive work together.** Solo plans, implements, and checks its own task. Parallelize useful independent work only.
+- **Consult Astra about a problem.** Use it for hard questions or necessary independent reviews, not routine sign-off.
 - **Less setup chatter.** When the launch record identifies the model, work can start without a separate round of agents introducing themselves.
 - **Keep moving when it's safe.** Local edits and tests you've already authorized don't stop for approval just because a test fails or a heading is missing. New permissions and important unresolved choices still need your input.
 - **Less unnecessary code.** Borrowing from Ponytail, check what the project and standard library already offer before adding dependencies or abstractions.
 
-These changes ship in **v1.1.0**, with one completed four-model orchestration smoke and a fresh-session check after installation. See the [release notes](docs/release/v1.1.0.md), [upgrade history](docs/release/v1.1-gpt6-audit.md), and [compatibility and test notes](docs/release/runtime-surface-matrix.md).
+These changes are not released yet. See the [release preparation record](docs/release/sol61-readiness.md) and [peer research](docs/research/2026-09-30-peer-release-readiness.md) for evidence and gaps. The [v1.1.0 release notes](docs/release/v1.1.0.md) and [historical compatibility matrix](docs/release/runtime-surface-matrix.md) retain their original scope; they do not automatically cover this version.
 
 ## A few common questions
 
@@ -118,13 +121,13 @@ These changes ship in **v1.1.0**, with one completed four-model orchestration sm
 
 No. Independent tasks can run in parallel, but splitting work, passing context, and waiting for results take time too. PROVE only launches agents when they help, within your Codex session's thread limit.
 
-**Why keep Terra?**
+**Where did Terra go?**
 
-The current split gives Sol specialist work and Terra routine work. At the prices above, their input costs the same, and Sol's output is cheaper. So the reason isn't that Terra always costs less. Future changes should follow how the models perform on actual tasks, not just their names or prices.
+Terra is no longer the default execution model. The `prove-complex-worker` role ID stays, now selecting Sol 6.1. Role names do not bind the project to a model. An explicitly requested model is never silently replaced.
 
 **Can I change the models?**
 
-Yes. The profiles are in [`.codex/agents/`](.codex/agents/prove-controller.toml). Astra, Sol, and Terra default to `high`; Luna uses `max`. Make sure your Codex can use the model and reasoning level, then validate, reinstall, and open a new session. See the [model configuration notes](.agents/skills/codex-prove/references/runtime-notes.md).
+Yes. The profiles are in [`.codex/agents/`](.codex/agents/prove-controller.toml). Sol and Astra default to `high`; Luna uses `max`. Validation checks TOML, model identifier syntax, and effort values without locking models to the defaults. It cannot prove account availability. Check that first, then validate, reinstall, and inspect the actual role mapping in a new session. See the [model configuration notes](.agents/skills/codex-prove/references/runtime-notes.md).
 
 **Does the old Sol Control command still work?**
 

@@ -37,28 +37,28 @@ def contract() -> str:
 
 
 class AgentProfileTests(unittest.TestCase):
-    def test_specialist_profile_uses_sol_high(self) -> None:
+    def test_specialist_profile_uses_astra_high_read_only(self) -> None:
         with SPECIALIST.open("rb") as handle:
             data = tomllib.load(handle)
         self.assertEqual("prove-specialist-worker", data["name"])
-        self.assertEqual("gpt-6-sol", data["model"])
+        self.assertEqual("gpt-6-astra", data["model"])
         self.assertEqual("high", data["model_reasoning_effort"])
-        self.assertEqual("workspace-write", data["sandbox_mode"])
+        self.assertEqual("read-only", data["sandbox_mode"])
 
     def test_controller_profile_is_model_neutral_and_read_only(self) -> None:
         with CONTROLLER.open("rb") as handle:
             data = tomllib.load(handle)
         self.assertEqual("prove-controller", data["name"])
-        self.assertEqual("gpt-6-astra", data["model"])
+        self.assertEqual("gpt-6.1-sol", data["model"])
         self.assertEqual("high", data["model_reasoning_effort"])
         self.assertEqual("read-only", data["sandbox_mode"])
         self.assertNotIn(data["model"], data["name"])
 
-    def test_complex_profile_uses_current_terra_default(self) -> None:
+    def test_complex_profile_uses_sol61_high_for_solo_and_modules(self) -> None:
         with COMPLEX.open("rb") as handle:
             data = tomllib.load(handle)
         self.assertEqual("prove-complex-worker", data["name"])
-        self.assertEqual("gpt-5.6-terra", data["model"])
+        self.assertEqual("gpt-6.1-sol", data["model"])
         self.assertEqual("high", data["model_reasoning_effort"])
         self.assertEqual("workspace-write", data["sandbox_mode"])
 

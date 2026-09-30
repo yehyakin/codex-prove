@@ -7,8 +7,11 @@ The source profiles are `.codex/agents/prove-controller.toml`,
 `prove-specialist-worker.toml`, `prove-complex-worker.toml`, and
 `prove-efficient-worker.toml`. Update the
 selected model in these profiles, not the brand, invocation, or role names.
-The stable `prove-complex-worker` ID remains Terra's regular execution lane;
-`prove-specialist-worker` adds Sol without renaming existing installed agents.
+In this Sol 6.1 candidate, `prove-controller` and `prove-complex-worker` select
+`gpt-6.1-sol` / `high`. `prove-specialist-worker` selects `gpt-6-astra` / `high`
+with read-only scope; `prove-efficient-worker` remains `gpt-6-luna` / `max`.
+These are intentional profile migrations, not fallback aliases. Terra leaves
+the default routing; do not silently remap an old Terra task or exact-model request.
 
 ## Select and record, do not ask for self-attestation
 
@@ -22,10 +25,18 @@ mandatory idle turn, or child self-report of hidden model metadata is required.
 If the runtime does not expose a model field to the child, that absence is not
 a blocker when the Host's authoritative selection is available.
 
-A matching current Host may act as controller if its model and effort are
-authoritatively known and match the selected controller profile. Do not spawn a
-duplicate controller just to satisfy a ritual. If the Host also implements, say
-so; its own review is not an independent reviewer.
+A current Sol 6.1 Host may plan and implement Solo work or act as controller.
+Reuse its authoritatively known, supported user-selected effort; the child profile's
+`high` default is not a reason to reset the Host or spawn a duplicate controller.
+Record the actual Host settings, not an exact-profile launch if they differ.
+An explicit requested model/effort still takes precedence. A Host that implements
+does not become an independent reviewer of its own work.
+
+On a different Host, Solo normally means one `prove-complex-worker` owns the whole
+bounded task and the Host accepts it; a mechanical batch may go to Luna alone.
+Assist uses a read-only Sol or a problem-specific Astra. Only Coordinated may
+need a separate controller plus workers. A worker never gains
+subagent permission just because its model is also used for the controller.
 
 If custom-agent selection is unavailable or its mapping is stale but the runtime
 supports explicit model and effort selection, use a fresh generic agent with
@@ -50,10 +61,11 @@ thread count or repeatedly ask the user. Workers do not create subagents.
 
 ## Capability and authorization
 
-The separate controller's configured sandbox is read-only. Workers normally use
-workspace-write, strictly inside the inherited authorized scope. Some Desktop
-runtimes expose broader technical capabilities than their TOML sandbox suggests;
-record this difference and enforce operational scope without calling it isolation.
+The separate controller and Astra specialist profiles request read-only sandboxes;
+Sol and Luna execution profiles request workspace-write. Actual permissions depend
+on the Host: live parent overrides may take precedence, including in the CLI.
+Record any broader capability and keep work inside its authorized operational
+scope without calling that scope enforced isolation.
 
 For reversible local work, inspect actual paths and diffs and preserve user edits.
 Do not claim net-change snapshots prove zero writes or process quiescence.
@@ -75,6 +87,13 @@ the unavailable profile ran. Such a change cannot satisfy an explicit exact-mode
 requirement or widen authorization. A model error, quota limit, or capacity queue
 is not permission for a hidden fallback or unlimited paid retries.
 
+Check only profiles needed by the task; lack of Astra or Luna need not block a
+Sol-only task. Sol 6.1 not being available means its launch remains unavailable,
+not that a similarly named older Sol passed. Local TOML parsing and a simulated
+route are not live-model validation. Do not edit global model/provider settings
+to force availability. For API-based runtimes, Sol 6.1 tool calling requires
+Responses support; a text-only model listing is insufficient.
+
 Repair non-security omissions from existing evidence without repeated user
 approval. BLOCKED is reserved for absent required capability, irreconcilable
 ownership, missing authority, or no safe remaining action. Preserve verified
@@ -86,6 +105,11 @@ A timeout is an observation, not proof a worker or command stopped. Inspect
 lifecycle and mutating processes before replacement, ownership handoff, or reusing
 that scope. Do not launch a racing writer. Capture usable artifacts, repair the
 packet, and follow the progress-based recovery limit in the orchestration protocol.
+
+An exhausted work budget stops new attempts, not authorized cancellation of this
+task's still-running work. Use runtime cancellation for identified task workers
+and commands when permitted; never stop unrelated processes. If termination
+cannot be confirmed, keep the affected scope held and report that uncertainty.
 
 Release idle agents when the runtime exposes that capability. Otherwise mark them
 idle, reuse compatible contexts for follow-ups, and account for occupied slots.

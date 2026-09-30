@@ -63,6 +63,7 @@ $requiredFiles = @(
     ".codex/agents/prove-specialist-worker.toml",
     "scripts/install.sh",
     "scripts/validate.sh",
+    "scripts/validate_source.py",
     "scripts/uninstall.sh",
     "scripts/install.ps1",
     "scripts/validate.ps1",
@@ -147,21 +148,17 @@ Assert-Regex $compatText '\$sol-control' "compatibility openai.yaml misses old i
 Assert-Regex $compatText '\$codex-prove' "compatibility openai.yaml misses canonical invocation"
 Assert-Regex $compatText '(?m)^\s{2}allow_implicit_invocation:\s*false\s*$' "compatibility openai.yaml permits implicit invocation"
 
-$agentExpectations = @(
-    @(".codex/agents/prove-specialist-worker.toml", "prove-specialist-worker", "gpt-6-sol", "high", "workspace-write", $true),
-    @(".codex/agents/prove-controller.toml", "prove-controller", "gpt-6-astra", "high", "read-only", $false),
-    @(".codex/agents/prove-complex-worker.toml", "prove-complex-worker", "gpt-5.6-terra", "high", "workspace-write", $true),
-    @(".codex/agents/prove-efficient-worker.toml", "prove-efficient-worker", "gpt-6-luna", "max", "workspace-write", $true)
-)
-foreach ($expectation in $agentExpectations) {
-    $text = Get-Text (Join-Path $repoRoot $expectation[0])
-    Assert-Regex $text ('(?m)^name\s*=\s*"' + [regex]::Escape($expectation[1]) + '"\s*$') "agent name is invalid"
-    Assert-Regex $text ('(?m)^model\s*=\s*"' + [regex]::Escape($expectation[2]) + '"\s*$') "agent model is invalid"
-    Assert-Regex $text ('(?m)^model_reasoning_effort\s*=\s*"' + [regex]::Escape($expectation[3]) + '"\s*$') "agent reasoning effort is invalid"
-    Assert-Regex $text ('(?m)^sandbox_mode\s*=\s*"' + [regex]::Escape($expectation[4]) + '"\s*$') "agent sandbox is invalid"
-    Assert-Regex $text '(?s)developer_instructions\s*=\s*""".+"""' "agent instructions are missing"
-    if ($expectation[5]) { Assert-Regex $text '(?is)do not .*?(spawn|create).*?subagent' "worker can create subagents" }
+# Use the same TOML, source-scope and credential checks as the POSIX surface.
+$pythonCommand = $null
+foreach ($candidate in @("python3.14", "python3.13", "python3.12", "python3.11", "python3", "python")) {
+    $command = Get-Command $candidate -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($null -eq $command) { continue }
+    & $command.Source -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)' 2>$null
+    if ($LASTEXITCODE -eq 0) { $pythonCommand = $command.Source; break }
 }
+Assert-Condition ($null -ne $pythonCommand) "Python 3.11 or newer is required"
+& $pythonCommand (Join-Path $PSScriptRoot "validate_source.py") $repoRoot
+Assert-Condition ($LASTEXITCODE -eq 0) "source content validation failed; see diagnostic above"
 
 foreach ($script in @(
     "scripts/install.ps1",
@@ -180,41 +177,6 @@ $forwardCases = Get-Content -LiteralPath (Join-Path $repoRoot "tests/fixtures/fo
 Assert-Condition ($forwardCases.Count -ge 13) "forward test fixture is incomplete"
 $benchmark = Get-Content -LiteralPath (Join-Path $repoRoot "tests/fixtures/v100-ab-benchmark.json") -Raw | ConvertFrom-Json
 Assert-Condition ($null -ne $benchmark) "benchmark fixture is invalid"
-
-$credentialPatterns = @(
-    'AKIA[0-9A-Z]{16}',
-    '-----BEGIN [A-Z0-9 ]+ PRIVATE KEY-----',
-    'gh[pousr]_[A-Za-z0-9_]{20,}',
-    'sk-[A-Za-z0-9]{20,}',
-    'xox[baprs]-[A-Za-z0-9-]{20,}'
-)
-Get-ChildItem -LiteralPath $repoRoot -File -Recurse -Force | Where-Object {
-    $_.FullName -notmatch '[\\/]\.git[\\/]' -and $_.FullName -notmatch '[\\/]__pycache__[\\/]'
-} | ForEach-Object {
-    try { $text = Get-Text $_.FullName } catch { return }
-    foreach ($pattern in $credentialPatterns) {
-        if ($text -match $pattern) { throw "possible credential detected" }
-    }
-    if ($text.Length -gt 0 -and -not $text.EndsWith("`n")) { throw "missing final newline: $($_.FullName)" }
-    foreach ($line in ($text -split "`n")) {
-        if ($line -match '[ \t]\r?$') { throw "trailing whitespace: $($_.FullName)" }
-    }
-}
-
-foreach ($forbidden in @("IPZOR", "Buzz", "DeepSeek", "OpenPencil")) {
-    foreach ($path in @(
-        (Join-Path $repoRoot ".agents/skills/codex-prove"),
-        (Join-Path $repoRoot ".agents/skills/sol-control")
-    )) {
-        Get-ChildItem -LiteralPath $path -File -Recurse | ForEach-Object {
-            Assert-Condition ((Get-Text $_.FullName) -notmatch [regex]::Escape($forbidden)) "project-specific term remains in Skill"
-        }
-    }
-}
-
-foreach ($activeFile in @("README.md", "README.en.md", "SECURITY.md", "CONTRIBUTING.md", "SUPPORT.md", ".github/ISSUE_TEMPLATE/config.yml")) {
-    Assert-Condition ((Get-Text (Join-Path $repoRoot $activeFile)) -notmatch 'github\.com/yehyakin/codex-sol-control') "old repository URL remains in active documentation"
-}
 
 Write-Output "PowerShell syntax: PASS"
 Write-Output "YAML/TOML/JSON structure: PASS"

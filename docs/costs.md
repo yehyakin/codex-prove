@@ -2,9 +2,17 @@
 
 [返回中文 README](../README.md) · [Back to the English README](../README.en.md) · [English explanation](#english)
 
-这里把 README 里的账展开算，方便按自己的任务重新估。价格带日期保留，避免模型升级后把两代数字混在一起。
+这里保留历史预算和计算方法。价格带日期保留，避免把不同版本的数字混在一起。
 
-## 当前费率 / Current rates · 2026-09-26
+## Sol 6.1 候选版 / Candidate
+
+当前默认分工是 Sol 6.1 主力、Astra 只读咨询、Luna 机械批量。减少上下文传递和不必要的代理是设计目标，**尚无同任务成本、速度或质量 A/B 结论**。实跑验证不能替代对照实验。
+
+新版不沿用旧版的 token 分配比例，也不宣称节省 62.3%。未来比较应固定任务、起点和验收条件，记录实际模型、输入/缓存/输出、重试、协调、耗时和通过率，再使用执行当日适用费率计算。单次 smoke 或模型单价不能证明整体收益。
+
+Sol 6.1 is the main model, Astra a read-only adviser, and Luna a mechanical batch worker. There is **no same-task cost, speed, or quality A/B result** for this candidate. Historical savings below are not candidate results. See the [candidate design](research/2026-09-30-sol61-routing.md) and [release evidence](release/sol61-readiness.md).
+
+## v1.1.0 历史费率 / Historical rates · 2026-09-26
 
 以下均为 Standard、每 1M tokens 的费率；短上下文指单次请求输入不超过 272K。累计 1M 输入可以分布在多次请求中。
 
@@ -19,7 +27,7 @@
 
 相对 Astra，Sol 的输入和输出都是 20%；Terra 分别为 20% 和 24%；Luna 都是 1%。这里比较的是同类 token 的单价，不是整个任务的费用。Sol 与 Terra 输入同价，Sol 输出更低价，保留 Terra 不能只用“便宜”解释。
 
-## README 的预算例子
+## v1.1.0 README 的历史预算例子
 
 假设：
 
@@ -43,7 +51,7 @@ saving = 1 - $5.66 / $15.00 = 62.3% (rounded)
 
 20% / 20% / 40% / 20% 和 5% 都是预算假设，不是固定分配比例，也不是用户样本的平均值。实际任务如果频繁返工，可能比全程使用一个模型更贵。小任务直接做，不开子代理，也就没有这部分路由带来的节省。
 
-## 按实际用量怎么算
+## 计算方法与当时的计费备注
 
 逐模型相加：
 
@@ -63,7 +71,7 @@ cost = uncached_input × input_rate
 
 ## v1.0 历史价格 / Historical rates · 2026-08-04
 
-以下保留旧版算法。基线是全程 GPT-5.6 Sol，**不适用于当前 Astra / Sol / Terra / Luna 配置**，也不和 Ponytail 上游公布的数字叠加。
+以下保留旧版算法。基线是全程 GPT-5.6 Sol，**不适用于当前 Sol 6.1 候选配置**，也不和 Ponytail 上游公布的数字叠加。
 
 ### API · 每 1M tokens / per 1M tokens
 
@@ -106,9 +114,9 @@ ordinary_saving = 72.2% to 76.2%
 
 ## English
 
-The shared tables above retain two dated price snapshots. Use the **2026-09-26** table for the current four-model setup. All rates are per 1M tokens, Standard mode, with no more than 272K input tokens in any single request. The total 1M input in the example can span multiple requests.
+The tables retain two historical price snapshots, not current quotes. **2026-09-26** describes v1.1.0's four-model setup, not this Sol 6.1 candidate. The candidate has no measured savings claim. The historical rates are per 1M tokens, Standard mode, with no more than 272K input tokens in a request. The total 1M input in the example can span multiple requests.
 
-### The README example
+### The historical v1.1.0 README example
 
 Assume 1M uncached input and 0.1M output tokens in total. Split each token category **Astra 20% / Sol 20% / Terra 40% / Luna 20%**, then add **5% of the all-Astra baseline** for coordination.
 
@@ -118,7 +126,7 @@ Those shares and the 5% overhead are assumptions for a budget, not routing quota
 
 API dollars and Codex credits are different billing units. Neither result means your subscription price falls by 62.3%, nor does it directly establish an increase in included weekly usage.
 
-### Your actual cost
+### Calculation method and historical billing notes
 
 For each model, add uncached input, cached input, and output including billed reasoning at their respective rates, plus applicable cache-write and tool charges. Compare the same task's total cost, quality, and elapsed time. If the logs already include planning, review, and retries, don't add the example's 5% again.
 
@@ -127,10 +135,10 @@ For each model, add uncached input, cached input, and output including billed re
 - Long context, cache use, output volume, repeated context, and retries affect the total.
 - Some Enterprise workspaces still use a legacy rate card; use the one that actually applies.
 
-Sol and Terra currently have the same input price; Sol has the lower output price. Keeping Terra for routine work is a role choice, not a claim that it always costs less.
+In that snapshot, Sol and Terra had the same input price; Sol had the lower output price. The old Terra routing was not proof that it always cost less. Check applicable live rates before estimating a new run.
 
 ### Older calculations
 
 The **2026-08-04** tables describe v1.0, with GPT-5.6 Sol as the baseline and relative prices of **1.00 / 0.40 / 0.04** for Sol / Terra / Luna. The three historical scenario ranges are **72.2%–76.2%**, **50.4%–60.4%**, and **33.4%–43.4%**.
 
-They do not apply to the current four-model setup, represent a fixed average, or add to Ponytail's upstream results. The historical formulas and prices are kept above so they can still be checked and reproduced.
+They do not apply to the current Sol 6.1 candidate, represent a fixed average, or add to Ponytail's upstream results. The historical formulas and prices are kept above so they can still be checked and reproduced.

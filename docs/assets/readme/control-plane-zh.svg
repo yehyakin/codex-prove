@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 640" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="18">
 <title>Codex PROVE：交给它之后，怎么做</title>
-<desc>小任务由当前 Codex 直接做。讨论方案时由 Astra 分析，需要动手时再分给 Sol、Terra 或 Luna。Astra 检查代码、测试和需求，当前 Codex 汇总结果。</desc>
+<desc>Direct 直接做小任务。Solo 由一个 Sol 完整执行。仅在独立工作值得并行时启用下方协作。Assist 只分析不改代码；Astra 和 Luna 按需加入。</desc>
 <defs>
   <marker id="task-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#FF6B3D"/></marker>
   <marker id="evidence-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#8FA7FF"/></marker>
@@ -10,38 +10,38 @@
 <rect x="28" y="24" width="1144" height="592" rx="24" fill="#111A30" stroke="#9AA6B8" stroke-opacity="0.35" stroke-width="2"/>
 <text x="56" y="69" text-anchor="start" fill="#F7F3E8" font-size="28" font-weight="800">CODEX PROVE · 交给它之后，怎么做</text>
 <rect x="56" y="94" width="1088" height="66" rx="14" fill="#0B1020" stroke="#9AA6B8" stroke-width="2"/>
-<text x="80" y="121" text-anchor="start" fill="#F7F3E8" font-size="23" font-weight="800">小任务</text>
+<text x="80" y="121" text-anchor="start" fill="#F7F3E8" font-size="23" font-weight="800">小任务 · Direct</text>
 <text x="80" y="147" text-anchor="start" fill="#9AA6B8" font-size="18" font-weight="600">当前 Codex 直接做</text>
 <path d="M392 127H830" fill="none" stroke="#FF6B3D" stroke-width="3" marker-end="url(#task-arrow)"/>
 <text x="1108" y="134" text-anchor="end" fill="#F7F3E8" font-size="20" font-weight="600">做好后回复你</text>
 <rect x="56" y="174" width="1088" height="66" rx="14" fill="#0B1020" stroke="#FF6B3D" stroke-width="2"/>
-<text x="80" y="201" text-anchor="start" fill="#FF6B3D" font-size="22" font-weight="800">讨论方案</text>
-<text x="80" y="227" text-anchor="start" fill="#9AA6B8" font-size="18" font-weight="600">先想清楚，暂时不改代码</text>
-<text x="534" y="213" text-anchor="middle" fill="#FF6B3D" font-size="24" font-weight="600">Astra · high</text>
+<text x="80" y="201" text-anchor="start" fill="#FF6B3D" font-size="22" font-weight="800">完整任务 · Solo</text>
+<text x="80" y="227" text-anchor="start" fill="#9AA6B8" font-size="18" font-weight="600">跨多个文件也不必拆开</text>
+<text x="534" y="213" text-anchor="middle" fill="#FF6B3D" font-size="24" font-weight="600">Sol 6.1 · high</text>
 <path d="M666 207H830" fill="none" stroke="#FF6B3D" stroke-width="3" marker-end="url(#task-arrow)"/>
-<text x="1108" y="214" text-anchor="end" fill="#F7F3E8" font-size="20" font-weight="600">给你方案和建议</text>
-<text x="82" y="282" text-anchor="start" fill="#F7F3E8" font-size="22" font-weight="800">需要动手时</text>
+<text x="1108" y="214" text-anchor="end" fill="#F7F3E8" font-size="20" font-weight="600">规划、实现、检查</text>
+<text x="82" y="282" text-anchor="start" fill="#F7F3E8" font-size="22" font-weight="800">独立工作值得并行时 · Coordinated</text>
 <path id="task-path-1" data-flow="task" data-from="prove-controller" data-to="prove-specialist-worker" d="M284 363H328V320H430" fill="none" stroke="#FF6B3D" stroke-width="3" marker-end="url(#task-arrow)"/>
 <path id="evidence-path-1" data-flow="evidence" data-from="prove-specialist-worker" data-to="prove-controller" d="M430 343H352V397H284" fill="none" stroke="#8FA7FF" stroke-width="2.5" stroke-dasharray="5 7" marker-end="url(#evidence-arrow)"/>
 <path id="task-path-2" data-flow="task" data-from="prove-controller" data-to="prove-complex-worker" d="M284 363H328V408H430" fill="none" stroke="#FF6B3D" stroke-width="3" marker-end="url(#task-arrow)"/>
 <path id="evidence-path-2" data-flow="evidence" data-from="prove-complex-worker" data-to="prove-controller" d="M430 431H352V397H284" fill="none" stroke="#8FA7FF" stroke-width="2.5" stroke-dasharray="5 7" marker-end="url(#evidence-arrow)"/>
 <path id="task-path-3" data-flow="task" data-from="prove-controller" data-to="prove-efficient-worker" d="M284 363H328V496H430" fill="none" stroke="#FF6B3D" stroke-width="3" marker-end="url(#task-arrow)"/>
 <path id="evidence-path-3" data-flow="evidence" data-from="prove-efficient-worker" data-to="prove-controller" d="M430 519H352V397H284" fill="none" stroke="#8FA7FF" stroke-width="2.5" stroke-dasharray="5 7" marker-end="url(#evidence-arrow)"/>
-<g id="prove-controller" data-model="gpt-6-astra"><rect x="80" y="332" width="204" height="100" rx="14" fill="#0B1020" stroke="#FF6B3D" stroke-width="2"/><text x="182" y="370" text-anchor="middle" fill="#FF6B3D" font-size="24" font-weight="800">GPT-6 ASTRA</text><text x="182" y="403" text-anchor="middle" fill="#F7F3E8" font-size="20" font-weight="600">主控 · high</text></g>
-<g id="prove-specialist-worker" data-model="gpt-6-sol"><rect x="430" y="300" width="282" height="64" rx="14" fill="#0B1020" stroke="#8FA7FF" stroke-width="2"/><text x="452" y="327" text-anchor="start" fill="#8FA7FF" font-size="23" font-weight="800">SOL · 解决难题</text><text x="452" y="351" text-anchor="start" fill="#F7F3E8" font-size="18" font-weight="600">GPT-6 · high</text></g>
-<g id="prove-complex-worker" data-model="gpt-5.6-terra"><rect x="430" y="388" width="282" height="64" rx="14" fill="#0B1020" stroke="#F7F3E8" stroke-width="2"/><text x="452" y="415" text-anchor="start" fill="#F7F3E8" font-size="23" font-weight="800">TERRA · 常规开发</text><text x="452" y="439" text-anchor="start" fill="#F7F3E8" font-size="18" font-weight="600">GPT-5.6 · high</text></g>
+<g id="prove-controller" data-model="gpt-6.1-sol"><rect x="80" y="332" width="204" height="100" rx="14" fill="#0B1020" stroke="#FF6B3D" stroke-width="2"/><text x="182" y="370" text-anchor="middle" fill="#FF6B3D" font-size="24" font-weight="800">GPT-6.1 SOL</text><text x="182" y="403" text-anchor="middle" fill="#F7F3E8" font-size="20" font-weight="600">协调 · high</text></g>
+<g id="prove-specialist-worker" data-model="gpt-6-astra"><rect x="430" y="300" width="282" height="64" rx="14" fill="#0B1020" stroke="#8FA7FF" stroke-width="2"/><text x="452" y="327" text-anchor="start" fill="#8FA7FF" font-size="23" font-weight="800">ASTRA · 只读咨询</text><text x="452" y="351" text-anchor="start" fill="#F7F3E8" font-size="18" font-weight="600">GPT-6 · high</text></g>
+<g id="prove-complex-worker" data-model="gpt-6.1-sol"><rect x="430" y="388" width="282" height="64" rx="14" fill="#0B1020" stroke="#F7F3E8" stroke-width="2"/><text x="452" y="415" text-anchor="start" fill="#F7F3E8" font-size="23" font-weight="800">SOL · 独立模块</text><text x="452" y="439" text-anchor="start" fill="#F7F3E8" font-size="18" font-weight="600">GPT-6.1 · high</text></g>
 <g id="prove-efficient-worker" data-model="gpt-6-luna"><rect x="430" y="476" width="282" height="64" rx="14" fill="#0B1020" stroke="#65D6C4" stroke-width="2"/><text x="452" y="503" text-anchor="start" fill="#65D6C4" font-size="23" font-weight="800">LUNA · 批量处理</text><text x="452" y="527" text-anchor="start" fill="#F7F3E8" font-size="18" font-weight="600">GPT-6 · max</text></g>
 <text x="182" y="465" text-anchor="middle" fill="#FF6B3D" font-size="18" font-weight="600">实线：派发任务</text>
 <text x="182" y="493" text-anchor="middle" fill="#8FA7FF" font-size="18" font-weight="600">虚线：返回结果</text>
 <rect x="766" y="300" width="350" height="240" rx="14" fill="#0B1020" stroke="#8FA7FF" stroke-width="2"/>
 <text x="941" y="337" text-anchor="middle" fill="#F7F3E8" font-size="22" font-weight="800">做完，再一起检查</text>
 <text x="941" y="375" text-anchor="middle" fill="#65D6C4" font-size="24" font-weight="800">代码 · 测试 · 需求</text>
-<text x="941" y="411" text-anchor="middle" fill="#F7F3E8" font-size="20" font-weight="600">Astra 检查有没有漏项</text>
+<text x="941" y="411" text-anchor="middle" fill="#F7F3E8" font-size="20" font-weight="600">Sol 对照需求与真实证据</text>
 <text x="941" y="443" text-anchor="middle" fill="#F7F3E8" font-size="20" font-weight="600">当前 Codex 汇总结果</text>
 <text x="817" y="499" text-anchor="middle" fill="#65D6C4" font-size="22" font-weight="800">完成</text>
 <text x="926" y="499" text-anchor="middle" fill="#FF6B3D" font-size="22" font-weight="800">修正</text>
 <text x="1045" y="499" text-anchor="middle" fill="#8FA7FF" font-size="22" font-weight="800">需要你</text>
-<text x="80" y="561" text-anchor="start" fill="#F7F3E8" font-size="21" font-weight="600">只开需要的子代理 · 独立任务一起做 · 依赖任务按顺序</text>
+<text x="80" y="561" text-anchor="start" fill="#F7F3E8" font-size="21" font-weight="600">只讨论方案？Assist 只分析不改代码 · 按需咨询 Astra</text>
 <path d="M80 575H1116" stroke="#9AA6B8" stroke-opacity="0.35" stroke-width="2"/>
 <text x="80" y="603" text-anchor="start" fill="#65D6C4" font-size="21" font-weight="600">同一个文件，一次只交给一个子代理</text>
 </svg>

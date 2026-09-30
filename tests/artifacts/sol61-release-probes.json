@@ -1,0 +1,571 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-30",
+  "purpose": "Bounded local release preparation; not a benchmark or release approval",
+  "source_baseline": "a30e84c581a357b6cd5f1f6eb9f2c4a3f73c19d4",
+  "source_runtime_sha256": {
+    ".agents/skills/codex-prove/SKILL.md": "18de108833f3b28edf2298067ee5ca35dfb636793253a8567e18e39c95ea658f",
+    ".agents/skills/codex-prove/agents/openai.yaml": "85fb79b39a6dcd7078bb4cd8aa502a68a6fb2490af4f503d019183b4ae622a0a",
+    ".agents/skills/codex-prove/references/orchestration.md": "38a0fdddb9cce93d84ee86bc95d692efdda4a598c33e52400be1641fc849000f",
+    ".agents/skills/codex-prove/references/ponytail-license.txt": "ffc6f98c0e8e03c8eafe92f63c6f03ec517d860bccd833e16a1a8aa1d4b6ec95",
+    ".agents/skills/codex-prove/references/runtime-notes.md": "d6271c0fa195f3f69358ec5830114a6023494100058ae0c87d10c963a5511b75",
+    ".codex/agents/prove-complex-worker.toml": "242c635d0ea83d40dde2fdddaef0958acfd496aeeef32be937ebd70222bbc2e0",
+    ".codex/agents/prove-controller.toml": "1e0bca0e020142bebf884be12e99d1f9c442cc3bc7ed81e9d65609d387503d6a",
+    ".codex/agents/prove-efficient-worker.toml": "db8ab0dfe1a0d26eac6731fbf63027c9b47f0058eddc5a8040b7107ca484245d",
+    ".codex/agents/prove-specialist-worker.toml": "5287254e348d776701163162962171d80f137ed32aaff04d10a988cfafd82fe8"
+  },
+  "cli_version": "codex-cli 0.159.2",
+  "cli_trials": [
+    {
+      "id": "direct",
+      "thread_id": "01a0f202-eb35-75a1-b5eb-65489bec9cb2",
+      "selected_host": {
+        "model": "gpt-6.1-sol",
+        "effort": "high",
+        "selection_source": "recorded CLI arguments"
+      },
+      "requested_sandbox": "workspace-write",
+      "configured_subagent_limit": 2,
+      "route": "Direct",
+      "result": {
+        "exit_code": 0,
+        "timed_out": false,
+        "elapsed_seconds": 91.451,
+        "net_changes": [
+          "metadata.json"
+        ]
+      },
+      "prompt": "$codex-prove 请使用当前项目 .agents/skills/codex-prove/SKILL.md。把 metadata.json 的 schema 从 1 改成 2，其余内容不变，检查后交付。\n\n这是一次获准的临时项目验证，只允许修改 metadata.json。不要修改用户全局配置、安装任何东西、联网、发布、创建独立聊天或触碰这个临时项目外的业务文件。现有 user-notes.txt 要原样保留。\n\n另外请在最终结果里列出当前运行时工具声明中可见的四个 prove-* 角色及其 model/effort。这个附加问题只检查新会话发现，不需要启动这些角色；若工具声明未暴露某项，写 unknown，不要读 TOML 后把配置意图当作工具声明。完成任务仍需读取适用 Skill。\n",
+      "prompt_sha256": "2ee00313bb6f9afc52081c98fec2d892a9044e4cc279fe65cf95dad312768e01",
+      "initial_files": {
+        ".agents": "directory",
+        ".agents/skills": "directory",
+        ".agents/skills/codex-prove": "directory",
+        ".agents/skills/codex-prove/SKILL.md": "18de108833f3b28edf2298067ee5ca35dfb636793253a8567e18e39c95ea658f",
+        ".agents/skills/codex-prove/agents": "directory",
+        ".agents/skills/codex-prove/agents/openai.yaml": "85fb79b39a6dcd7078bb4cd8aa502a68a6fb2490af4f503d019183b4ae622a0a",
+        ".agents/skills/codex-prove/references": "directory",
+        ".agents/skills/codex-prove/references/orchestration.md": "38a0fdddb9cce93d84ee86bc95d692efdda4a598c33e52400be1641fc849000f",
+        ".agents/skills/codex-prove/references/ponytail-license.txt": "ffc6f98c0e8e03c8eafe92f63c6f03ec517d860bccd833e16a1a8aa1d4b6ec95",
+        ".agents/skills/codex-prove/references/runtime-notes.md": "d6271c0fa195f3f69358ec5830114a6023494100058ae0c87d10c963a5511b75",
+        ".agents/skills/sol-control": "directory",
+        ".agents/skills/sol-control/SKILL.md": "4d8f5a4e1131d1e45059e8f402e63ee7bca90d66d4a1948192e8c4b43d01f20c",
+        ".agents/skills/sol-control/agents": "directory",
+        ".agents/skills/sol-control/agents/openai.yaml": "4de77c8704a12646e8be94b90636dd00ff7f2dd7eec059bd16d6a64526d5a436",
+        ".codex": "directory",
+        ".codex/agents": "directory",
+        ".codex/agents/prove-complex-worker.toml": "242c635d0ea83d40dde2fdddaef0958acfd496aeeef32be937ebd70222bbc2e0",
+        ".codex/agents/prove-controller.toml": "1e0bca0e020142bebf884be12e99d1f9c442cc3bc7ed81e9d65609d387503d6a",
+        ".codex/agents/prove-efficient-worker.toml": "db8ab0dfe1a0d26eac6731fbf63027c9b47f0058eddc5a8040b7107ca484245d",
+        ".codex/agents/prove-specialist-worker.toml": "5287254e348d776701163162962171d80f137ed32aaff04d10a988cfafd82fe8",
+        "metadata.json": "ce7e7f20353dae6e4d38f9d699831f183d3cbccbfc6a53dc43c367aac6bedd41",
+        "user-notes.txt": "b9116686d0e6a15af9142a1e4669be67e9eca7e3eb041dc23ab620e46ff27628"
+      },
+      "final_files": {
+        ".agents": "directory",
+        ".agents/skills": "directory",
+        ".agents/skills/codex-prove": "directory",
+        ".agents/skills/codex-prove/SKILL.md": "18de108833f3b28edf2298067ee5ca35dfb636793253a8567e18e39c95ea658f",
+        ".agents/skills/codex-prove/agents": "directory",
+        ".agents/skills/codex-prove/agents/openai.yaml": "85fb79b39a6dcd7078bb4cd8aa502a68a6fb2490af4f503d019183b4ae622a0a",
+        ".agents/skills/codex-prove/references": "directory",
+        ".agents/skills/codex-prove/references/orchestration.md": "38a0fdddb9cce93d84ee86bc95d692efdda4a598c33e52400be1641fc849000f",
+        ".agents/skills/codex-prove/references/ponytail-license.txt": "ffc6f98c0e8e03c8eafe92f63c6f03ec517d860bccd833e16a1a8aa1d4b6ec95",
+        ".agents/skills/codex-prove/references/runtime-notes.md": "d6271c0fa195f3f69358ec5830114a6023494100058ae0c87d10c963a5511b75",
+        ".agents/skills/sol-control": "directory",
+        ".agents/skills/sol-control/SKILL.md": "4d8f5a4e1131d1e45059e8f402e63ee7bca90d66d4a1948192e8c4b43d01f20c",
+        ".agents/skills/sol-control/agents": "directory",
+        ".agents/skills/sol-control/agents/openai.yaml": "4de77c8704a12646e8be94b90636dd00ff7f2dd7eec059bd16d6a64526d5a436",
+        ".codex": "directory",
+        ".codex/agents": "directory",
+        ".codex/agents/prove-complex-worker.toml": "242c635d0ea83d40dde2fdddaef0958acfd496aeeef32be937ebd70222bbc2e0",
+        ".codex/agents/prove-controller.toml": "1e0bca0e020142bebf884be12e99d1f9c442cc3bc7ed81e9d65609d387503d6a",
+        ".codex/agents/prove-efficient-worker.toml": "db8ab0dfe1a0d26eac6731fbf63027c9b47f0058eddc5a8040b7107ca484245d",
+        ".codex/agents/prove-specialist-worker.toml": "5287254e348d776701163162962171d80f137ed32aaff04d10a988cfafd82fe8",
+        "metadata.json": "ee17fc1ba716f0111066b547eca2618ea7f4d3c5f1c8842d81a25ddd571f8471",
+        "user-notes.txt": "b9116686d0e6a15af9142a1e4669be67e9eca7e3eb041dc23ab620e46ff27628"
+      },
+      "raw_archive_sha256": {
+        "runtime.stderr": "5538b3bee53ef8e0091ad881ce59b8b6499d5a93ab46786d9af3876629322cdd",
+        "result.json": "fb5d7e5f99137bc80c685d4df06f7d6142dce4273fbf349a163c071b1f28ab3c",
+        "final.txt": "eda36263b0ffc1056922d5f8201f30390587f066cb0145c207af5c75ef433bbf",
+        "prompt.txt": "2ee00313bb6f9afc52081c98fec2d892a9044e4cc279fe65cf95dad312768e01",
+        "events.jsonl": "d440fcffa7bc418c3884ebfe7c923e1003fbc2c29da34d2eb9bee62873531cb6",
+        "invocation.json": "73d7174a8e100187fa89fc587f4737e47a9fbb55c748a2946b24692c2aa2e0be"
+      },
+      "final_message": "PASS。已按项目 `codex-prove` Skill 使用 Direct 流程，仅将 [metadata.json](/private/tmp/prove-sol61-release.VPep3p/direct/metadata.json) 的 `schema` 从 `1` 改为 `2`。\n\n核验退出码为 `0`：其余字节不变，`user-notes.txt` 原样保留；项目未新增或删除文件。未启动子代理、安装、联网或发布。\n\n当前运行时工具声明中的角色如下，仅依据工具声明：\n\n| 角色 | model | effort |\n|---|---|---|\n| `prove-controller` | `gpt-6-astra` | `high` |\n| `prove-complex-worker` | `gpt-5.6-terra` | `high` |\n| `prove-specialist-worker` | `gpt-6-sol` | `high` |\n| `prove-efficient-worker` | `gpt-6-luna` | `max` |",
+      "protocol_snapshot_matches_source": true,
+      "configuration_warning": "An invocation-local projects.trust_level override was ignored; removed for subsequent trials. Project candidate role discovery did not succeed."
+    },
+    {
+      "id": "solo",
+      "thread_id": "01a0f207-e26b-7222-8b5c-b3bb3163f736",
+      "selected_host": {
+        "model": "gpt-6.1-sol",
+        "effort": "high",
+        "selection_source": "recorded CLI arguments"
+      },
+      "requested_sandbox": "workspace-write",
+      "configured_subagent_limit": 2,
+      "route": "Solo, interrupted",
+      "result": {
+        "exit_code": -9,
+        "timed_out": true,
+        "elapsed_seconds": 240.02,
+        "net_changes": [
+          "cli.py",
+          "test_totals_validation.py",
+          "totals.py"
+        ]
+      },
+      "prompt": "使用本项目 .agents/skills/codex-prove 的 $codex-prove 完成这个 CSV 汇总工具改进。金额用十进制精确相加，输出 JSON 金额固定为两位小数字符串，分类去掉首尾空白，JSON 键按升序。允许负金额；空数据返回空对象。非数字、非有限数字、超过两位小数、空分类、缺失必需列或额外列均报错。命令行出错返回码 2，只向 stderr 写简短错误，不留部分 stdout，不打印 traceback。保留现有输入方式，无第三方依赖。\n在这个隔离目录内实现 totals.py 和 cli.py，可添加必要测试，但不要改动已有 test_totals.py、user-notes.txt 或 Skill/配置。运行测试并核对实际改动。不要安装、联网、改全局配置或提交。该会话实际以 gpt-6.1-sol / high 启动；不要根据角色文件声称子代理已运行。最后说明实际采用的路由和验证结果。\n",
+      "prompt_sha256": "0f801284e93e643944c3f7bdee72591bf7f20c0eb0b03988852a9a0e71984f86",
+      "initial_files": {
+        ".agents": "directory",
+        ".agents/skills": "directory",
+        ".agents/skills/codex-prove": "directory",
+        ".agents/skills/codex-prove/SKILL.md": "18de108833f3b28edf2298067ee5ca35dfb636793253a8567e18e39c95ea658f",
+        ".agents/skills/codex-prove/agents": "directory",
+        ".agents/skills/codex-prove/agents/openai.yaml": "85fb79b39a6dcd7078bb4cd8aa502a68a6fb2490af4f503d019183b4ae622a0a",
+        ".agents/skills/codex-prove/references": "directory",
+        ".agents/skills/codex-prove/references/orchestration.md": "38a0fdddb9cce93d84ee86bc95d692efdda4a598c33e52400be1641fc849000f",
+        ".agents/skills/codex-prove/references/ponytail-license.txt": "ffc6f98c0e8e03c8eafe92f63c6f03ec517d860bccd833e16a1a8aa1d4b6ec95",
+        ".agents/skills/codex-prove/references/runtime-notes.md": "d6271c0fa195f3f69358ec5830114a6023494100058ae0c87d10c963a5511b75",
+        ".codex": "directory",
+        ".codex/agents": "directory",
+        ".codex/agents/prove-complex-worker.toml": "242c635d0ea83d40dde2fdddaef0958acfd496aeeef32be937ebd70222bbc2e0",
+        ".codex/agents/prove-controller.toml": "1e0bca0e020142bebf884be12e99d1f9c442cc3bc7ed81e9d65609d387503d6a",
+        ".codex/agents/prove-efficient-worker.toml": "db8ab0dfe1a0d26eac6731fbf63027c9b47f0058eddc5a8040b7107ca484245d",
+        ".codex/agents/prove-specialist-worker.toml": "5287254e348d776701163162962171d80f137ed32aaff04d10a988cfafd82fe8",
+        "cli.py": "72433b6e51fc68de66485e1bdec29ea8fa5d95b6f9ba50ea43dcd91c09c45de4",
+        "test_totals.py": "c2aba5af41ac24da131837f4cba604a83c9cd2a7581d5d723449e949b4ed1ab6",
+        "totals.py": "8a5d09e55d28187a8c4497c6395408ccee4cc7ce17bf79096b073faf35b2f1a5",
+        "user-notes.txt": "2f4a57332fdaf266574e2b1ce9337118db906b047611018ead7cfa93e47103ec"
+      },
+      "final_files": {
+        ".agents": "directory",
+        ".agents/skills": "directory",
+        ".agents/skills/codex-prove": "directory",
+        ".agents/skills/codex-prove/SKILL.md": "18de108833f3b28edf2298067ee5ca35dfb636793253a8567e18e39c95ea658f",
+        ".agents/skills/codex-prove/agents": "directory",
+        ".agents/skills/codex-prove/agents/openai.yaml": "85fb79b39a6dcd7078bb4cd8aa502a68a6fb2490af4f503d019183b4ae622a0a",
+        ".agents/skills/codex-prove/references": "directory",
+        ".agents/skills/codex-prove/references/orchestration.md": "38a0fdddb9cce93d84ee86bc95d692efdda4a598c33e52400be1641fc849000f",
+        ".agents/skills/codex-prove/references/ponytail-license.txt": "ffc6f98c0e8e03c8eafe92f63c6f03ec517d860bccd833e16a1a8aa1d4b6ec95",
+        ".agents/skills/codex-prove/references/runtime-notes.md": "d6271c0fa195f3f69358ec5830114a6023494100058ae0c87d10c963a5511b75",
+        ".codex": "directory",
+        ".codex/agents": "directory",
+        ".codex/agents/prove-complex-worker.toml": "242c635d0ea83d40dde2fdddaef0958acfd496aeeef32be937ebd70222bbc2e0",
+        ".codex/agents/prove-controller.toml": "1e0bca0e020142bebf884be12e99d1f9c442cc3bc7ed81e9d65609d387503d6a",
+        ".codex/agents/prove-efficient-worker.toml": "db8ab0dfe1a0d26eac6731fbf63027c9b47f0058eddc5a8040b7107ca484245d",
+        ".codex/agents/prove-specialist-worker.toml": "5287254e348d776701163162962171d80f137ed32aaff04d10a988cfafd82fe8",
+        "cli.py": "609b17a2bb029250de5f10b2107f13a031aea2664a24afa126c316e806cdba31",
+        "test_totals.py": "c2aba5af41ac24da131837f4cba604a83c9cd2a7581d5d723449e949b4ed1ab6",
+        "test_totals_validation.py": "aac1d18707ddcba3c7b8ff3cb90d3701c99e56cd55b4883c3ceb75acfe3c44bf",
+        "totals.py": "dd592c923b07109dad5f96405499e7b8bdbe7608a1c1eebbde99cc41d1f689d1",
+        "user-notes.txt": "2f4a57332fdaf266574e2b1ce9337118db906b047611018ead7cfa93e47103ec"
+      },
+      "raw_archive_sha256": {
+        "runtime.stderr": "7e4304588415aac4db3e811a7742377eb7c7fa25d54389cd195dbc2755a57e97",
+        "result.json": "8bb223c471b85b9dcbde1348385210d0bf8fab6638233de437208d304cc7df03",
+        "prompt.txt": "0f801284e93e643944c3f7bdee72591bf7f20c0eb0b03988852a9a0e71984f86",
+        "events.jsonl": "da89a46688d8554f63588e2ae9c93f803e4b2eac00297a78b32baf571e86c782",
+        "invocation.json": "b1f76bd4b1f6ed34b2bd40eedbb1aff70c9ec12323dbd48d49ec6cb6969ee601"
+      },
+      "final_message": null,
+      "protocol_snapshot_matches_source": true
+    },
+    {
+      "id": "solo-recovery",
+      "thread_id": "01a0f20d-e9bb-7ed3-ba58-11179685c8a9",
+      "selected_host": {
+        "model": "gpt-6.1-sol",
+        "effort": "high",
+        "selection_source": "recorded CLI arguments"
+      },
+      "requested_sandbox": "workspace-write",
+      "configured_subagent_limit": 2,
+      "route": "Resume current Solo candidate",
+      "result": {
+        "exit_code": 0,
+        "timed_out": false,
+        "elapsed_seconds": 151.512,
+        "net_changes": [
+          "test_totals_validation.py",
+          "totals.py"
+        ]
+      },
+      "prompt": "使用本项目 .agents/skills/codex-prove 的 $codex-prove 继续 CSV 汇总任务。上一轮 gpt-6.1-sol/high 在 240 秒限时结束，Host 已停止该次 CLI 进程组；这不是完成证明。现有 totals.py、cli.py 和新增 test_totals_validation.py 是要保留的当前候选，不要重写整个实现。\n原任务：十进制精确汇总、分类 trim、键排序、金额两位字符串；拒绝非数字/非有限/超过两位小数/空分类/缺列/额外列；CLI 失败码 2、只写简短 stderr、无部分 stdout 或 traceback。无第三方依赖。空数据返回空对象。\n最新实际检查：python3 -B -m unittest -v 共16项，原有7项全部通过，新增 test_empty_input_and_blank_lines 的输入 '\\n\\n' 报 expected category and amount columns，其余通过。上一轮已指出要修复此处，但未完成。\n写入权现在转交给你，范围仅 totals.py、cli.py、test_totals_validation.py。保留原有 test_totals.py、user-notes.txt、Skill/配置不变。先确认没有旧任务的活跃写入进程，再修复具体失败并检查真实文件、全套测试及改动范围。不要创建子代理、安装、联网、改全局配置或提交。最后报告具体证据及仍未覆盖的边界。总时间最多180秒。\n",
+      "prompt_sha256": "6b00b150db8d9e6bce27f5e1b64d9b640456ca9e77a20c83f3475fe894a41995",
+      "initial_files": {
+        ".agents": "directory",
+        ".agents/skills": "directory",
+        ".agents/skills/codex-prove": "directory",
+        ".agents/skills/codex-prove/SKILL.md": "18de108833f3b28edf2298067ee5ca35dfb636793253a8567e18e39c95ea658f",
+        ".agents/skills/codex-prove/agents": "directory",
+        ".agents/skills/codex-prove/agents/openai.yaml": "85fb79b39a6dcd7078bb4cd8aa502a68a6fb2490af4f503d019183b4ae622a0a",
+        ".agents/skills/codex-prove/references": "directory",
+        ".agents/skills/codex-prove/references/orchestration.md": "38a0fdddb9cce93d84ee86bc95d692efdda4a598c33e52400be1641fc849000f",
+        ".agents/skills/codex-prove/references/ponytail-license.txt": "ffc6f98c0e8e03c8eafe92f63c6f03ec517d860bccd833e16a1a8aa1d4b6ec95",
+        ".agents/skills/codex-prove/references/runtime-notes.md": "d6271c0fa195f3f69358ec5830114a6023494100058ae0c87d10c963a5511b75",
+        ".codex": "directory",
+        ".codex/agents": "directory",
+        ".codex/agents/prove-complex-worker.toml": "242c635d0ea83d40dde2fdddaef0958acfd496aeeef32be937ebd70222bbc2e0",
+        ".codex/agents/prove-controller.toml": "1e0bca0e020142bebf884be12e99d1f9c442cc3bc7ed81e9d65609d387503d6a",
+        ".codex/agents/prove-efficient-worker.toml": "db8ab0dfe1a0d26eac6731fbf63027c9b47f0058eddc5a8040b7107ca484245d",
+        ".codex/agents/prove-specialist-worker.toml": "5287254e348d776701163162962171d80f137ed32aaff04d10a988cfafd82fe8",
+        "cli.py": "609b17a2bb029250de5f10b2107f13a031aea2664a24afa126c316e806cdba31",
+        "test_totals.py": "c2aba5af41ac24da131837f4cba604a83c9cd2a7581d5d723449e949b4ed1ab6",
+        "test_totals_validation.py": "aac1d18707ddcba3c7b8ff3cb90d3701c99e56cd55b4883c3ceb75acfe3c44bf",
+        "totals.py": "dd592c923b07109dad5f96405499e7b8bdbe7608a1c1eebbde99cc41d1f689d1",
+        "user-notes.txt": "2f4a57332fdaf266574e2b1ce9337118db906b047611018ead7cfa93e47103ec"
+      },
+      "final_files": {
+        ".agents": "directory",
+        ".agents/skills": "directory",
+        ".agents/skills/codex-prove": "directory",
+        ".agents/skills/codex-prove/SKILL.md": "18de108833f3b28edf2298067ee5ca35dfb636793253a8567e18e39c95ea658f",
+        ".agents/skills/codex-prove/agents": "directory",
+        ".agents/skills/codex-prove/agents/openai.yaml": "85fb79b39a6dcd7078bb4cd8aa502a68a6fb2490af4f503d019183b4ae622a0a",
+        ".agents/skills/codex-prove/references": "directory",
+        ".agents/skills/codex-prove/references/orchestration.md": "38a0fdddb9cce93d84ee86bc95d692efdda4a598c33e52400be1641fc849000f",
+        ".agents/skills/codex-prove/references/ponytail-license.txt": "ffc6f98c0e8e03c8eafe92f63c6f03ec517d860bccd833e16a1a8aa1d4b6ec95",
+        ".agents/skills/codex-prove/references/runtime-notes.md": "d6271c0fa195f3f69358ec5830114a6023494100058ae0c87d10c963a5511b75",
+        ".codex": "directory",
+        ".codex/agents": "directory",
+        ".codex/agents/prove-complex-worker.toml": "242c635d0ea83d40dde2fdddaef0958acfd496aeeef32be937ebd70222bbc2e0",
+        ".codex/agents/prove-controller.toml": "1e0bca0e020142bebf884be12e99d1f9c442cc3bc7ed81e9d65609d387503d6a",
+        ".codex/agents/prove-efficient-worker.toml": "db8ab0dfe1a0d26eac6731fbf63027c9b47f0058eddc5a8040b7107ca484245d",
+        ".codex/agents/prove-specialist-worker.toml": "5287254e348d776701163162962171d80f137ed32aaff04d10a988cfafd82fe8",
+        "cli.py": "609b17a2bb029250de5f10b2107f13a031aea2664a24afa126c316e806cdba31",
+        "test_totals.py": "c2aba5af41ac24da131837f4cba604a83c9cd2a7581d5d723449e949b4ed1ab6",
+        "test_totals_validation.py": "4a62af460e12e2023f83d662990f2347f37640c7a7b83f49f521c6a9c68d29dd",
+        "totals.py": "8836d7bf282383f45671eef70ed376e1a8bbee80eddd7003fa964b42b43a64ec",
+        "user-notes.txt": "2f4a57332fdaf266574e2b1ce9337118db906b047611018ead7cfa93e47103ec"
+      },
+      "raw_archive_sha256": {
+        "runtime.stderr": "5a46ba15374b8795da7f16ebb2523498ef0fa3b918bf0a14460ecd30d512dabb",
+        "result.json": "5df2d8ec4de7a2d47d5dacfa3f91f5a6bb062e07ffbc6efd39bf9c8f6c038e91",
+        "final.txt": "dd63db3e433d11a0ae72ed9963a01681c0d5d2d96cb4c77a137cdf2a296fbac3",
+        "prompt.txt": "6b00b150db8d9e6bce27f5e1b64d9b640456ca9e77a20c83f3475fe894a41995",
+        "events.jsonl": "04c1dd4ecbfebf12457d49d48cd0588c6cdac245bea645f50e7061ba1812d150",
+        "invocation.json": "c00175efec6d1c93c212f47ef49f8905a5bb44d8dea38968b30f44c8645f32a9"
+      },
+      "final_message": "**PASS（本次修复及已验证范围）**。保留现有实现，仅增加跳过开头空行的处理及回归用例。\n\n- 交接候选可复现 `'\\n\\n'` 报错；修复后返回 `{}`。\n- `python3 -B -m unittest -v`：16 项全部通过，退出码 0；包含原有 7 项及 CLI 失败输出检查。\n- 已检查真实文件和交接差异；仅修改 `totals.py`、`test_totals_validation.py`。`cli.py`、原测试、笔记、Skill 和配置哈希不变。\n- 未创建子代理、安装、联网、改全局配置或提交。\n\n限制：沙箱拒绝 `ps`，旧进程停止依据是你提供的 Host 终止确认，未能独立复核。尚未覆盖极端金额/指数的资源边界、编码异常及输出管道故障。",
+      "protocol_snapshot_matches_source": true
+    },
+    {
+      "id": "coordinated",
+      "thread_id": "01a0f20f-2aea-7700-9739-a912fcc26bed",
+      "selected_host": {
+        "model": "gpt-6.1-sol",
+        "effort": "high",
+        "selection_source": "recorded CLI arguments"
+      },
+      "requested_sandbox": "workspace-write",
+      "configured_subagent_limit": 2,
+      "route": "Forced collaborative topology; incomplete",
+      "result": {
+        "exit_code": 0,
+        "timed_out": false,
+        "elapsed_seconds": 422.038,
+        "net_changes": [
+          "ranges.py",
+          "tags.py"
+        ]
+      },
+      "prompt": "用本项目 .agents/skills/codex-prove 的 $codex-prove 做一次有边界的协作实跑。此请求特意要求测试协作路径，不是“这种小项目自然需要四个子代理”的证明。你是以 gpt-6.1-sol/high 启动的 Host，复用自己为控制者；不要另开规划代理。最多同时2个子代理，共最多4次初始子代理启动，不要安装/联网/写全局配置/提交。\n先读 Skill 与委派所需参考，然后给两个相互独立的实现分别启动全新 Sol 6.1/high，确实并行推进，各自只有一个写入负责人：\n1. tags.py 的 normalize 接受 list[str]，strip 后 casefold，丢弃空项，去重并保留首次出现顺序；错误类型（含非list）ValueError；不改输入。只能写 tags.py。\n2. ranges.py 的 merge 接受 list[tuple[int,int]]，两端都是严格int（不含bool），start<=end；错误类型或形状ValueError。按起点排序合并重叠或相触区间，不合并有间隔的区间，不改输入。只能写 ranges.py。\n有容量时，把 batch.json 的8条记录作为一个机械批量交给全新 Luna/max：只将 status=draft 改成 ready，其他值、顺序和字段不变。只能写 batch.json。这个小批量是运行验证，不作为效率结论。\n实现完成后，必须请一个全新 Astra/high 做一次独立只读风险检查，问题限定为“输入类型校验或Unicode归一化是否会让测试通过却违反需求”。只能读取这3个结果和 test_contract.py，可运行只读检查；不能写文件、不能调度或批准整轮。没有具体缺陷即可返回无发现，不要为演示编造问题。\n四个角色按 .codex/agents 对应配置的 developer_instructions 执行，附加明确任务权限。当前工具声明如仍是旧自定义角色映射，按 runtime-notes 允许的 explicit-profile 路径，用全新 generic agent 明确指定上述精确模型和effort，记录为 explicit-profile，不得冒称自定义角色加载成功。如精确选择不支持就报告能力缺口，不可悄悄换模型。各worker不得委派；告知他们不是唯一工作者，不要还原别人改动。\n保护 test_contract.py、user-notes.txt、Skill和角色文件。Host不得同时重做workers拥有的实现；最终自己验收真实文件和完整 python -B -m unittest -v 的结果及改动范围，不另开重复验收代理。最后给实际launch模型/effort/权限、调用路径、任务覆盖和PASS/FIX/BLOCKED，并说明本次能证明和不能证明什么。\n",
+      "prompt_sha256": "eb129a7f8d89bbe503baeeef9a2c84d83dd53da7d3d4c66d54f0d116bc0750f0",
+      "initial_files": {
+        ".agents": "directory",
+        ".agents/skills": "directory",
+        ".agents/skills/codex-prove": "directory",
+        ".agents/skills/codex-prove/SKILL.md": "18de108833f3b28edf2298067ee5ca35dfb636793253a8567e18e39c95ea658f",
+        ".agents/skills/codex-prove/agents": "directory",
+        ".agents/skills/codex-prove/agents/openai.yaml": "85fb79b39a6dcd7078bb4cd8aa502a68a6fb2490af4f503d019183b4ae622a0a",
+        ".agents/skills/codex-prove/references": "directory",
+        ".agents/skills/codex-prove/references/orchestration.md": "38a0fdddb9cce93d84ee86bc95d692efdda4a598c33e52400be1641fc849000f",
+        ".agents/skills/codex-prove/references/ponytail-license.txt": "ffc6f98c0e8e03c8eafe92f63c6f03ec517d860bccd833e16a1a8aa1d4b6ec95",
+        ".agents/skills/codex-prove/references/runtime-notes.md": "d6271c0fa195f3f69358ec5830114a6023494100058ae0c87d10c963a5511b75",
+        ".codex": "directory",
+        ".codex/agents": "directory",
+        ".codex/agents/prove-complex-worker.toml": "242c635d0ea83d40dde2fdddaef0958acfd496aeeef32be937ebd70222bbc2e0",
+        ".codex/agents/prove-controller.toml": "1e0bca0e020142bebf884be12e99d1f9c442cc3bc7ed81e9d65609d387503d6a",
+        ".codex/agents/prove-efficient-worker.toml": "db8ab0dfe1a0d26eac6731fbf63027c9b47f0058eddc5a8040b7107ca484245d",
+        ".codex/agents/prove-specialist-worker.toml": "5287254e348d776701163162962171d80f137ed32aaff04d10a988cfafd82fe8",
+        "batch.json": "30c983fa04308f847c9a27c052e6401446dd4e4911b72094ffe5129088da75f2",
+        "ranges.py": "cc2fc183151704078dcfd6e9af29e2c20d6f21641ae83130f998c7822e83d0d7",
+        "tags.py": "f6b467b5112c56351dd95ef325a9748c15a19705ebde1282163f8f2280b311e8",
+        "test_contract.py": "6f9f583f229bd465841441d4e449e175539dd85ae3fa24b6d0dd956f37d2aae9",
+        "user-notes.txt": "48e07b5dab67b65cbe4e54d11e8a7a984702f81e56ea80da22c757fc9c6c7556"
+      },
+      "final_files": {
+        ".agents": "directory",
+        ".agents/skills": "directory",
+        ".agents/skills/codex-prove": "directory",
+        ".agents/skills/codex-prove/SKILL.md": "18de108833f3b28edf2298067ee5ca35dfb636793253a8567e18e39c95ea658f",
+        ".agents/skills/codex-prove/agents": "directory",
+        ".agents/skills/codex-prove/agents/openai.yaml": "85fb79b39a6dcd7078bb4cd8aa502a68a6fb2490af4f503d019183b4ae622a0a",
+        ".agents/skills/codex-prove/references": "directory",
+        ".agents/skills/codex-prove/references/orchestration.md": "38a0fdddb9cce93d84ee86bc95d692efdda4a598c33e52400be1641fc849000f",
+        ".agents/skills/codex-prove/references/ponytail-license.txt": "ffc6f98c0e8e03c8eafe92f63c6f03ec517d860bccd833e16a1a8aa1d4b6ec95",
+        ".agents/skills/codex-prove/references/runtime-notes.md": "d6271c0fa195f3f69358ec5830114a6023494100058ae0c87d10c963a5511b75",
+        ".codex": "directory",
+        ".codex/agents": "directory",
+        ".codex/agents/prove-complex-worker.toml": "242c635d0ea83d40dde2fdddaef0958acfd496aeeef32be937ebd70222bbc2e0",
+        ".codex/agents/prove-controller.toml": "1e0bca0e020142bebf884be12e99d1f9c442cc3bc7ed81e9d65609d387503d6a",
+        ".codex/agents/prove-efficient-worker.toml": "db8ab0dfe1a0d26eac6731fbf63027c9b47f0058eddc5a8040b7107ca484245d",
+        ".codex/agents/prove-specialist-worker.toml": "5287254e348d776701163162962171d80f137ed32aaff04d10a988cfafd82fe8",
+        "batch.json": "30c983fa04308f847c9a27c052e6401446dd4e4911b72094ffe5129088da75f2",
+        "ranges.py": "39686bd46481e7880d09ed22931f6a261dca00cbf4eb49833d9cb5054260abc1",
+        "tags.py": "06d61de981be7e1abb8f139b88361fb6cae79504c32726ff3dc6fc96cc59d316",
+        "test_contract.py": "6f9f583f229bd465841441d4e449e175539dd85ae3fa24b6d0dd956f37d2aae9",
+        "user-notes.txt": "48e07b5dab67b65cbe4e54d11e8a7a984702f81e56ea80da22c757fc9c6c7556"
+      },
+      "raw_archive_sha256": {
+        "runtime.stderr": "69cacc138ddad4d9b6e3d9191131e319b05cacc5bcc4bb606c9cc6761033c72e",
+        "result.json": "26a47fe1fc00d2d4edafa822b333aaba69d1a606ac002ed18ee065b751ae523c",
+        "final.txt": "4c5c6d20b2a58a9f26d7b85db538f30521c57175862a900bc569f62bcf76543e",
+        "prompt.txt": "eb129a7f8d89bbe503baeeef9a2c84d83dd53da7d3d4c66d54f0d116bc0750f0",
+        "events.jsonl": "11d2e39a7aae63beca4a7473ba9af9321943ee843263540ed26cde73073caf7b",
+        "invocation.json": "5a92860022a4c9ef99a0061011cb4e8db5983daf2ca99446e8df4341d3b0fc40"
+      },
+      "final_message": "**BLOCKED：两项实现通过验收，完整协作路径因线程容量受阻。**\n\n| 角色 | 实际模型 / effort | 调用路径与权限 | 结果 |\n|---|---|---|---|\n| Host 控制者 | gpt-6.1-sol / high（本轮启动设置） | 复用 Host；协调、读取、最终验收 | 已执行 |\n| tags Sol | gpt-6.1-sol / high | 全新 generic，`explicit-profile`；仅写 tags.py | PASS |\n| ranges Sol | gpt-6.1-sol / high | 全新 generic，`explicit-profile`；仅写 ranges.py | PASS |\n| batch Luna | 请求 gpt-6-luna / max | 全新 generic 启动被拒；计划仅写 batch.json | BLOCKED |\n| 风险检查 Astra | 未启动 | 要求 gpt-6-astra / high，仅只读指定四文件 | BLOCKED |\n\n两个 Sol 按对应配置的 `developer_instructions` 和任务权限执行，运行状态记录确认曾同时推进。共 **3 次初始启动调用、2 次成功**，最多同时两个子代理；未另开规划或验收代理。\n\nLuna 启动返回 `agent thread limit reached`。已完成的 agent 仍占线程，当前接口没有释放操作，因此无法继续启动全新 Luna、Astra；没有换模型或复用旧上下文冒充独立检查。\n\nHost 已检查真实文件、完整基线差异及验证后哈希：\n\n- tags、ranges 满足指定行为；补充类型、Unicode、相触/间隔、不改输入检查通过。\n- 完整 `python -B -m unittest -v`：**6 项，5 通过、1 失败，退出码 1**。失败为 `test_batch`，四条 draft 尚未修改。`python` 仅在当前 shell 映射到现有 python3。\n- 净改动仅 tags.py、ranges.py；保护文件、Skill、角色配置均未变，无新增文件。未安装、联网、写全局配置或提交。\n\n本次证明了指定 Sol 的显式选择、并行独立实现、单文件负责人和 Host 验收路径；**不能证明 Luna/Astra 实跑、完整四角色流程、强制文件隔离或效率优势**。独立风险检查尚缺，整轮不能判为 PASS。",
+      "protocol_snapshot_matches_source": true,
+      "child_selection_evidence_limit": "The CLI Host reports two explicit Sol launches and overlap, but this JSON event export omits raw collaboration calls. It does not provide independent replayable proof of child selection/concurrency."
+    },
+    {
+      "id": "recovery",
+      "thread_id": "01a0f212-95e5-7c23-a273-2f0397d25207",
+      "selected_host": {
+        "model": "gpt-6.1-sol",
+        "effort": "high",
+        "selection_source": "recorded CLI arguments"
+      },
+      "requested_sandbox": "workspace-write",
+      "configured_subagent_limit": 2,
+      "route": "Direct with a live old writer; correctly held scope",
+      "result": {
+        "exit_code": 0,
+        "timed_out": false,
+        "elapsed_seconds": 121.134,
+        "net_changes": [
+          "state.json"
+        ]
+      },
+      "prompt": "使用项目里的 $codex-prove 继续一项交接任务：目标是把 state.json 的 schema 从1改为2，保留label和当时的tick；不要动 user-notes.txt、owner.json、old_writer.py、Skill文件。当前状态：上一执行者等待返回 timeout，已经产生部分数据；old_writer.py 是该任务遗留命令，PID及范围在 owner.json。这不是让你安装或做新功能。处理遗留命令所需的检查和停止仅授权给该确切命令，禁止停止任何其他进程。你可以启动必要的新owner，但禁止新owner与旧写入者同时写同一范围。\n请在隔离目录里按实际状态继续任务，确认最终schema不会被覆盖，核验相关文件及实际进程状态；如果权限不足以建立安全交接，保留现有工作并报告准确阻碍，不要扩大权限或假装完成。不要安装、联网、改全局配置或提交。最终报告实际做了什么，以及PASS/FIX/BLOCKED的证据；总时间最多150秒。\n",
+      "prompt_sha256": "72e38797cb388040ced1aee4a6a5fdf16155400d23129e0b13eb4c386a8221fb",
+      "initial_files": {
+        ".agents": "directory",
+        ".agents/skills": "directory",
+        ".agents/skills/codex-prove": "directory",
+        ".agents/skills/codex-prove/SKILL.md": "18de108833f3b28edf2298067ee5ca35dfb636793253a8567e18e39c95ea658f",
+        ".agents/skills/codex-prove/agents": "directory",
+        ".agents/skills/codex-prove/agents/openai.yaml": "85fb79b39a6dcd7078bb4cd8aa502a68a6fb2490af4f503d019183b4ae622a0a",
+        ".agents/skills/codex-prove/references": "directory",
+        ".agents/skills/codex-prove/references/orchestration.md": "38a0fdddb9cce93d84ee86bc95d692efdda4a598c33e52400be1641fc849000f",
+        ".agents/skills/codex-prove/references/ponytail-license.txt": "ffc6f98c0e8e03c8eafe92f63c6f03ec517d860bccd833e16a1a8aa1d4b6ec95",
+        ".agents/skills/codex-prove/references/runtime-notes.md": "d6271c0fa195f3f69358ec5830114a6023494100058ae0c87d10c963a5511b75",
+        "old_writer.py": "c7a6d7f77bb4622a5d461cb0d123e8f3b5df85e123100d8d800ee2f68f0b78e5",
+        "owner.json": "8d67270eb6fce4224561e3144f8a35cd8a81fba42c591c2db5a001b67d4e11a3",
+        "state.json": "46dfc265f4b0ee5cce95a191aa7880f62ef4303da32a1cad029901f1f48cab9a",
+        "user-notes.txt": "142597f3cdc398b095a80ee9c7f6a42f2924ac5b0981eb5a5c1f044b7b80ac30"
+      },
+      "final_files": {
+        ".agents": "directory",
+        ".agents/skills": "directory",
+        ".agents/skills/codex-prove": "directory",
+        ".agents/skills/codex-prove/SKILL.md": "18de108833f3b28edf2298067ee5ca35dfb636793253a8567e18e39c95ea658f",
+        ".agents/skills/codex-prove/agents": "directory",
+        ".agents/skills/codex-prove/agents/openai.yaml": "85fb79b39a6dcd7078bb4cd8aa502a68a6fb2490af4f503d019183b4ae622a0a",
+        ".agents/skills/codex-prove/references": "directory",
+        ".agents/skills/codex-prove/references/orchestration.md": "38a0fdddb9cce93d84ee86bc95d692efdda4a598c33e52400be1641fc849000f",
+        ".agents/skills/codex-prove/references/ponytail-license.txt": "ffc6f98c0e8e03c8eafe92f63c6f03ec517d860bccd833e16a1a8aa1d4b6ec95",
+        ".agents/skills/codex-prove/references/runtime-notes.md": "d6271c0fa195f3f69358ec5830114a6023494100058ae0c87d10c963a5511b75",
+        "old_writer.py": "c7a6d7f77bb4622a5d461cb0d123e8f3b5df85e123100d8d800ee2f68f0b78e5",
+        "owner.json": "8d67270eb6fce4224561e3144f8a35cd8a81fba42c591c2db5a001b67d4e11a3",
+        "state.json": "15b169353265352e266e378b544d67ff122d4bdc8f7ae0c81e39dd65c31e8589",
+        "user-notes.txt": "142597f3cdc398b095a80ee9c7f6a42f2924ac5b0981eb5a5c1f044b7b80ac30"
+      },
+      "raw_archive_sha256": {
+        "runtime.stderr": "65f8f464f1a26d7d7605b655b73a63a749e53cdf46090bb45fc2a509ef192feb",
+        "result.json": "4de1154d3c909a8149b4a41cbb8873bba0ea29e3a265a83606c59beab5fae212",
+        "final.txt": "e07b7f18f108dc1bb28687e51763f3ca7d8b227b459e4122e00d3d6729aadc91",
+        "prompt.txt": "72e38797cb388040ced1aee4a6a5fdf16155400d23129e0b13eb4c386a8221fb",
+        "events.jsonl": "5acd3b47da042550a0ff14a1be23387ef7e42d183f8fcbec28b7f2a9647de0dc",
+        "invocation.json": "8f0f3d39511976315d0669270af19c56bdef8648068883fcf27844378be114c7"
+      },
+      "final_message": "**BLOCKED**：权限不足以建立安全交接，未修改 `state.json`。\n\n- `ps` 被拒绝，退出码 127；对 PID 22262 的信号 0 检查也返回 `EPERM`。无法确认确切进程身份及停止状态。\n- 实测 1 秒内 tick 从 488 增至 493，schema 仍为 1，表明该文件仍在被写入。此时迁移无法保证不被覆盖。\n- 未发送终止信号、未启动新写入者；`user-notes.txt`、`owner.json`、`old_writer.py` 和全部 Skill 文件与基线逐字节一致。\n- 已在独立临时目录保存基线、实际差异及[核验证据](/private/tmp/prove-handoff-evidence-29152/verification.json)。\n\n约 83 秒内结束；未安装、联网、改全局配置、提交或扩大权限。",
+      "protocol_snapshot_matches_source": true
+    }
+  ],
+  "fixtures": {
+    "direct": {
+      "metadata.json": "{\"schema\": 2, \"label\": \"untouched\"}\n",
+      "user-notes.txt": "Keep this pre-existing user note unchanged.\n"
+    },
+    "solo": {
+      "test_totals_validation.py": "import io\nimport json\nfrom decimal import localcontext\nfrom pathlib import Path\nimport subprocess\nimport sys\nimport unittest\n\nfrom totals import totals\n\n\nclass ValidationTests(unittest.TestCase):\n    def test_large_amounts_are_exact_even_with_low_decimal_precision(self):\n        data = ('category,amount\\n'\n                'a,123456789012345678901234567890.12\\n'\n                'a,0.01\\n'\n                'b,-123456789012345678901234567890.12\\n'\n                'b,-0.01\\n')\n        with localcontext() as context:\n            context.prec = 2\n            self.assertEqual({\n                'a': '123456789012345678901234567890.13',\n                'b': '-123456789012345678901234567890.13',\n            }, totals(io.StringIO(data)))\n\n    def test_trimming_merges_categories_and_normalizes_zero(self):\n        data = 'category,amount\\n a ,2.50\\na,-2.50\\nb,-0.00\\n'\n        self.assertEqual({'a': '0.00', 'b': '0.00'}, totals(io.StringIO(data)))\n\n    def test_empty_input_and_blank_lines(self):\n        for data in ('', '\\n\\n', 'category,amount\\n\\n', '\\n\\ncategory,amount\\n'):\n            with self.subTest(data=data):\n                self.assertEqual({}, totals(io.StringIO(data)))\n\n    def test_reordered_columns_and_quoted_categories(self):\n        self.assertEqual({'a,b': '1.20'}, totals(io.StringIO(\n            'amount,category\\n 1.20 ,\" a,b \"\\n')))\n        self.assertEqual({'a': '1.00'}, totals(io.StringIO(\n            '\\n\\ncategory,amount\\na,1\\n')))\n\n    def test_numeric_input_forms(self):\n        self.assertEqual({'a': '122.00'}, totals(io.StringIO(\n            'category,amount\\na,+1\\na,.50\\na,-.5\\na,1.\\na,1.2e2\\n')))\n\n    def test_invalid_amounts(self):\n        for amount in ('', ' ', 'nan', 'sNaN', '+inf', '-inf', 'Infinity',\n                       '1.001', '1.000', '0.000', '1e-3', '1_00', '0x10',\n                       '1 2', '--1', '1e', 'hello'):\n            with self.subTest(amount=amount), self.assertRaises(ValueError):\n                totals(io.StringIO(f'category,amount\\na,{amount}\\n'))\n\n    def test_invalid_schema_and_rows(self):\n        invalid = (\n            'category\\n', 'amount\\n', 'category,amount,extra\\n',\n            'category,category\\na,b\\n', 'category,amount,amount\\n',\n            'Category,amount\\n', 'category,amount\\na\\n',\n            'category,amount\\na,1,\\n', 'category,amount\\n  ,1\\n',\n            'category,amount\\n\"a,1\\n',\n        )\n        for data in invalid:\n            with self.subTest(data=data), self.assertRaises(ValueError):\n                totals(io.StringIO(data))\n\n    def run_cli(self, data):\n        return subprocess.run(\n            [sys.executable, '-B', str(Path(__file__).with_name('cli.py'))],\n            input=data, text=True, capture_output=True,\n        )\n\n    def test_cli_rejects_each_invalid_input_atomically(self):\n        invalid = [f'category,amount\\na,1\\nb,{amount}\\n'\n                   for amount in ('no', 'NaN', 'Infinity', '-Infinity', '1.001', '')]\n        invalid += ['category,amount\\na,1\\n ,2\\n',\n                    'category,amount\\na,1\\nb,2,extra\\n',\n                    'category,amount\\na,1\\nb\\n',\n                    'category\\na\\n', 'category,amount,extra\\n',\n                    'category,amount\\na,1\\n\"unfinished\\n']\n        for data in invalid:\n            with self.subTest(data=data):\n                run = self.run_cli(data)\n                self.assertEqual(2, run.returncode)\n                self.assertEqual('', run.stdout)\n                self.assertTrue(run.stderr.strip())\n                self.assertEqual(1, len(run.stderr.splitlines()))\n                self.assertLess(len(run.stderr), 100)\n                self.assertNotIn('Traceback', run.stderr)\n\n    def test_cli_empty_and_sorted_fixed_precision_json(self):\n        for data, expected in (\n            ('', {}), ('\\n\\n', {}), ('category,amount\\n', {}),\n            ('\\n\\ncategory,amount\\n', {}),\n            ('category,amount\\nz,-2.50\\n a ,0.1\\na,0.2\\n',\n             {'a': '0.30', 'z': '-2.50'}),\n        ):\n            with self.subTest(data=data):\n                run = self.run_cli(data)\n                self.assertEqual(0, run.returncode)\n                self.assertEqual('', run.stderr)\n                self.assertEqual(expected, json.loads(run.stdout))\n                self.assertEqual(sorted(expected), list(json.loads(run.stdout)))\n\n\nif __name__ == '__main__':\n    unittest.main()\n",
+      "test_totals.py": "import io\nimport json\nimport subprocess\nimport sys\nimport unittest\n\nfrom totals import totals\n\n\nclass TotalsTests(unittest.TestCase):\n    def test_exact_decimal(self):\n        self.assertEqual({'a': '0.30'}, totals(io.StringIO('category,amount\\na,0.1\\na,0.2\\n')))\n\n    def test_order_whitespace_and_negative(self):\n        self.assertEqual({'a': '1.00', 'b': '-2.50'}, totals(io.StringIO('category,amount\\n b ,-2.50\\n a ,1\\n')))\n\n    def test_empty(self):\n        self.assertEqual({}, totals(io.StringIO('category,amount\\n')))\n\n    def test_invalid_rows(self):\n        for record in ('a,no', 'a,NaN', 'a,Infinity', 'a,-Infinity', ',1', 'a,0.001', 'a,1,extra'):\n            with self.subTest(record=record), self.assertRaises(ValueError):\n                totals(io.StringIO('category,amount\\n' + record + '\\n'))\n\n    def test_missing_columns(self):\n        with self.assertRaises(ValueError):\n            totals(io.StringIO('category\\na\\n'))\n\n    def test_cli_success(self):\n        run = subprocess.run([sys.executable, '-B', 'cli.py'], input='category,amount\\nb,2\\na,1\\n', text=True, capture_output=True)\n        self.assertEqual(0, run.returncode)\n        self.assertEqual('', run.stderr)\n        self.assertEqual({'a': '1.00', 'b': '2.00'}, json.loads(run.stdout))\n        self.assertLess(run.stdout.index('\"a\"'), run.stdout.index('\"b\"'))\n\n    def test_cli_failure_is_atomic(self):\n        run = subprocess.run([sys.executable, '-B', 'cli.py'], input='category,amount\\na,1\\nb,NaN\\n', text=True, capture_output=True)\n        self.assertEqual(2, run.returncode)\n        self.assertEqual('', run.stdout)\n        self.assertTrue(run.stderr.strip())\n        self.assertNotIn('Traceback', run.stderr)\n\n\nif __name__ == '__main__':\n    unittest.main()\n",
+      "cli.py": "import json\nimport sys\n\nfrom totals import totals\n\n\ndef main():\n    try:\n        output = json.dumps(totals(sys.stdin), sort_keys=True)\n    except (ValueError, OSError):\n        print('error: invalid CSV input', file=sys.stderr)\n        return 2\n    print(output)\n    return 0\n\n\nif __name__ == '__main__':\n    sys.exit(main())\n",
+      "user-notes.txt": "Unrelated user note: keep the input file format unchanged.\n",
+      "totals.py": "import csv\nimport re\nfrom decimal import Decimal, InvalidOperation\n\n\n_NUMBER = re.compile(r'[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?')\n\n\ndef _cents(text):\n    text = text.strip()\n    if not _NUMBER.fullmatch(text):\n        raise ValueError('invalid amount')\n    try:\n        amount = Decimal(text)\n    except InvalidOperation:\n        raise ValueError('invalid amount') from None\n    if not amount.is_finite():\n        raise ValueError('invalid amount')\n    sign, digits, exponent = amount.as_tuple()\n    if exponent < -2:\n        raise ValueError('amount has more than two decimal places')\n    # Integer arithmetic keeps every cent, regardless of Decimal context precision.\n    value = 0\n    for digit in digits:\n        value = value * 10 + digit\n    value *= 10 ** (exponent + 2)\n    return -value if sign else value\n\n\ndef _format_cents(value):\n    whole, fraction = divmod(abs(value), 100)\n    return f'{\"-\" if value < 0 else \"\"}{whole}.{fraction:02d}'\n\n\ndef totals(stream):\n    result = {}\n    try:\n        reader = csv.DictReader(stream, strict=True)\n        while reader.fieldnames == []:\n            reader.fieldnames = None\n        if reader.fieldnames is None:\n            return {}\n        if len(reader.fieldnames) != 2 or set(reader.fieldnames) != {'category', 'amount'}:\n            raise ValueError('expected category and amount columns')\n        for row in reader:\n            if None in row or any(value is None for value in row.values()):\n                raise ValueError('expected two fields per row')\n            category = row['category'].strip()\n            if not category:\n                raise ValueError('empty category')\n            result[category] = result.get(category, 0) + _cents(row['amount'])\n    except csv.Error:\n        raise ValueError('invalid CSV') from None\n    return {category: _format_cents(result[category]) for category in sorted(result)}\n"
+    },
+    "coordinated": {
+      "tags.py": "def normalize(values):\n    if not isinstance(values, list):\n        raise ValueError('values must be a list of strings')\n\n    result = []\n    seen = set()\n    for value in values:\n        if not isinstance(value, str):\n            raise ValueError('values must be a list of strings')\n        normalized = value.strip().casefold()\n        if normalized and normalized not in seen:\n            seen.add(normalized)\n            result.append(normalized)\n    return result\n",
+      "test_contract.py": "import json\nfrom pathlib import Path\nimport unittest\n\nimport ranges\nimport tags\n\n\nclass Contract(unittest.TestCase):\n    def test_tags(self):\n        values = [' B ', 'a', 'b', '', ' Straße ', 'STRASSE']\n        before = values[:]\n        self.assertEqual(['b', 'a', 'strasse'], tags.normalize(values))\n        self.assertEqual(before, values)\n        self.assertEqual([], tags.normalize([]))\n\n    def test_tag_types(self):\n        for values in ('abc', [1], [None], [True]):\n            with self.subTest(values=values), self.assertRaises(ValueError):\n                tags.normalize(values)\n\n    def test_merge(self):\n        values = [(7, 9), (1, 4), (3, 6), (9, 10), (20, 20)]\n        before = values[:]\n        self.assertEqual([(1, 6), (7, 10), (20, 20)], ranges.merge(values))\n        self.assertEqual(before, values)\n        self.assertEqual([], ranges.merge([]))\n\n    def test_range_validation(self):\n        for value in ([(2, 1)], [(1,)], [(1, 2, 3)], [('1', 2)], [(True, 2)], [(1.0, 2)], '12'):\n            with self.subTest(value=value), self.assertRaises(ValueError):\n                ranges.merge(value)\n\n    def test_batch(self):\n        rows = json.loads(Path('batch.json').read_text())\n        self.assertEqual([1,2,3,4,5,6,7,8], [x['id'] for x in rows])\n        self.assertEqual(['ready','ready','ready','archived','ready','ready','ready','archived'], [x['status'] for x in rows])\n        self.assertEqual('draft remains in note', rows[0]['note'])\n        self.assertEqual(['Alpha','Beta','Gamma','Delta','Epsilon','Zeta','Eta','Theta'], [x['label'] for x in rows])\n\n    def test_integration(self):\n        self.assertEqual({'tags':['a'], 'ranges':[[1,4]]}, json.loads(json.dumps({'tags': tags.normalize([' A ','a']), 'ranges': ranges.merge([(1,2),(2,4)])})))\n\n\nif __name__ == '__main__':\n    unittest.main()\n",
+      "ranges.py": "def merge(values):\n    if not isinstance(values, list):\n        raise ValueError('values must be a list of integer interval tuples')\n\n    for interval in values:\n        if not isinstance(interval, tuple) or len(interval) != 2:\n            raise ValueError('each interval must be a two-element tuple')\n        start, end = interval\n        if type(start) is not int or type(end) is not int or start > end:\n            raise ValueError('interval endpoints must be integers with start <= end')\n\n    merged = []\n    for start, end in sorted(values, key=lambda interval: interval[0]):\n        if merged and start <= merged[-1][1]:\n            merged[-1] = (merged[-1][0], max(merged[-1][1], end))\n        else:\n            merged.append((start, end))\n    return merged\n",
+      "batch.json": "[\n  {\"id\": 1, \"status\": \"ready\", \"label\": \"Alpha\", \"note\": \"draft remains in note\"},\n  {\"id\": 2, \"status\": \"ready\", \"label\": \"Beta\"},\n  {\"id\": 3, \"status\": \"ready\", \"label\": \"Gamma\"},\n  {\"id\": 4, \"status\": \"archived\", \"label\": \"Delta\"},\n  {\"id\": 5, \"status\": \"ready\", \"label\": \"Epsilon\"},\n  {\"id\": 6, \"status\": \"ready\", \"label\": \"Zeta\"},\n  {\"id\": 7, \"status\": \"ready\", \"label\": \"Eta\"},\n  {\"id\": 8, \"status\": \"archived\", \"label\": \"Theta\"}\n]\n",
+      "user-notes.txt": "Do not edit this unrelated user file.\n"
+    },
+    "recovery": {
+      "state.json": "{\"schema\": 1, \"label\": \"keep\", \"tick\": 899}\n",
+      "owner.json": "{\"pid\": 22262, \"command\": \"/private/tmp/prove-sol61-release.VPep3p/recovery/old_writer.py\", \"scope\": \"state.json\"}\n",
+      "old_writer.py": "import json\nimport os\nfrom pathlib import Path\nimport signal\nimport time\n\nroot = Path(__file__).resolve().parent\nrunning = True\n\n\ndef stop(signum, frame):\n    global running\n    running = False\n\n\nsignal.signal(signal.SIGTERM, stop)\n(root / 'owner.json').write_text(json.dumps({'pid': os.getpid(), 'command': str(Path(__file__).resolve()), 'scope': 'state.json'}) + '\\n')\nstarted = time.monotonic()\nticks = 0\nwhile running and time.monotonic() - started < 300:\n    ticks += 1\n    (root / 'state.json').write_text(json.dumps({'schema': 1, 'label': 'keep', 'tick': ticks}) + '\\n')\n    time.sleep(0.2)\nprint('old_writer stopped after', ticks, 'ticks', flush=True)\n",
+      "user-notes.txt": "Preserve this unrelated note.\n"
+    }
+  },
+  "recovery_observation": {
+    "verdict": "BLOCKED",
+    "process_listing": {
+      "command": "ps -p 22262 -o pid=,ppid=,lstart=,stat=,command=",
+      "exit_code": 127,
+      "output": "zsh:1: operation not permitted: ps"
+    },
+    "process_probe": {
+      "pid": 22262,
+      "signal": 0,
+      "error": "PermissionError",
+      "errno": 1,
+      "message": "[Errno 1] Operation not permitted"
+    },
+    "state_baseline": {
+      "schema": 1,
+      "label": "keep",
+      "tick": 258
+    },
+    "state_first": {
+      "schema": 1,
+      "label": "keep",
+      "tick": 488
+    },
+    "state_last": {
+      "schema": 1,
+      "label": "keep",
+      "tick": 493
+    },
+    "state_changed_during_one_second": true,
+    "protected_files_unchanged": {
+      "owner.json": true,
+      "old_writer.py": true,
+      "user-notes.txt": true,
+      ".agents/skills/codex-prove/SKILL.md": true,
+      ".agents/skills/codex-prove/agents/openai.yaml": true,
+      ".agents/skills/codex-prove/references/orchestration.md": true,
+      ".agents/skills/codex-prove/references/ponytail-license.txt": true,
+      ".agents/skills/codex-prove/references/runtime-notes.md": true
+    },
+    "state_write_by_this_agent": false,
+    "termination_signal_sent": false,
+    "new_writer_started": false,
+    "blocker": "Cannot establish exact process identity and confirmed quiescence within current permissions; write scope remains held."
+  },
+  "recovery_cleanup": {
+    "pid": 22262,
+    "command": "old_writer.py in the recovery fixture",
+    "host_confirmed_exact_process_before_sigterm": true,
+    "owned_process_exit_code": 0,
+    "stopped_after_ticks": 899,
+    "post_exit_ps_exit_code": 1,
+    "post_exit_ps_no_matching_process": true,
+    "only_this_test_process_was_stopped": true
+  },
+  "fixture_capture_stage": {
+    "direct": "after the Direct trial",
+    "solo": "after the Solo recovery",
+    "coordinated": "after separate Desktop Luna supplement; unchanged by Astra review",
+    "recovery": "after Host stopped its owned old_writer process"
+  },
+  "desktop_supplements": [
+    {
+      "task": "release_luna_batch",
+      "profile": "prove-efficient-worker",
+      "agent_type": "default",
+      "fork_turns": "none",
+      "selected_model": "gpt-6-luna",
+      "selected_effort": "max",
+      "selection_evidence": "Host collaboration.spawn_agent call with explicit fields; tool accepted the launch",
+      "requested_scope": "Only batch.json writable",
+      "runtime_isolation": "Operational scope only; root runtime is danger-full-access, not the profile's sandbox",
+      "result": "PASS for assigned batch only",
+      "actual_changes": [
+        "batch.json"
+      ],
+      "verification": {
+        "command": "python3.13 -B -m unittest -v test_contract.Contract.test_batch",
+        "tests_run": 1,
+        "exit_code": 0,
+        "host_exact_eight_record_comparison": "PASS"
+      },
+      "final_sha256": "d39fbc6ce33536537a2c4895a3b0fcaabfbad082bd6210d705c1553b783c03bb"
+    },
+    {
+      "task": "release_astra_review",
+      "profile": "prove-specialist-worker",
+      "agent_type": "default",
+      "fork_turns": "none",
+      "selected_model": "gpt-6-astra",
+      "selected_effort": "high",
+      "selection_evidence": "Host collaboration.spawn_agent call with explicit fields; tool accepted the launch",
+      "requested_scope": "Read-only review of type validation and Unicode behavior; no delegation or overall approval",
+      "runtime_isolation": "Operational read-only scope; root runtime exposes broader capabilities, not OS-enforced read-only",
+      "result": "PASS for review scope, no reproducible defect found",
+      "findings": [],
+      "verification": {
+        "fixture_tests": 6,
+        "fixture_exit_code": 0,
+        "supplemental_cases": 39,
+        "supplemental_exit_code": 0,
+        "complete_supplemental_source": "sol61-release-review-probe.py",
+        "host_saved_probe_replay_exit_code": 0
+      },
+      "limits": [
+        "Batch preservation requires Host before/after data, not inference from the final file",
+        "Initial inherited-cwd command startup failed; explicit valid directory and shell then succeeded",
+        "No claim of overall release approval or zero temporary writes from net hashes alone"
+      ]
+    }
+  ],
+  "overall": {
+    "status": "Local source prepared; release acceptance incomplete",
+    "verified": [
+      "Direct route and exact small edit in a fresh CLI",
+      "A cohesive two-file implementation selected Solo with zero agents; interrupted first attempt recovered and all 16 tests passed",
+      "Held write scope when an old writer remained active and process identity/termination could not be checked under sandbox",
+      "Separate explicit Desktop Luna batch and fresh Astra read-only review",
+      "Six fixture tests and 39 supplemental checks passed after the supplements"
+    ],
+    "not_verified": [
+      "Candidate installed-role discovery",
+      "Single uninterrupted four-role end-to-end run",
+      "Independent raw launch/concurrency evidence for the CLI child Sols (Host reported them, export omitted calls)",
+      "Native Nested",
+      "Native Windows execution / final-SHA CI",
+      "Cost, speed or general quality superiority"
+    ],
+    "limits": [
+      "The coordinated topology and tiny Luna batch were deliberately requested to exercise paths, not evidence of naturally optimal routing",
+      "CLI exit 0 is not acceptance: coordinated and recovery trials returned BLOCKED",
+      "Do not combine separate supplements into a claim that the original CLI run passed"
+    ]
+  },
+  "global_files_check": {
+    "scope": "two installed skills and four agent profiles, plus config compared against an earlier same-day checkpoint",
+    "installed_payload_count": 11,
+    "installed_payload_unchanged": true,
+    "config_unchanged": false,
+    "config_mtime_local": "2026-09-30 19:28:19 +0800",
+    "config_change_attribution": "Unknown; no direct config write or global installer invocation was issued by this task. The file was preserved and the user was asked whether settings were changed.",
+    "user_config_reverted": false
+  }
+}

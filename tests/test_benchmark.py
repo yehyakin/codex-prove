@@ -145,7 +145,7 @@ class RealProjectBenchmarkTests(unittest.TestCase):
         for signal in ("2026-08-04", "72.2%–76.2%", "50.4%–60.4%", "33.4%–43.4%", "0.40", "0.04"):
             self.assertIn(signal, history)
         self.assertIn("不适用于当前", history)
-        self.assertIn("do not apply to the current four-model setup", history)
+        self.assertIn("do not apply to the current Sol 6.1 candidate", history)
         self.assertIn("预算假设", notes)
         self.assertIn("assumptions for a budget", notes)
         for path in README_FILES:
