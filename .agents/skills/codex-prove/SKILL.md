@@ -16,19 +16,32 @@ ordinary small work stays Direct, including a small task with an explicit invoca
 
 - **Direct:** a clear answer, small edit, or deterministic command. The current
   Codex completes and checks it; zero agents, no graph or runtime handshake.
-- **Assist:** a difficult decision that cannot usefully be split. One controller
-  analyzes and defines acceptance; the Host carries out authorized follow-through.
-  No worker is required.
-- **Coordinated:** independent or dependent work benefits from delegation. One
-  controller plans, assigns the fewest capable workers, and reviews the result.
+- **Solo:** one cohesive implementation or investigation, even across several
+  files. Reuse a Sol 6.1 Host; otherwise, when the handoff is worthwhile, give one
+  Sol worker the complete task. It plans, implements, and checks that task in one
+  context. No separate planning agent; the Host accepts the real result.
+  A self-contained mechanical batch may use one Luna instead, without a Sol planner.
+- **Assist:** analysis or review only. Reuse a Sol 6.1 Host or ask one read-only
+  Sol; for a named hard question or risk review use Astra. An explicitly required
+  independent review starts with a fresh reviewer. Do not start implementation.
+- **Coordinated:** at least two useful independent workstreams justify splitting.
+  Let a capable Host coordinate and own useful work; add only the needed owners.
+  A separate read-only controller needs a concrete coordination gap or an explicit
+  request. Dependencies or separate implementation/test outputs alone do not
+  justify a team; weigh independent progress against handoff and integration cost.
 - **High risk:** start with scoped read-only analysis, recovery checkpoints,
   unique ownership, and explicit stop conditions. User authorization still governs
   destructive, production, credential-related, or irreversible operations.
 
+Unknown Host model/effort is not a reason to launch a duplicate controller.
+Keep the identity unknown and continue capable Host work when the task permits;
+do not claim an exact model, bypass an exact-model request, or waive independent review.
+
 Risk controls apply to every route: a one-line security change is not low-risk
 merely because it is small. Direct does not waive required evidence or authority.
+If a small edit needs a child reviewer, use Solo with risk controls, not zero-agent Direct.
 
-Before Assist or coordinated planning, read [orchestration.md](references/orchestration.md).
+Before delegated work, read [orchestration.md](references/orchestration.md).
 Read [runtime-notes.md](references/runtime-notes.md) only when launching agents,
 selecting Native Nested / Compatibility, or diagnosing a runtime failure.
 Do not preload every reference for Direct work.
@@ -37,20 +50,23 @@ Do not preload every reference for Direct work.
 
 The TOML profiles select models and effort; role names stay model-neutral.
 
-- **Controller (Astra):** understand the request, plan, assign ownership, arbitrate, and
-  perform final review. A separate controller is read-only, not a bulk implementer.
-- **Specialist worker (Sol):** difficult but separable reasoning, implementation,
-  or a targeted read-only review. Not a second controller.
-- **Regular worker (Terra):** normal feature work, debugging, tests, and integration
-  within a settled architecture. Retains the `prove-complex-worker` profile ID.
+- **Controller (Sol 6.1 / high):** planning, ownership, arbitration, and final
+  review for coordinated work. A separately launched controller stays read-only.
+- **Regular worker (Sol 6.1 / high):** a complete Solo task or one independent
+  module. Retains the `prove-complex-worker` ID; Terra is no longer the default.
+- **Specialist (Astra / high):** one bounded difficult question or independent
+  risk review, read-only. It advises; it neither schedules nor approves the run.
 - **Efficient worker (Luna Max):** mechanical batches with explicit rules and
   objective checks, not every small task. Truly small work stays Direct.
 
-Astra selects the needed workers directly, not a four-model relay or a fixed team.
-The hardest inseparable decisions remain with Astra. Sol is not an escalation
-above Astra. Choose workers by uncertainty and verifiability, not file count.
+Default to Sol doing useful work, not to a fixed team. Invoke Astra for a concrete
+unresolved decision, conflicting evidence, or a consequential independent review;
+not for routine sign-off. Use one bounded consultation first, then let the same
+owner continue. Choose Luna only when a batch benefits from delegation, not when
+one existing command suffices. No required ladder of failed cheaper models.
 
-One controller owns each coordinated run. The Host retains user communication,
+One controller owns each coordinated run; the Host owns acceptance in Solo.
+The Host retains user communication,
 permissions, actual workspace safety, integration, and final delivery. Workers
 must not create subagents or approve the overall result. Never silently replace a
 model, reasoning effort, agent type, or permission boundary.

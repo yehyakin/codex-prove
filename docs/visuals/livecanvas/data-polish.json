@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "demo": false,
+  "asOf": "2026-10-01",
+  "timezone": "Asia/Shanghai",
+  "provenance": "source-verified-process-illustration",
+  "project": "Codex PROVE",
+  "baseline": "f4dba1c20b0dc299fbcf565bc883c5afdc0324a9",
+  "releaseStatus": "candidate-not-released",
+  "sources": [
+    {
+      "id": "readme",
+      "title": "Codex PROVE candidate README",
+      "path": "README.md",
+      "url": "https://github.com/yehyakin/codex-prove/blob/f4dba1c20b0dc299fbcf565bc883c5afdc0324a9/README.md",
+      "accessedAt": "2026-10-01",
+      "method": "Read the actual local candidate; preserve the scope of workflow claims."
+    },
+    {
+      "id": "skill",
+      "title": "Codex PROVE candidate skill",
+      "path": ".agents/skills/codex-prove/SKILL.md",
+      "url": "https://github.com/yehyakin/codex-prove/blob/f4dba1c20b0dc299fbcf565bc883c5afdc0324a9/.agents/skills/codex-prove/SKILL.md",
+      "accessedAt": "2026-10-01",
+      "method": "Read routing, ownership, handoff and evidence clauses. Reading this as subject matter does not activate the skill."
+    }
+  ],
+  "models": [],
+  "claims": [
+    {
+      "id": "direct",
+      "text": "小任务由当前 Codex 直接完成，零子代理。",
+      "sourceId": "readme",
+      "excerpt": "当前 Codex 直接完成，零子代理",
+      "nature": "configured-workflow-not-runtime-measurement"
+    },
+    {
+      "id": "solo",
+      "text": "完整任务由一个 Sol 规划、实现和检查。",
+      "sourceId": "readme",
+      "excerpt": "Sol 自己规划、实现和检查，不另开规划代理",
+      "nature": "configured-workflow-not-runtime-measurement"
+    },
+    {
+      "id": "assist",
+      "text": "Assist 只分析、只评审，不改代码。",
+      "sourceId": "readme",
+      "excerpt": "Sol 分析；具体难题或独立风险评审按需找 Astra，不改代码",
+      "nature": "configured-workflow-not-runtime-measurement"
+    },
+    {
+      "id": "coordinated",
+      "text": "多条独立工作线才按需协调并行。",
+      "sourceId": "readme",
+      "excerpt": "Sol 协调并行，明确各自改哪些文件",
+      "nature": "configured-workflow-not-runtime-measurement"
+    },
+    {
+      "id": "one-owner",
+      "text": "同一写入范围同时只设一个活跃负责人。",
+      "sourceId": "skill",
+      "excerpt": "Use one active owner per write scope, not one immutable owner forever.",
+      "nature": "configured-workflow-not-runtime-measurement"
+    },
+    {
+      "id": "handoff",
+      "text": "交接前停止原负责人及写入进程，保留检查改动，指定新负责人后再写入。",
+      "sourceId": "skill",
+      "excerpt": "requires stopping the old worker **and its mutating processes**, preserving and\ninspecting its diff, and assigning the new owner before writing resumes.",
+      "nature": "configured-workflow-not-runtime-measurement"
+    },
+    {
+      "id": "real-evidence",
+      "text": "检查实际文件、差异、测试输出和需求覆盖，不只看汇报。",
+      "sourceId": "skill",
+      "excerpt": "Review actual\nfiles, diff, outputs, and requirement coverage, not just worker summaries.",
+      "nature": "configured-workflow-not-runtime-measurement"
+    },
+    {
+      "id": "pass",
+      "text": "PASS 需要完整且有证据的需求覆盖。",
+      "sourceId": "skill",
+      "excerpt": "PASS needs complete evidenced coverage;",
+      "nature": "configured-workflow-not-runtime-measurement"
+    },
+    {
+      "id": "fix",
+      "text": "FIX 表示授权范围内的工作继续。",
+      "sourceId": "skill",
+      "excerpt": "FIX means authorized work continues;",
+      "nature": "configured-workflow-not-runtime-measurement"
+    },
+    {
+      "id": "blocked",
+      "text": "BLOCKED 表示已没有安全的下一步。",
+      "sourceId": "skill",
+      "excerpt": "BLOCKED means no safe next step is available.",
+      "nature": "configured-workflow-not-runtime-measurement"
+    }
+  ],
+  "visualSemantics": {
+    "selectedDirection": "First displayed Product Design image, Routing Atlas; user selected 1.",
+    "routes": "Four alternatives revealed from the same junction together; not a four-stage sequence.",
+    "scopes": "A and B are illustrative independent write scopes, not a fixed team size or file-lock guarantee.",
+    "evidence": "Inputs converge toward review; PASS/FIX/BLOCKED are alternatives, not sequential stages or a real run result.",
+    "imageText": "Text is baked into generated poster assets, not separately editable typesetting. Edit through supplied prompts or a raster editor.",
+    "notClaimed": [
+      "speedup",
+      "cost savings",
+      "OS-enforced isolation",
+      "actual passing run",
+      "formal release",
+      "phone compatibility"
+    ]
+  }
+}

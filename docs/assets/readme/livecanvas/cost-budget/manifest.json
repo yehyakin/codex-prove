@@ -1,0 +1,29 @@
+{
+  "status": "integrated-local-readmes-not-released",
+  "asOf": "2026-10-01",
+  "factsBaseline": "f4dba1c20b0dc299fbcf565bc883c5afdc0324a9",
+  "sourceSha256": "ea28f5ebf8b77ab79828ada2d113a9ff9b25bab1c1558f27b19bef47c902300e",
+  "artwork": "Cost-theme budget edition: 82.8% illustrative savings versus all-Astra; two translation variants, not measured results.",
+  "assets": [
+    {
+      "filename": "cost-budget-zh.png",
+      "bytes": 1585233,
+      "sha256": "8d775f6960ce190d1c3941b7837540a65dec735bea285848cdef178d82c15d5f"
+    },
+    {
+      "filename": "cost-budget-zh.gif",
+      "bytes": 300896,
+      "sha256": "d9f7acfe71c63a6d49e07874971f57b237a48e498bda841a424a163a3b5e5fef"
+    },
+    {
+      "filename": "cost-budget-en.png",
+      "bytes": 1601325,
+      "sha256": "878745135b120fe59754143d9f96b0f1e5b0651dd2f82771647509e244f8e516"
+    },
+    {
+      "filename": "cost-budget-en.gif",
+      "bytes": 310434,
+      "sha256": "96aae6b2d7b35464622bf7aec783d16ddc31f0aa61e1a5b1feae64726f49c6a7"
+    }
+  ]
+}

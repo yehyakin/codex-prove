@@ -102,6 +102,124 @@ class BenchmarkABTests(unittest.TestCase):
         with self.assertRaisesRegex(self.module.ContractError, "missing 1 scheduled result cells"):
             self.module.validate_results(self.manifest, self.schedule, results)
 
+    def test_pair_rejects_different_inputs_or_grader(self) -> None:
+        for field in ("base_commit", "prompt_sha256", "grader_sha256"):
+            with self.subTest(field=field):
+                results = self.make_results()
+                results["cells"][0][field] = "e" * len(results["cells"][0][field])
+                with self.assertRaisesRegex(self.module.ContractError, "paired .* mismatch"):
+                    self.module.validate_results(self.manifest, self.schedule, results)
+
+    def test_missing_cost_stays_unknown_without_crashing(self) -> None:
+        results = self.make_results()
+        results["cells"][0].update(cost_value=None, cost_unit=None)
+        rows = self.module.validate_results(self.manifest, self.schedule, results)
+        summary = self.module.summarize(self.manifest, rows)
+        arm = summary["arms"][results["cells"][0]["arm"]]
+        self.assertIsNone(arm["cost_value_total"])
+        self.assertIsNone(arm["cost_unit"])
+        self.assertEqual(arm["runs"] - 1, arm["cost_observed_runs"])
+
+    def test_unknown_cost_is_distinct_from_observed_zero(self) -> None:
+        results = self.make_results()
+        for cell in results["cells"]:
+            if cell["arm"] == "baseline":
+                cell.update(cost_value=None, cost_unit=None)
+            else:
+                cell["cost_value"] = 0
+        rows = self.module.validate_results(self.manifest, self.schedule, results)
+        arms = self.module.summarize(self.manifest, rows)["arms"]
+        self.assertIsNone(arms["baseline"]["cost_value_total"])
+        self.assertIsNone(arms["baseline"]["cost_unit"])
+        self.assertEqual(0, arms["baseline"]["cost_observed_runs"])
+        self.assertEqual(0, arms["candidate"]["cost_value_total"])
+        self.assertEqual("credits", arms["candidate"]["cost_unit"])
+        self.assertEqual(arms["candidate"]["runs"], arms["candidate"]["cost_observed_runs"])
+
+    def test_cross_arm_units_are_not_comparable(self) -> None:
+        results = self.make_results()
+        for cell in results["cells"]:
+            if cell["arm"] == "candidate":
+                cell["cost_unit"] = "USD"
+        rows = self.module.validate_results(self.manifest, self.schedule, results)
+        with self.assertRaisesRegex(self.module.ContractError, "mixed cost units across arms"):
+            self.module.summarize(self.manifest, rows)
+
+    def test_legacy_protocol_cannot_claim_autonomous_routing(self) -> None:
+        rows = self.module.validate_results(self.manifest, self.schedule, self.make_results())
+        summary = self.module.summarize(self.manifest, rows)
+        self.assertEqual("fixed_settings", summary["routing_scope"])
+        self.assertFalse(summary["autonomous_routing_declared"])
+
+    def test_autonomous_protocol_requires_explicit_unconstrained_declaration(self) -> None:
+        manifest = dict(self.manifest, routing_scope="autonomous")
+        for declaration in (None, False, "true", 1):
+            with self.subTest(declaration=declaration):
+                manifest["routing_unconstrained"] = declaration
+                with self.assertRaisesRegex(self.module.ContractError, "routing_unconstrained"):
+                    self.module.validate_manifest(manifest)
+        manifest["routing_unconstrained"] = True
+        self.module.validate_manifest(manifest)
+        schedule = self.module.make_schedule(manifest)
+        results = self.make_results()
+        results["manifest_sha256"] = schedule["manifest_sha256"]
+        rows = self.module.validate_results(manifest, schedule, results)
+        summary = self.module.summarize(manifest, rows)
+        self.assertEqual("autonomous", summary["routing_scope"])
+        self.assertTrue(summary["autonomous_routing_declared"])
+        self.assertNotIn("autonomous_routing_evidence", summary)
+        self.assertIsNone(summary["winner"])
+
+    def test_invalid_routing_scope_fails_closed(self) -> None:
+        for scope in (None, [], {}, False, "unsupported"):
+            with self.subTest(scope=scope):
+                with self.assertRaisesRegex(self.module.ContractError, "unsupported routing_scope"):
+                    self.module.validate_manifest(dict(self.manifest, routing_scope=scope))
+
+    def test_nonfinite_metrics_fail_closed(self) -> None:
+        for field in ("cost_value", "elapsed_seconds"):
+            for value in (float("nan"), float("inf"), float("-inf"), 10 ** 400):
+                with self.subTest(field=field, value=value):
+                    results = self.make_results()
+                    results["cells"][0][field] = value
+                    with self.assertRaises(self.module.ContractError):
+                        self.module.validate_results(self.manifest, self.schedule, results)
+
+    def test_nonfinite_aggregate_metrics_fail_closed(self) -> None:
+        for field in ("cost_value", "elapsed_seconds"):
+            with self.subTest(field=field):
+                results = self.make_results()
+                for cell in results["cells"]:
+                    cell[field] = 1e308
+                rows = self.module.validate_results(self.manifest, self.schedule, results)
+                with self.assertRaisesRegex(self.module.ContractError, "nonfinite .*_total"):
+                    self.module.summarize(self.manifest, rows)
+
+    def test_cli_summary_keeps_unknown_cost_and_rejects_mismatched_pairs(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="codex-prove-ab.") as raw:
+            result_path = Path(raw) / "results.json"
+            data = self.make_results()
+            data["cells"][0].update(cost_value=None, cost_unit=None)
+            for mismatch in (False, True):
+                with self.subTest(mismatch=mismatch):
+                    if mismatch:
+                        data["cells"][0]["prompt_sha256"] = "e" * 64
+                    result_path.write_text(json.dumps(data), encoding="utf-8")
+                    run = subprocess.run(
+                        [sys.executable, str(SCRIPT), "summarize", str(MANIFEST), str(result_path)],
+                        cwd=ROOT, text=True, capture_output=True, check=False,
+                    )
+                    if mismatch:
+                        self.assertEqual(2, run.returncode, run.stderr)
+                        self.assertEqual("", run.stdout)
+                        self.assertIn("paired prompt_sha256 mismatch", run.stderr)
+                        self.assertNotIn("Traceback", run.stderr)
+                    else:
+                        self.assertEqual(0, run.returncode, run.stderr)
+                        arm = json.loads(run.stdout)["arms"][data["cells"][0]["arm"]]
+                        self.assertIsNone(arm["cost_value_total"])
+                        self.assertEqual(arm["runs"] - 1, arm["cost_observed_runs"])
+
     def test_cli_validate_emits_frozen_manifest_hash(self) -> None:
         with tempfile.TemporaryDirectory(prefix="codex-prove-ab.") as raw:
             output = Path(raw) / "validation.json"

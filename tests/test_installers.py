@@ -195,6 +195,54 @@ class PosixInstallerTests(unittest.TestCase):
         for relative in (*CURRENT_TARGETS, STATE):
             self.assertFalse(self.path(relative).exists(), relative)
 
+    def make_v110_install(self) -> dict[str, tuple[str, bytes | str | None]]:
+        # A managed four-profile installation before the candidate remaps its
+        # models and narrows the specialist sandbox. No real home is touched.
+        self.make_v100_install()
+        for relative, model in (
+            (CONTROLLER, "gpt-6-astra"), (COMPLEX, "gpt-5.6-terra"),
+            (EFFICIENT, "gpt-6-luna"), (SPECIALIST, "gpt-6-sol"),
+        ):
+            sandbox = "read-only" if relative == CONTROLLER else "workspace-write"
+            effort = "max" if relative == EFFICIENT else "high"
+            self.path(relative).write_text(
+                f'name = "{relative.stem}"\nmodel = "{model}"\n'
+                f'model_reasoning_effort = "{effort}"\nsandbox_mode = "{sandbox}"\n',
+                encoding="utf-8",
+            )
+        fields = {
+            "version": "6", "backup_id": "v110-fixture",
+            "skill_sha256": tree_hash(self.path(SKILL)),
+            "compat_skill_sha256": tree_hash(self.path(ALIAS)),
+            "controller_sha256": file_hash(self.path(CONTROLLER)),
+            "complex_worker_sha256": file_hash(self.path(COMPLEX)),
+            "efficient_worker_sha256": file_hash(self.path(EFFICIENT)),
+            "specialist_worker_sha256": file_hash(self.path(SPECIALIST)),
+        }
+        self.path(STATE).write_text("".join(f"{key}={value}\n" for key, value in fields.items()), encoding="utf-8")
+        self.path(Path(".codex/config.toml")).write_text('model = "gpt-6-astra"\n', encoding="utf-8")
+        self.path(Path(".codex/agents/user-agent.toml")).write_text('name = "user-agent"\n', encoding="utf-8")
+        return snapshot(self.home)
+
+    def test_v110_profile_remap_and_restore_preserve_old_settings(self) -> None:
+        old = self.make_v110_install()
+        self.install()
+        for relative in (".codex/config.toml", ".codex/agents/user-agent.toml"):
+            self.assertEqual(old[relative], snapshot(self.home)[relative])
+        restored = self.run_script("uninstall.sh", "--restore-latest")
+        self.assertEqual(0, restored.returncode, restored.stdout)
+        current = snapshot(self.home)
+        for relative, content in old.items():
+            self.assertEqual(content, current[relative], relative)
+
+    def test_v110_profile_remap_failure_restores_all_owned_targets(self) -> None:
+        old = self.make_v110_install()
+        failed = self.run_script("install.sh", failpoint="after-state")
+        self.assertNotEqual(0, failed.returncode, failed.stdout)
+        current = snapshot(self.home)
+        for relative, content in old.items():
+            self.assertEqual(content, current[relative], relative)
+
     def test_v100_upgrade_failure_restores_every_old_file(self) -> None:
         old = self.make_v100_install()
         result = self.run_script("install.sh", failpoint="after-state")

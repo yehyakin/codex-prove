@@ -1,0 +1,82 @@
+[
+  {
+    "id": "label",
+    "request": "$codex-prove: replace the label Save with Save changes in ui/button.txt and verify the exact final content.",
+    "context": "Host is Astra/high. ui/button.txt contains Save. This is a plain fixture file with no security behavior. No worker exists."
+  },
+  {
+    "id": "existing-command",
+    "request": "$codex-prove: regenerate 800 fixture IDs using the repository's existing deterministic normalize command and its checker.",
+    "context": "Host is Sol 6.1/high. The command and checker are known, finish in seconds, and modify only the authorized generated fixture."
+  },
+  {
+    "id": "matching-host",
+    "request": "$codex-prove: add a bounded settings preference across a handler, serializer and tests. Use the existing patterns and run the focused suite.",
+    "context": "Host selection is authoritatively gpt-6.1-sol/medium. No particular effort was requested. The change is one cohesive data flow with known interfaces; no independent branch is useful."
+  },
+  {
+    "id": "other-host",
+    "request": "$codex-prove: implement a bounded CSV import repair and the malformed-row regressions. You may make local changes and run tests.",
+    "context": "Host is Astra/high. The import task needs substantial investigation but fits one owner. Exact Sol 6.1/high selection is supported. Host has unrelated release-note preparation to do while it runs."
+  },
+  {
+    "id": "analysis-only",
+    "request": "$codex-prove: compare two cache consistency designs and recommend one. Stop before implementation.",
+    "context": "Host is Luna/max. Exact Sol 6.1/high selection is supported. This is one indivisible architectural decision, with sufficient repository context available."
+  },
+  {
+    "id": "independent-work",
+    "request": "$codex-prove: implement the settled parser change in module-a, separately fix the exporter in module-b, and normalize 2000 catalogue entries using the provided mapping. Run each module's tests and the catalogue checker.",
+    "context": "Host is Sol 6.1/high. Modules share no files, dependencies or generated outputs. The catalogue task needs substantial repetitive edits. There are only two currently free child slots. All required model selections are supported."
+  },
+  {
+    "id": "serial-chain",
+    "request": "$codex-prove: update a local fixture database schema, then its API adapter, then the demo page. Each later step needs the previous step's output. No production systems are in scope.",
+    "context": "Host is Sol 6.1/high, already understands the whole flow, and can finish within this context. There is no useful independent branch. The fixture database is disposable and the original data is preserved."
+  },
+  {
+    "id": "overlap",
+    "request": "$codex-prove: apply these two approved fixes quickly; both require edits to shared/config.py.",
+    "context": "Host is Sol 6.1/high. Two available workers have proposed different write scopes that both include shared/config.py. Neither has started."
+  },
+  {
+    "id": "authorization-change",
+    "request": "$codex-prove: correct this two-line authorization condition in the local test application. Keep cross-tenant data inaccessible. No deploy is authorized.",
+    "context": "Host is Sol 6.1/high. Existing happy-path tests pass but do not exercise cross-tenant requests. The security consequence is material. Astra/high is available and no advisor has participated yet."
+  },
+  {
+    "id": "advisor-independence",
+    "request": "$codex-prove: now obtain an independent review of the lock-order fix before accepting it.",
+    "context": "A Sol writer implemented the fix after an existing Astra advisor chose the lock-order strategy. Writer and commands have ended. The original requirements, current diff and final tests are available. Exact Astra/high selection is supported."
+  },
+  {
+    "id": "missing-evidence",
+    "request": "$codex-prove: finish the current task; the worker says PASS but omitted the result of the required regression check.",
+    "context": "The same Sol worker remains available. It changed only owned files, has stopped writing and supplied the real diff. Existing authorization covers the missing local test and same-scope fixes. Nothing needs a new external permission."
+  },
+  {
+    "id": "unavailable-required-model",
+    "request": "$codex-prove: use gpt-6.1-sol/high specifically for the implementation; do not use an older model.",
+    "context": "The runtime cannot select gpt-6.1-sol. Its installed prove-complex-worker name still maps to gpt-5.6-terra/high. No task is running and no files changed."
+  },
+  {
+    "id": "optional-model-missing",
+    "request": "$codex-prove: complete this ordinary cohesive validation feature with the existing checker.",
+    "context": "Host is authoritatively Sol 6.1/high. The scope and expected behavior are clear. Astra and Luna are unavailable. No independent review or exact worker was requested, and no high-consequence uncertainty exists."
+  },
+  {
+    "id": "timeout-and-budget",
+    "request": "$codex-prove: report what can still be finished safely after the worker timed out.",
+    "context": "Two consecutive fixes failed without progress. The task's usage budget is exhausted. The timed-out worker's mutating process might still own shared/config.py. Other completed work has verified results."
+  },
+  {
+    "id": "dirty-worktree",
+    "request": "$codex-prove: add the requested export format, preserving my uncommitted timezone fix in the same module.",
+    "context": "Host is Sol 6.1/high. The initial diff and the user's timezone regression are available. The new format affects separate logic inside the same file; the existing edit can be preserved without guessing. No second writer is active."
+  },
+  {
+    "id": "integration-evidence",
+    "request": "$codex-prove: accept the integrated result if the requested behavior is covered.",
+    "context": "A read-only Sol controller reviewed the original request, real module files, diffs and passing unit tests. Afterwards the Host changed an API field name while integrating module-a and module-b. Module-c and its inputs/dependencies are unchanged. The only cross-module check predates the integration edit."
+  }
+]

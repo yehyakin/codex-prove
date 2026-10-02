@@ -1,6 +1,59 @@
 # Forward validation
 
-Date: 2026-09-05. Candidate: v1.1 development.
+## Sol 6.1 candidate · 2026-09-30
+
+`fixtures/sol61-forward-inputs.json` contains 16 new requests and simulated
+capabilities, with no expected answers. A fresh evaluator reads the candidate
+Skill and profiles and describes its decisions. This checks interpretation of
+the protocol, not live GPT-6.1 behavior. These initial exercises remain simulations.
+
+After local availability changed, a separate [live Compatibility smoke](artifacts/sol61-live-smoke.md)
+used three explicitly selected GPT-6.1 Sol/high contexts for a controller, one
+executor, and an independent read-only reviewer. The 12-method fixture suite and
+additional boundary probes passed. This is not proof of automatic custom-role
+discovery, unforced Solo routing, every model path, performance, or release readiness.
+That initial record remains unchanged. Later [release-preparation probes](artifacts/sol61-release-probes.json)
+exercised fresh-CLI Direct, naturally selected Solo with timeout recovery, and
+holding scope while an old writer remained active. A forced CLI collaboration
+trial was incomplete at its thread limit; its export lacks raw child launches.
+Separate explicit Desktop Luna/Astra supplements passed their assigned checks,
+not the original run as a whole. These were the pre-installation results.
+Earlier simulations are not relabeled as live runs.
+
+After authorized installation, the [2026-10-01 installed-role receipt](artifacts/sol61-installed-acceptance.json)
+records real custom-role selections and persisted child model/effort settings.
+The six-test Compatibility fixture passed after its original controller resumed
+the interrupted final review. The first 600-second timeout, failed child-only
+resume, Luna parse correction and successful parent recovery remain recorded;
+this was not an uninterrupted pass. Four native Windows installer CI jobs passed.
+Desktop installed-role execution, physical Windows, Native Nested and matched
+cost/quality comparisons remain unverified. See the [release gate](../docs/release/sol61-readiness.md).
+
+The opt-in POSIX harness accepts `--max-agent-threads` (1..8, default 2) because
+completed agents can retain open slots; the prompt still bounds active work.
+`--retain-session` keeps local transcripts for actual launch evidence. Codex can
+persist a project-trust entry even with `--ignore-user-config`; compare a config
+baseline and remove only the probe-owned entry after execution. Never restore an
+entire shared config file to hide unrelated changes.
+
+The [initial evaluator artifact](artifacts/sol61-forward-evaluation.md) records
+those 16 decisions without a self-assigned score. After clarifying narrow routing
+and cancellation boundaries, `fixtures/sol61-followup-inputs.json` supplies three
+new inputs for another fresh context plus one later review-correction case.
+The [boundary artifact](artifacts/sol61-boundary-evaluation.md) distinguishes its
+fresh-context exercise from that same-context follow-up. Neither set is an
+automated live-model pass count.
+
+Candidate defaults: Sol 6.1 handles cohesive work in one context; independent
+modules may split; Astra is read-only, problem-specific advice; Luna handles
+mechanical batches. A dependent chain alone is not a reason to create more agents.
+See the [candidate design and release boundary](../docs/research/2026-09-30-sol61-routing.md).
+
+## Retained v1.1 specification and evidence
+
+The material below describes the v1.1 development baseline (2026-09-05 onward).
+Model-specific expectations in `forward-cases.json` remain historical, not the
+new candidate's routing oracle. Their common safety scenarios remain useful.
 
 ## Separate specifications from execution evidence
 

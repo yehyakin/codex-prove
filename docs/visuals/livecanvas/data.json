@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "demo": false,
+  "asOf": "2026-10-01",
+  "timezone": "Asia/Shanghai",
+  "provenance": "source-verified-process-illustration",
+  "project": "Codex PROVE",
+  "baseline": "f4dba1c20b0dc299fbcf565bc883c5afdc0324a9",
+  "releaseStatus": "candidate-not-released",
+  "sources": [
+    {"id": "readme", "title": "Codex PROVE candidate README", "path": "README.md", "url": "https://github.com/yehyakin/codex-prove/blob/f4dba1c20b0dc299fbcf565bc883c5afdc0324a9/README.md", "accessedAt": "2026-10-01", "method": "Read the committed source and preserve its candidate scope."},
+    {"id": "controller", "title": "Sol controller profile", "path": ".codex/agents/prove-controller.toml", "url": "https://github.com/yehyakin/codex-prove/blob/f4dba1c20b0dc299fbcf565bc883c5afdc0324a9/.codex/agents/prove-controller.toml", "accessedAt": "2026-10-01", "method": "Verify model and reasoning effort in TOML; not a claim about every runtime."},
+    {"id": "executor", "title": "Sol complete-task executor", "path": ".codex/agents/prove-complex-worker.toml", "url": "https://github.com/yehyakin/codex-prove/blob/f4dba1c20b0dc299fbcf565bc883c5afdc0324a9/.codex/agents/prove-complex-worker.toml", "accessedAt": "2026-10-01", "method": "Read complete-task responsibility and default model."},
+    {"id": "specialist", "title": "Astra read-only specialist", "path": ".codex/agents/prove-specialist-worker.toml", "url": "https://github.com/yehyakin/codex-prove/blob/f4dba1c20b0dc299fbcf565bc883c5afdc0324a9/.codex/agents/prove-specialist-worker.toml", "accessedAt": "2026-10-01", "method": "Read named-question and operational read-only constraints."},
+    {"id": "batch", "title": "Luna mechanical batch profile", "path": ".codex/agents/prove-efficient-worker.toml", "url": "https://github.com/yehyakin/codex-prove/blob/f4dba1c20b0dc299fbcf565bc883c5afdc0324a9/.codex/agents/prove-efficient-worker.toml", "accessedAt": "2026-10-01", "method": "Read explicit transformation rules and objectively checkable batch scope."}
+  ],
+  "models": [
+    {"name": "Sol", "model": "gpt-6.1-sol", "effort": "high", "sourceId": "executor"},
+    {"name": "Astra", "model": "gpt-6-astra", "effort": "high", "sourceId": "specialist"},
+    {"name": "Luna", "model": "gpt-6-luna", "effort": "max", "sourceId": "batch"}
+  ],
+  "claims": [
+    {"id": "sol-default", "text": "Sol 6.1 执行完整任务，规划、实现和检查留在同一上下文。", "sourceId": "executor", "nature": "configured-workflow", "excerpt": "Plan, investigate, implement, and check it in the same context; a second planning agent is not required."},
+    {"id": "astra-optional", "text": "Astra 按需处理具体难题或独立风险评审，保持只读。", "sourceId": "specialist", "nature": "workflow-constraint-not-os-guarantee", "excerpt": "Stay read-only, even if the runtime exposes broader capabilities."},
+    {"id": "luna-batch", "text": "Luna 负责规则明确、可检查的机械批量。", "sourceId": "batch", "nature": "configured-workflow", "excerpt": "Execute one mechanical batch with explicit rules and objective checks"},
+    {"id": "simple-direct", "text": "简单任务由当前 Codex 直接完成，零子代理。", "sourceId": "readme", "nature": "configured-workflow", "excerpt": "当前 Codex 直接完成，零子代理"},
+    {"id": "assist", "text": "Assist 只分析不改代码，Astra 不是例行审批环节。", "sourceId": "readme", "nature": "configured-workflow", "excerpt": "Astra 不是每次都要走的审批环节。"},
+    {"id": "independent-only", "text": "有独立工作才按需分工，不要求每次用齐所有模型。", "sourceId": "readme", "nature": "configured-workflow", "excerpt": "不要求每次用齐所有模型"}
+  ],
+  "visualSemantics": {
+    "paths": "Illustrated task/result flow; not a benchmark or literal execution trace.",
+    "objectCounts": "Task/file icons are illustrations, not measured quantities.",
+    "speed": "Storyboard timing has no runtime-performance meaning.",
+    "icons": "Original symbols, not official company or model logos.",
+    "notClaimed": ["cost savings", "speed improvement", "OS-enforced read-only isolation", "formal release", "every role required"]
+  }
+}

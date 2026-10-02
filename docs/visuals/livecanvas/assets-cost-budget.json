@@ -1,0 +1,55 @@
+{
+  "assets": [
+    {
+      "id": "cost-budget-zh",
+      "generatedSource": "exec-489b57d1-af56-4e03-8600-01ff49f04ee0.png",
+      "sha256": "22965e29825dc0076feee876ccfc0383ee05b2cc343f741b5bffb0ac3399760b",
+      "kind": "generated-raster",
+      "localPath": "public/media/cost-budget/cost-budget-zh.png",
+      "sourceUrl": null,
+      "provider": "OpenAI built-in ImageGen",
+      "usage": "AI-generated project illustration; no third-party stock license claimed.",
+      "modifications": "User-approved cost-budget edition of the previous mechanism poster.",
+      "role": "scene",
+      "schematic": true,
+      "officialScreenshot": false,
+      "officialLogo": false,
+      "width": 1672,
+      "height": 941,
+      "promptFile": "public/media/cost-budget/prompts.md",
+      "factCheck": "passed",
+      "textReview": "passed",
+      "reviewedBy": "Main agent inspected both actual source images; checked all numeric values, labels, assumptions and illustrative disclaimer against the approved budget."
+    },
+    {
+      "id": "cost-budget-en",
+      "generatedSource": "exec-62143858-e915-4bdc-9e68-560c3a58db49.png",
+      "sha256": "7e0df4b4fd76c9c0135a6bbf9a2399aefa427b8e305c3c235b7d3122cbb140b5",
+      "kind": "generated-raster",
+      "localPath": "public/media/cost-budget/cost-budget-en.png",
+      "sourceUrl": null,
+      "provider": "OpenAI built-in ImageGen",
+      "usage": "AI-generated project illustration; no third-party stock license claimed.",
+      "modifications": "English localization of the new Chinese poster.",
+      "role": "scene",
+      "schematic": true,
+      "officialScreenshot": false,
+      "officialLogo": false,
+      "width": 1672,
+      "height": 941,
+      "promptFile": "public/media/cost-budget/prompts.md",
+      "factCheck": "passed",
+      "textReview": "passed",
+      "reviewedBy": "Main agent inspected both actual source images; checked all numeric values, labels, assumptions and illustrative disclaimer against the approved budget."
+    }
+  ],
+  "fonts": {
+    "bakedIntoImages": true,
+    "redistributed": false
+  },
+  "notes": [
+    "Illustrative budget, not measured savings or guaranteed quality.",
+    "The 80/20 split is not a fixed routing quota.",
+    "Card sizes and connector motion are not quantity or speed encodings."
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "source": "https://learn.chatgpt.com/docs/pricing",
+  "section": "Token rates",
+  "accessedAt": "2026-10-01",
+  "unit": "credits per million tokens",
+  "speed": "Standard",
+  "method": "Official page opened and read; numeric cells transcribed, not API USD rates.",
+  "rates": {
+    "astra": {
+      "model": "GPT-6 Astra",
+      "input": 250,
+      "cachedInput": 25,
+      "output": 1250
+    },
+    "sol": {
+      "model": "GPT-6.1 Sol",
+      "input": 50,
+      "cachedInput": 2.5,
+      "output": 250
+    },
+    "luna": {
+      "model": "GPT-6 Luna",
+      "input": 2.5,
+      "cachedInput": 0.25,
+      "output": 12.5
+    }
+  },
+  "notes": [
+    "Codex has no separate cache-write charge.",
+    "Credit prices do not directly determine included subscription usage."
+  ]
+}

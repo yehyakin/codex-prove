@@ -1,0 +1,222 @@
+{
+  "schema_version": 1,
+  "privacy_redaction": "Public summary normalizes the local home path to ~ and uses PROVE_REPO as the replay command's source-checkout placeholder. Original evidence, result fields and raw hashes are unchanged; prompt_sha256 refers to the unredacted original, not the displayed sanitized prompt.",
+  "date": "2026-09-30",
+  "evidence_class": "live_compatibility_smoke",
+  "status": "PASS",
+  "release_approval": false,
+  "source": {
+    "branch": "codex/sol61-lean-routing",
+    "base_commit": "a30e84c581a357b6cd5f1f6eb9f2c4a3f73c19d4",
+    "tracked_diff_before_sha256": "d6115fea7245004db2429a30871a5f8a2bdc358d3d4d4e824bfc60506581ed22",
+    "runtime_sha256": {
+      ".agents/skills/codex-prove/SKILL.md": "18de108833f3b28edf2298067ee5ca35dfb636793253a8567e18e39c95ea658f",
+      ".agents/skills/codex-prove/agents/openai.yaml": "85fb79b39a6dcd7078bb4cd8aa502a68a6fb2490af4f503d019183b4ae622a0a",
+      ".agents/skills/codex-prove/references/orchestration.md": "38a0fdddb9cce93d84ee86bc95d692efdda4a598c33e52400be1641fc849000f",
+      ".agents/skills/codex-prove/references/runtime-notes.md": "4f4c8cee7f99b454274447b8d32fa9b34cb9cf4692f66182e31c3a857b34df58",
+      ".codex/agents/prove-complex-worker.toml": "242c635d0ea83d40dde2fdddaef0958acfd496aeeef32be937ebd70222bbc2e0",
+      ".codex/agents/prove-controller.toml": "1e0bca0e020142bebf884be12e99d1f9c442cc3bc7ed81e9d65609d387503d6a",
+      ".codex/agents/prove-efficient-worker.toml": "db8ab0dfe1a0d26eac6731fbf63027c9b47f0058eddc5a8040b7107ca484245d",
+      ".codex/agents/prove-specialist-worker.toml": "5287254e348d776701163162962171d80f137ed32aaff04d10a988cfafd82fe8",
+      "docs/release/v1.1.0-runtime.json": "3175d8e51484d54d9b2928ad721586ec1177fb569bee30fbb0460024628b61ce"
+    }
+  },
+  "runtime": {
+    "surface": "Codex Desktop collaboration tools",
+    "execution_mode": "Compatibility",
+    "selection": "fresh generic agents, exact explicit model and effort, candidate profile instructions supplied",
+    "custom_role_discovery": "not verified; current session exposes older custom-role mappings",
+    "sandbox": "broader inherited capabilities; read-only and file ownership are operational scopes, not demonstrated OS isolation",
+    "host_model": null,
+    "host_effort": null,
+    "launches": [
+      {
+        "task": "/root/sol61_live_controller",
+        "profile": "prove-controller",
+        "agent_type": "default",
+        "model": "gpt-6.1-sol",
+        "reasoning_effort": "high",
+        "fork_turns": "none",
+        "write_scope": [],
+        "purpose": "plan-first Compatibility controller, later final review"
+      },
+      {
+        "task": "/root/sol61_live_records",
+        "profile": "prove-complex-worker",
+        "agent_type": "default",
+        "model": "gpt-6.1-sol",
+        "reasoning_effort": "high",
+        "fork_turns": "none",
+        "write_scope": [
+          "records.py"
+        ],
+        "purpose": "implementation and self-check"
+      },
+      {
+        "task": "/root/sol61_live_review",
+        "profile": "prove-complex-worker (review-only packet)",
+        "agent_type": "default",
+        "model": "gpt-6.1-sol",
+        "reasoning_effort": "high",
+        "fork_turns": "none",
+        "write_scope": [],
+        "purpose": "independent requested review, not overall acceptance"
+      }
+    ],
+    "selection_evidence": "Host launch arguments accepted by the collaboration tool, followed by actual source inspection, writes, and checks; no worker self-attestation",
+    "roles_not_launched": [
+      "gpt-6-luna",
+      "gpt-6-astra"
+    ],
+    "not_launched_reason": "controller judged four tiny catalog mappings suitable for Host Direct, and ordinary independent review suitable for fresh Sol",
+    "harness_limit": "Compatibility and plan-first controller were selected by this test harness; this does not establish the default route or optimal coordination overhead"
+  },
+  "fixture": {
+    "baseline_commit": "3a7234e6aaf11e7166fe1109336225428c885f60",
+    "baseline_files": {
+      "REQUEST.md": "# Offline team report fixture\n\nThis is a disposable synthetic project, not a business system or a deployment.\nImplement the following small standard-library-only Python components.\n\nREQ-1: `records.select_rows(rows, team)` accepts a list of dictionaries and a\nnonblank string team. Include only dictionaries whose `team` is exactly equal\nto the requested team. Missing/other team dictionaries must not leak into output.\nReject non-list input, non-dictionary rows, or a blank/non-string requested team\nwith ValueError. For selected rows, `label` must be a nonblank string and `count`\nmust be a nonnegative integer, not a bool. Reject malformed selected rows with\nValueError. Ignore other fields. Group identical labels and sum counts, preserving\nthe literal label. Return `[{\"label\": ..., \"count\": ...}, ...]`, sorted by label.\nAn empty selection is valid. Do not mutate input.\n\nREQ-2: `render.render_csv(rows)` returns a string with header `label,count`, one\nrecord per supplied row in the supplied order, CSV escaping for commas, quotes,\nand embedded newlines, UTF-8 text preserved, and LF line terminators. Empty input\nreturns the header plus LF. Use the standard library, no extra dependencies.\n\nREQ-3: In four `catalog/*.json` fixtures, rename top-level row keys `teamName`\nto `team` and `qty` to `count`. Preserve all values, other keys, nested keys,\nrecord order, and UTF-8 data. Inputs are a JSON list per file. No semantic guesses.\n\nREQ-4: After REQ-1/2/3, `report.py INPUT --team TEAM` reads one JSON catalog and\nprints the selected, aggregated CSV exactly. Missing arguments, malformed JSON,\nmissing files, and ValueError from validation must return exit 2, explain the\nfailure on stderr, and emit no stdout. Importing report must not run the CLI.\nUse argparse and existing components; no web service or new dependencies.\n\nREQ-5: Preserve the pre-existing local modification in `notes.txt`; never edit\nfrozen verification scripts, REQUEST.md, fixture metadata, or `.git`.\nUse the existing checks and inspect final files/diff. No network, global config,\ninstallation, publishing, or subagent creation by execution workers.\n\nREQ-6: Because exact-team exclusion is a stated data boundary, obtain one fresh\nread-only review of that boundary and the integrated CLI before final acceptance.\nThe reviewer must not implement the candidate or approve the overall workflow.\n\nThe core modules have a fixed interface and disjoint ownership. Shared CLI\nintegration has one owner only, and may start after component outputs exist.\nOnly the coordinator assigns execution ownership. Do not edit another owner's\nfiles merely because a check fails while their implementation is in progress.\n\nRuntime: `/opt/homebrew/bin/python3.13 -B verify.py records|render|catalog|integration|all`.\nThe verification script is frozen test material, not an answer key for routing.\n",
+      "catalog/a.json": "[{\"teamName\":\"red\",\"label\":\"基础\",\"qty\":2,\"extra\":{\"qty\":99}},{\"teamName\":\"blue\",\"label\":\"private\",\"qty\":3},{\"teamName\":\"red\",\"label\":\"基础\",\"qty\":4}]\n",
+      "catalog/b.json": "[{\"teamName\":\"red\",\"label\":\"comma,value\",\"qty\":1},{\"teamName\":\"blue\",\"label\":\"private\",\"qty\":8,\"tags\":[\"one\",\"two\"]},{\"teamName\":\"red\",\"label\":\"quote\\\"value\",\"qty\":0}]\n",
+      "catalog/c.json": "[{\"teamName\":\"green\",\"label\":\"第一行\\n第二行\",\"qty\":1},{\"teamName\":\"blue\",\"label\":\"蓝色\",\"qty\":10},{\"teamName\":\"red\",\"label\":\"零\",\"qty\":0,\"enabled\":false}]\n",
+      "catalog/d.json": "[{\"teamName\":\"red\",\"label\":\"keep spaces \",\"qty\":7},{\"teamName\":\"green\",\"label\":\"G\",\"qty\":12,\"nullable\":null},{\"teamName\":\"red\",\"label\":\"emoji 🌱\",\"qty\":5,\"team\":\"red\"}]\n",
+      "metadata.json": "{\"fixture\": \"offline-team-report\", \"schema\": 0}\n",
+      "notes.txt": "Original fixture notes.\n",
+      "records.py": "def select_rows(rows, team):\n    raise NotImplementedError(\"Implement the requested row selection\")\n",
+      "render.py": "def render_csv(rows):\n    raise NotImplementedError(\"Implement the requested CSV rendering\")\n",
+      "report.py": "\"\"\"CLI integration is assigned after its prerequisites are complete.\"\"\"\n",
+      "verify.py": "\"\"\"Frozen external acceptance checks for the disposable fixture.\"\"\"\nimport copy\nimport csv\nimport importlib\nimport io\nimport json\nfrom pathlib import Path\nimport subprocess\nimport sys\nimport unittest\n\nROOT = Path(__file__).resolve().parent\n\n\nclass Records(unittest.TestCase):\n    def test_exact_team_aggregation_order_and_purity(self):\n        from records import select_rows\n        rows = [{\"team\": \"red\", \"label\": \"B\", \"count\": 2},\n                {\"team\": \"red\", \"label\": \"A\", \"count\": 1},\n                {\"team\": \"red\", \"label\": \"B\", \"count\": 3},\n                {\"team\": \"blue\", \"label\": \"secret\", \"count\": 77},\n                {\"label\": \"missing-team\", \"count\": 88},\n                {\"team\": \"red-ish\", \"label\": \"prefix\", \"count\": 99}]\n        before = copy.deepcopy(rows)\n        self.assertEqual(select_rows(rows, \"red\"), [{\"label\": \"A\", \"count\": 1}, {\"label\": \"B\", \"count\": 5}])\n        self.assertEqual(rows, before)\n\n    def test_empty_and_unselected(self):\n        from records import select_rows\n        self.assertEqual(select_rows([], \"red\"), [])\n        self.assertEqual(select_rows([{\"team\": \"blue\", \"count\": \"bad\"}], \"red\"), [])\n\n    def test_invalid_inputs_and_counts(self):\n        from records import select_rows\n        for rows, team in [(None, \"red\"), ({}, \"red\"), ([], \"\"), ([], \" \"), ([], None), ([4], \"red\")]:\n            with self.subTest(rows=rows, team=team), self.assertRaises(ValueError):\n                select_rows(rows, team)\n        for count in [True, False, -1, 2.5, \"2\", None]:\n            with self.subTest(count=count), self.assertRaises(ValueError):\n                select_rows([{\"team\": \"red\", \"label\": \"A\", \"count\": count}], \"red\")\n        for label in [None, \"\", \" \", 4]:\n            with self.subTest(label=label), self.assertRaises(ValueError):\n                select_rows([{\"team\": \"red\", \"label\": label, \"count\": 1}], \"red\")\n\n    def test_preserve_literal_labels(self):\n        from records import select_rows\n        self.assertEqual(select_rows([{\"team\": \"red\", \"label\": \" 🌱 \", \"count\": 0}], \"red\"), [{\"label\": \" 🌱 \", \"count\": 0}])\n\n\nclass Render(unittest.TestCase):\n    def test_csv_roundtrip_and_order(self):\n        from render import render_csv\n        rows = [{\"label\": label, \"count\": n} for n, label in enumerate([\"中文\", \"comma,value\", 'quote\"value', \"first\\nsecond\", \" 🌱 \"])]\n        result = render_csv(rows)\n        self.assertTrue(result.startswith(\"label,count\\n\"))\n        self.assertNotIn(\"\\r\", result)\n        self.assertEqual(list(csv.DictReader(io.StringIO(result))), [{\"label\": r[\"label\"], \"count\": str(r[\"count\"])} for r in rows])\n\n    def test_empty_header(self):\n        from render import render_csv\n        self.assertEqual(render_csv([]), \"label,count\\n\")\n\n\nclass Catalog(unittest.TestCase):\n    def test_complete_mechanical_mapping(self):\n        for path in sorted((ROOT / \"catalog\").glob(\"*.json\")):\n            raw = subprocess.check_output([\"git\", \"show\", \"HEAD:catalog/\" + path.name], cwd=ROOT)\n            original = json.loads(raw)\n            expected = []\n            for row in original:\n                mapped = dict(row)\n                mapped[\"team\"] = mapped.pop(\"teamName\")\n                mapped[\"count\"] = mapped.pop(\"qty\")\n                expected.append(mapped)\n            with self.subTest(file=path.name):\n                self.assertEqual(json.loads(path.read_text(encoding=\"utf-8\")), expected)\n\n\nclass Integration(unittest.TestCase):\n    def run_cli(self, *args):\n        return subprocess.run([sys.executable, \"-B\", str(ROOT / \"report.py\"), *args], cwd=ROOT, capture_output=True, text=True)\n\n    def test_catalog_to_csv(self):\n        result = self.run_cli(\"catalog/a.json\", \"--team\", \"red\")\n        self.assertEqual(result.returncode, 0, result.stderr)\n        self.assertEqual(result.stdout, \"label,count\\n基础,6\\n\")\n        self.assertEqual(result.stderr, \"\")\n\n    def test_empty_selection(self):\n        result = self.run_cli(\"catalog/a.json\", \"--team\", \"unknown\")\n        self.assertEqual((result.returncode, result.stdout), (0, \"label,count\\n\"))\n\n    def test_cli_error_channels(self):\n        for args in [[], [\"catalog/a.json\"], [\"missing.json\", \"--team\", \"red\"], [\"notes.txt\", \"--team\", \"red\"], [\"catalog/a.json\", \"--team\", \" \"]]:\n            with self.subTest(args=args):\n                result = self.run_cli(*args)\n                self.assertEqual(result.returncode, 2)\n                self.assertEqual(result.stdout, \"\")\n                self.assertTrue(result.stderr.strip())\n\n    def test_import_has_no_side_effects(self):\n        result = subprocess.run([sys.executable, \"-B\", \"-c\", \"import report\"], cwd=ROOT, capture_output=True, text=True)\n        self.assertEqual((result.returncode, result.stdout, result.stderr), (0, \"\", \"\"))\n\n    def test_preserved_user_note_and_direct_metadata(self):\n        self.assertEqual((ROOT / \"notes.txt\").read_text(), \"Original fixture notes.\\nUser-local note: preserve this line.\\n\")\n        self.assertEqual(json.loads((ROOT / \"metadata.json\").read_text())[\"schema\"], 1)\n\n\nif __name__ == \"__main__\":\n    kinds = {\"records\": Records, \"render\": Render, \"catalog\": Catalog, \"integration\": Integration}\n    selected = sys.argv[1] if len(sys.argv) > 1 else \"all\"\n    suite = unittest.TestSuite()\n    for name, klass in kinds.items():\n        if selected in (\"all\", name):\n            suite.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(klass))\n    if suite.countTestCases() == 0:\n        raise SystemExit(\"unknown check\")\n    result = unittest.TextTestRunner(verbosity=2).run(suite)\n    raise SystemExit(not result.wasSuccessful())\n"
+    },
+    "final_files": {
+      "REQUEST.md": "# Offline team report fixture\n\nThis is a disposable synthetic project, not a business system or a deployment.\nImplement the following small standard-library-only Python components.\n\nREQ-1: `records.select_rows(rows, team)` accepts a list of dictionaries and a\nnonblank string team. Include only dictionaries whose `team` is exactly equal\nto the requested team. Missing/other team dictionaries must not leak into output.\nReject non-list input, non-dictionary rows, or a blank/non-string requested team\nwith ValueError. For selected rows, `label` must be a nonblank string and `count`\nmust be a nonnegative integer, not a bool. Reject malformed selected rows with\nValueError. Ignore other fields. Group identical labels and sum counts, preserving\nthe literal label. Return `[{\"label\": ..., \"count\": ...}, ...]`, sorted by label.\nAn empty selection is valid. Do not mutate input.\n\nREQ-2: `render.render_csv(rows)` returns a string with header `label,count`, one\nrecord per supplied row in the supplied order, CSV escaping for commas, quotes,\nand embedded newlines, UTF-8 text preserved, and LF line terminators. Empty input\nreturns the header plus LF. Use the standard library, no extra dependencies.\n\nREQ-3: In four `catalog/*.json` fixtures, rename top-level row keys `teamName`\nto `team` and `qty` to `count`. Preserve all values, other keys, nested keys,\nrecord order, and UTF-8 data. Inputs are a JSON list per file. No semantic guesses.\n\nREQ-4: After REQ-1/2/3, `report.py INPUT --team TEAM` reads one JSON catalog and\nprints the selected, aggregated CSV exactly. Missing arguments, malformed JSON,\nmissing files, and ValueError from validation must return exit 2, explain the\nfailure on stderr, and emit no stdout. Importing report must not run the CLI.\nUse argparse and existing components; no web service or new dependencies.\n\nREQ-5: Preserve the pre-existing local modification in `notes.txt`; never edit\nfrozen verification scripts, REQUEST.md, fixture metadata, or `.git`.\nUse the existing checks and inspect final files/diff. No network, global config,\ninstallation, publishing, or subagent creation by execution workers.\n\nREQ-6: Because exact-team exclusion is a stated data boundary, obtain one fresh\nread-only review of that boundary and the integrated CLI before final acceptance.\nThe reviewer must not implement the candidate or approve the overall workflow.\n\nThe core modules have a fixed interface and disjoint ownership. Shared CLI\nintegration has one owner only, and may start after component outputs exist.\nOnly the coordinator assigns execution ownership. Do not edit another owner's\nfiles merely because a check fails while their implementation is in progress.\n\nRuntime: `/opt/homebrew/bin/python3.13 -B verify.py records|render|catalog|integration|all`.\nThe verification script is frozen test material, not an answer key for routing.\n",
+      "catalog/a.json": "[{\"team\":\"red\",\"label\":\"基础\",\"count\":2,\"extra\":{\"qty\":99}},{\"team\":\"blue\",\"label\":\"private\",\"count\":3},{\"team\":\"red\",\"label\":\"基础\",\"count\":4}]\n",
+      "catalog/b.json": "[{\"team\":\"red\",\"label\":\"comma,value\",\"count\":1},{\"team\":\"blue\",\"label\":\"private\",\"count\":8,\"tags\":[\"one\",\"two\"]},{\"team\":\"red\",\"label\":\"quote\\\"value\",\"count\":0}]\n",
+      "catalog/c.json": "[{\"team\":\"green\",\"label\":\"第一行\\n第二行\",\"count\":1},{\"team\":\"blue\",\"label\":\"蓝色\",\"count\":10},{\"team\":\"red\",\"label\":\"零\",\"count\":0,\"enabled\":false}]\n",
+      "catalog/d.json": "[{\"team\":\"red\",\"label\":\"keep spaces \",\"count\":7},{\"team\":\"green\",\"label\":\"G\",\"count\":12,\"nullable\":null},{\"label\":\"emoji 🌱\",\"count\":5,\"team\":\"red\"}]\n",
+      "metadata.json": "{\"fixture\": \"offline-team-report\", \"schema\": 1}\n",
+      "notes.txt": "Original fixture notes.\nUser-local note: preserve this line.\n",
+      "records.py": "def select_rows(rows, team):\n    if not isinstance(rows, list):\n        raise ValueError(\"rows must be a list\")\n    if not isinstance(team, str) or not team.strip():\n        raise ValueError(\"team must be a nonblank string\")\n\n    counts = {}\n    for row in rows:\n        if not isinstance(row, dict):\n            raise ValueError(\"each row must be a dictionary\")\n        if row.get(\"team\") != team:\n            continue\n\n        label = row.get(\"label\")\n        count = row.get(\"count\")\n        if not isinstance(label, str) or not label.strip():\n            raise ValueError(\"selected labels must be nonblank strings\")\n        if isinstance(count, bool) or not isinstance(count, int) or count < 0:\n            raise ValueError(\"selected counts must be nonnegative integers\")\n        counts[label] = counts.get(label, 0) + count\n\n    return [{\"label\": label, \"count\": counts[label]} for label in sorted(counts)]\n",
+      "render.py": "import csv\nimport io\n\n\ndef render_csv(rows):\n    output = io.StringIO(newline=\"\")\n    writer = csv.writer(output, lineterminator=\"\\n\")\n    writer.writerow((\"label\", \"count\"))\n    writer.writerows((row[\"label\"], row[\"count\"]) for row in rows)\n    return output.getvalue()\n",
+      "report.py": "\"\"\"Render an offline JSON catalog for one exact team.\"\"\"\nimport argparse\nimport json\nfrom pathlib import Path\nimport sys\n\nfrom records import select_rows\nfrom render import render_csv\n\n\ndef main(argv=None):\n    parser = argparse.ArgumentParser(description=__doc__)\n    parser.add_argument(\"input\")\n    parser.add_argument(\"--team\", required=True)\n    args = parser.parse_args(argv)\n    try:\n        rows = json.loads(Path(args.input).read_text(encoding=\"utf-8\"))\n        output = render_csv(select_rows(rows, args.team))\n    except (OSError, ValueError) as error:\n        parser.error(str(error))\n    sys.stdout.write(output)\n    return 0\n\n\nif __name__ == \"__main__\":\n    raise SystemExit(main())\n",
+      "verify.py": "\"\"\"Frozen external acceptance checks for the disposable fixture.\"\"\"\nimport copy\nimport csv\nimport importlib\nimport io\nimport json\nfrom pathlib import Path\nimport subprocess\nimport sys\nimport unittest\n\nROOT = Path(__file__).resolve().parent\n\n\nclass Records(unittest.TestCase):\n    def test_exact_team_aggregation_order_and_purity(self):\n        from records import select_rows\n        rows = [{\"team\": \"red\", \"label\": \"B\", \"count\": 2},\n                {\"team\": \"red\", \"label\": \"A\", \"count\": 1},\n                {\"team\": \"red\", \"label\": \"B\", \"count\": 3},\n                {\"team\": \"blue\", \"label\": \"secret\", \"count\": 77},\n                {\"label\": \"missing-team\", \"count\": 88},\n                {\"team\": \"red-ish\", \"label\": \"prefix\", \"count\": 99}]\n        before = copy.deepcopy(rows)\n        self.assertEqual(select_rows(rows, \"red\"), [{\"label\": \"A\", \"count\": 1}, {\"label\": \"B\", \"count\": 5}])\n        self.assertEqual(rows, before)\n\n    def test_empty_and_unselected(self):\n        from records import select_rows\n        self.assertEqual(select_rows([], \"red\"), [])\n        self.assertEqual(select_rows([{\"team\": \"blue\", \"count\": \"bad\"}], \"red\"), [])\n\n    def test_invalid_inputs_and_counts(self):\n        from records import select_rows\n        for rows, team in [(None, \"red\"), ({}, \"red\"), ([], \"\"), ([], \" \"), ([], None), ([4], \"red\")]:\n            with self.subTest(rows=rows, team=team), self.assertRaises(ValueError):\n                select_rows(rows, team)\n        for count in [True, False, -1, 2.5, \"2\", None]:\n            with self.subTest(count=count), self.assertRaises(ValueError):\n                select_rows([{\"team\": \"red\", \"label\": \"A\", \"count\": count}], \"red\")\n        for label in [None, \"\", \" \", 4]:\n            with self.subTest(label=label), self.assertRaises(ValueError):\n                select_rows([{\"team\": \"red\", \"label\": label, \"count\": 1}], \"red\")\n\n    def test_preserve_literal_labels(self):\n        from records import select_rows\n        self.assertEqual(select_rows([{\"team\": \"red\", \"label\": \" 🌱 \", \"count\": 0}], \"red\"), [{\"label\": \" 🌱 \", \"count\": 0}])\n\n\nclass Render(unittest.TestCase):\n    def test_csv_roundtrip_and_order(self):\n        from render import render_csv\n        rows = [{\"label\": label, \"count\": n} for n, label in enumerate([\"中文\", \"comma,value\", 'quote\"value', \"first\\nsecond\", \" 🌱 \"])]\n        result = render_csv(rows)\n        self.assertTrue(result.startswith(\"label,count\\n\"))\n        self.assertNotIn(\"\\r\", result)\n        self.assertEqual(list(csv.DictReader(io.StringIO(result))), [{\"label\": r[\"label\"], \"count\": str(r[\"count\"])} for r in rows])\n\n    def test_empty_header(self):\n        from render import render_csv\n        self.assertEqual(render_csv([]), \"label,count\\n\")\n\n\nclass Catalog(unittest.TestCase):\n    def test_complete_mechanical_mapping(self):\n        for path in sorted((ROOT / \"catalog\").glob(\"*.json\")):\n            raw = subprocess.check_output([\"git\", \"show\", \"HEAD:catalog/\" + path.name], cwd=ROOT)\n            original = json.loads(raw)\n            expected = []\n            for row in original:\n                mapped = dict(row)\n                mapped[\"team\"] = mapped.pop(\"teamName\")\n                mapped[\"count\"] = mapped.pop(\"qty\")\n                expected.append(mapped)\n            with self.subTest(file=path.name):\n                self.assertEqual(json.loads(path.read_text(encoding=\"utf-8\")), expected)\n\n\nclass Integration(unittest.TestCase):\n    def run_cli(self, *args):\n        return subprocess.run([sys.executable, \"-B\", str(ROOT / \"report.py\"), *args], cwd=ROOT, capture_output=True, text=True)\n\n    def test_catalog_to_csv(self):\n        result = self.run_cli(\"catalog/a.json\", \"--team\", \"red\")\n        self.assertEqual(result.returncode, 0, result.stderr)\n        self.assertEqual(result.stdout, \"label,count\\n基础,6\\n\")\n        self.assertEqual(result.stderr, \"\")\n\n    def test_empty_selection(self):\n        result = self.run_cli(\"catalog/a.json\", \"--team\", \"unknown\")\n        self.assertEqual((result.returncode, result.stdout), (0, \"label,count\\n\"))\n\n    def test_cli_error_channels(self):\n        for args in [[], [\"catalog/a.json\"], [\"missing.json\", \"--team\", \"red\"], [\"notes.txt\", \"--team\", \"red\"], [\"catalog/a.json\", \"--team\", \" \"]]:\n            with self.subTest(args=args):\n                result = self.run_cli(*args)\n                self.assertEqual(result.returncode, 2)\n                self.assertEqual(result.stdout, \"\")\n                self.assertTrue(result.stderr.strip())\n\n    def test_import_has_no_side_effects(self):\n        result = subprocess.run([sys.executable, \"-B\", \"-c\", \"import report\"], cwd=ROOT, capture_output=True, text=True)\n        self.assertEqual((result.returncode, result.stdout, result.stderr), (0, \"\", \"\"))\n\n    def test_preserved_user_note_and_direct_metadata(self):\n        self.assertEqual((ROOT / \"notes.txt\").read_text(), \"Original fixture notes.\\nUser-local note: preserve this line.\\n\")\n        self.assertEqual(json.loads((ROOT / \"metadata.json\").read_text())[\"schema\"], 1)\n\n\nif __name__ == \"__main__\":\n    kinds = {\"records\": Records, \"render\": Render, \"catalog\": Catalog, \"integration\": Integration}\n    selected = sys.argv[1] if len(sys.argv) > 1 else \"all\"\n    suite = unittest.TestSuite()\n    for name, klass in kinds.items():\n        if selected in (\"all\", name):\n            suite.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(klass))\n    if suite.countTestCases() == 0:\n        raise SystemExit(\"unknown check\")\n    result = unittest.TextTestRunner(verbosity=2).run(suite)\n    raise SystemExit(not result.wasSuccessful())\n"
+    },
+    "final_sha256": {
+      "REQUEST.md": "9e6f1ed16a382a23823fd29baaef44fb70e1d646bb5a1f7d3a0310d225e9d364",
+      "catalog/a.json": "3c2431d01ad11cf8bc920f9aaba12493c8db69e50bc62010496f9afab9029ff2",
+      "catalog/b.json": "1fdd8f280d09a0ad0cc7b8514c22505c54830f2c3e730c7a89d5e01906cf834c",
+      "catalog/c.json": "5cfaafe1ac86e79c162fc5994d0996c0f602141e89c9f9eae1500e629fc09bb6",
+      "catalog/d.json": "6021f6f3cbfc2ecc421194ea5842bf0b98a762c025640c94e9c3b5b4e0a2ba77",
+      "metadata.json": "687970361f3851583ecf2d01ee219dcc8d9693acc619fd306aa3d27578b60dae",
+      "notes.txt": "3397b95ad638408f90abfacac1f8c629290933f9897ce53e497e68d1fa7f5c06",
+      "records.py": "b0d4bf693f24e46ac48bac6b7b718750689fceabcd56057246b2a3157dd3aacc",
+      "render.py": "f165a2a1f83079687f3379202088d302fe0e58a8f2fabc3e4be5811dccbd200d",
+      "report.py": "bbd87899c5df8fc9559a38254e6cd086095942fa44c764f85d82f14ba1613506",
+      "verify.py": "74b30f583ded29d34c85d2f3c9c0832438e0f2a0eab51a4bc0d6721daaa3147f"
+    },
+    "final_diff": "diff --git a/catalog/a.json b/catalog/a.json\nindex 9ab7645..73544f2 100644\n--- a/catalog/a.json\n+++ b/catalog/a.json\n@@ -1 +1 @@\n-[{\"teamName\":\"red\",\"label\":\"基础\",\"qty\":2,\"extra\":{\"qty\":99}},{\"teamName\":\"blue\",\"label\":\"private\",\"qty\":3},{\"teamName\":\"red\",\"label\":\"基础\",\"qty\":4}]\n+[{\"team\":\"red\",\"label\":\"基础\",\"count\":2,\"extra\":{\"qty\":99}},{\"team\":\"blue\",\"label\":\"private\",\"count\":3},{\"team\":\"red\",\"label\":\"基础\",\"count\":4}]\ndiff --git a/catalog/b.json b/catalog/b.json\nindex 8e1e08f..99275c7 100644\n--- a/catalog/b.json\n+++ b/catalog/b.json\n@@ -1 +1 @@\n-[{\"teamName\":\"red\",\"label\":\"comma,value\",\"qty\":1},{\"teamName\":\"blue\",\"label\":\"private\",\"qty\":8,\"tags\":[\"one\",\"two\"]},{\"teamName\":\"red\",\"label\":\"quote\\\"value\",\"qty\":0}]\n+[{\"team\":\"red\",\"label\":\"comma,value\",\"count\":1},{\"team\":\"blue\",\"label\":\"private\",\"count\":8,\"tags\":[\"one\",\"two\"]},{\"team\":\"red\",\"label\":\"quote\\\"value\",\"count\":0}]\ndiff --git a/catalog/c.json b/catalog/c.json\nindex 030ba32..76495bb 100644\n--- a/catalog/c.json\n+++ b/catalog/c.json\n@@ -1 +1 @@\n-[{\"teamName\":\"green\",\"label\":\"第一行\\n第二行\",\"qty\":1},{\"teamName\":\"blue\",\"label\":\"蓝色\",\"qty\":10},{\"teamName\":\"red\",\"label\":\"零\",\"qty\":0,\"enabled\":false}]\n+[{\"team\":\"green\",\"label\":\"第一行\\n第二行\",\"count\":1},{\"team\":\"blue\",\"label\":\"蓝色\",\"count\":10},{\"team\":\"red\",\"label\":\"零\",\"count\":0,\"enabled\":false}]\ndiff --git a/catalog/d.json b/catalog/d.json\nindex 3e875e5..dc601ec 100644\n--- a/catalog/d.json\n+++ b/catalog/d.json\n@@ -1 +1 @@\n-[{\"teamName\":\"red\",\"label\":\"keep spaces \",\"qty\":7},{\"teamName\":\"green\",\"label\":\"G\",\"qty\":12,\"nullable\":null},{\"teamName\":\"red\",\"label\":\"emoji 🌱\",\"qty\":5,\"team\":\"red\"}]\n+[{\"team\":\"red\",\"label\":\"keep spaces \",\"count\":7},{\"team\":\"green\",\"label\":\"G\",\"count\":12,\"nullable\":null},{\"label\":\"emoji 🌱\",\"count\":5,\"team\":\"red\"}]\ndiff --git a/metadata.json b/metadata.json\nindex 915caea..4f7b9ee 100644\n--- a/metadata.json\n+++ b/metadata.json\n@@ -1 +1 @@\n-{\"fixture\": \"offline-team-report\", \"schema\": 0}\n+{\"fixture\": \"offline-team-report\", \"schema\": 1}\ndiff --git a/notes.txt b/notes.txt\nindex 0bee944..2c083fa 100644\n--- a/notes.txt\n+++ b/notes.txt\n@@ -1 +1,2 @@\n Original fixture notes.\n+User-local note: preserve this line.\ndiff --git a/records.py b/records.py\nindex 5baadf4..e336c2e 100644\n--- a/records.py\n+++ b/records.py\n@@ -1,2 +1,22 @@\n def select_rows(rows, team):\n-    raise NotImplementedError(\"Implement the requested row selection\")\n+    if not isinstance(rows, list):\n+        raise ValueError(\"rows must be a list\")\n+    if not isinstance(team, str) or not team.strip():\n+        raise ValueError(\"team must be a nonblank string\")\n+\n+    counts = {}\n+    for row in rows:\n+        if not isinstance(row, dict):\n+            raise ValueError(\"each row must be a dictionary\")\n+        if row.get(\"team\") != team:\n+            continue\n+\n+        label = row.get(\"label\")\n+        count = row.get(\"count\")\n+        if not isinstance(label, str) or not label.strip():\n+            raise ValueError(\"selected labels must be nonblank strings\")\n+        if isinstance(count, bool) or not isinstance(count, int) or count < 0:\n+            raise ValueError(\"selected counts must be nonnegative integers\")\n+        counts[label] = counts.get(label, 0) + count\n+\n+    return [{\"label\": label, \"count\": counts[label]} for label in sorted(counts)]\ndiff --git a/render.py b/render.py\nindex e2fe88e..5c96b6c 100644\n--- a/render.py\n+++ b/render.py\n@@ -1,2 +1,10 @@\n+import csv\n+import io\n+\n+\n def render_csv(rows):\n-    raise NotImplementedError(\"Implement the requested CSV rendering\")\n+    output = io.StringIO(newline=\"\")\n+    writer = csv.writer(output, lineterminator=\"\\n\")\n+    writer.writerow((\"label\", \"count\"))\n+    writer.writerows((row[\"label\"], row[\"count\"]) for row in rows)\n+    return output.getvalue()\ndiff --git a/report.py b/report.py\nindex bf751da..76d2d5b 100644\n--- a/report.py\n+++ b/report.py\n@@ -1 +1,26 @@\n-\"\"\"CLI integration is assigned after its prerequisites are complete.\"\"\"\n+\"\"\"Render an offline JSON catalog for one exact team.\"\"\"\n+import argparse\n+import json\n+from pathlib import Path\n+import sys\n+\n+from records import select_rows\n+from render import render_csv\n+\n+\n+def main(argv=None):\n+    parser = argparse.ArgumentParser(description=__doc__)\n+    parser.add_argument(\"input\")\n+    parser.add_argument(\"--team\", required=True)\n+    args = parser.parse_args(argv)\n+    try:\n+        rows = json.loads(Path(args.input).read_text(encoding=\"utf-8\"))\n+        output = render_csv(select_rows(rows, args.team))\n+    except (OSError, ValueError) as error:\n+        parser.error(str(error))\n+    sys.stdout.write(output)\n+    return 0\n+\n+\n+if __name__ == \"__main__\":\n+    raise SystemExit(main())\n"
+  },
+  "verification": {
+    "first_unimplemented_probe": {
+      "command": "python3.13 -B -c 'from records import select_rows; print(select_rows([], \"red\"))'",
+      "exit_code": 1,
+      "result": "NotImplementedError"
+    },
+    "host_final_checks": {
+      "chunk_id": "3d7403",
+      "wall_time_seconds": 0.45266675,
+      "exit_code": 0,
+      "original_token_count": 685,
+      "output": "test_catalog_to_csv (__main__.Integration.test_catalog_to_csv) ... ok\ntest_cli_error_channels (__main__.Integration.test_cli_error_channels) ... ok\ntest_empty_selection (__main__.Integration.test_empty_selection) ... ok\ntest_import_has_no_side_effects (__main__.Integration.test_import_has_no_side_effects) ... ok\ntest_preserved_user_note_and_direct_metadata (__main__.Integration.test_preserved_user_note_and_direct_metadata) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.203s\n\nOK\ntest_empty_and_unselected (__main__.Records.test_empty_and_unselected) ... ok\ntest_exact_team_aggregation_order_and_purity (__main__.Records.test_exact_team_aggregation_order_and_purity) ... ok\ntest_invalid_inputs_and_counts (__main__.Records.test_invalid_inputs_and_counts) ... ok\ntest_preserve_literal_labels (__main__.Records.test_preserve_literal_labels) ... ok\ntest_csv_roundtrip_and_order (__main__.Render.test_csv_roundtrip_and_order) ... ok\ntest_empty_header (__main__.Render.test_empty_header) ... ok\ntest_complete_mechanical_mapping (__main__.Catalog.test_complete_mechanical_mapping) ... ok\ntest_catalog_to_csv (__main__.Integration.test_catalog_to_csv) ... ok\ntest_cli_error_channels (__main__.Integration.test_cli_error_channels) ... ok\ntest_empty_selection (__main__.Integration.test_empty_selection) ... ok\ntest_import_has_no_side_effects (__main__.Integration.test_import_has_no_side_effects) ... ok\ntest_preserved_user_note_and_direct_metadata (__main__.Integration.test_preserved_user_note_and_direct_metadata) ... ok\n\n----------------------------------------------------------------------\nRan 12 tests in 0.247s\n\nOK\n M catalog/a.json\n M catalog/b.json\n M catalog/c.json\n M catalog/d.json\n M metadata.json\n M notes.txt\n M records.py\n M render.py\n M report.py\n9e6f1ed16a382a23823fd29baaef44fb70e1d646bb5a1f7d3a0310d225e9d364  REQUEST.md\n74b30f583ded29d34c85d2f3c9c0832438e0f2a0eab51a4bc0d6721daaa3147f  verify.py\n3397b95ad638408f90abfacac1f8c629290933f9897ce53e497e68d1fa7f5c06  notes.txt\n687970361f3851583ecf2d01ee219dcc8d9693acc619fd306aa3d27578b60dae  metadata.json\nb0d4bf693f24e46ac48bac6b7b718750689fceabcd56057246b2a3157dd3aacc  records.py\nf165a2a1f83079687f3379202088d302fe0e58a8f2fabc3e4be5811dccbd200d  render.py\nbbd87899c5df8fc9559a38254e6cd086095942fa44c764f85d82f14ba1613506  report.py\n3c2431d01ad11cf8bc920f9aaba12493c8db69e50bc62010496f9afab9029ff2  catalog/a.json\n1fdd8f280d09a0ad0cc7b8514c22505c54830f2c3e730c7a89d5e01906cf834c  catalog/b.json\n5cfaafe1ac86e79c162fc5994d0996c0f602141e89c9f9eae1500e629fc09bb6  catalog/c.json\n6021f6f3cbfc2ecc421194ea5842bf0b98a762c025640c94e9c3b5b4e0a2ba77  catalog/d.json\na9f3b315a4777dd1d32218ca3b34d04d0ca0161c2631ecca1b7f3869235f902c  -\n"
+    },
+    "independent_review": {
+      "task": "/root/sol61_live_review",
+      "verdict": "PASS",
+      "findings": [],
+      "probe_source": "tests/artifacts/sol61-live-review-probe.py",
+      "command": "python3.13 -B - < \"$PROVE_REPO/tests/artifacts/sol61-live-review-probe.py\"",
+      "cwd": "/tmp/prove-sol61-live-3a2fx7",
+      "exit_code": 0,
+      "result": "Independent review: 0 failure(s): []",
+      "covered": "exact team/case/whitespace/prefix exclusions, purity, malformed selected rows, 12 catalog/team subprocess CLI combinations, key/value/order preservation, no partial stdout, permission/decoding errors, import behavior and quoted newline output",
+      "limitations": "Malformed contents and permission/decoding failures used Path.read_text mocking, not invalid on-disk catalogs. The CR-labeled roundtrip probe checks exact quoted output; catalog subprocess probes perform CSV parsing.",
+      "result_only_followup": "Original result lacked inline probe source; the same reviewer returned exact previously executed code without new tests or writes. No new review context.",
+      "repeated_frozen_check": {
+        "command": "/opt/homebrew/bin/python3.13 -B verify.py all",
+        "exit_code": 0,
+        "tests": 12,
+        "seconds": 0.598
+      },
+      "fixture_diff_sha256_before_after": "a9f3b315a4777dd1d32218ca3b34d04d0ca0161c2631ecca1b7f3869235f902c",
+      "saved_source_sha256": "60b3203f1d571d5a0959a2e7fc0ffbcc8a070647d1c035ce560080995d4605ec",
+      "saved_artifact_replay": {
+        "reason": "validate that the newly saved evidence script reproduces the previously inline checks",
+        "chunk_id": "2f00bc",
+        "wall_time_seconds": 0.438442458,
+        "exit_code": 0,
+        "original_token_count": 522,
+        "output": "PASS exact-team exclusion, malformed unselected rows, literal-label grouping and large integer\nPASS input remains byte-equivalent as JSON after aggregation\nPASS requested team whitespace remains literal\nPASS non-dictionary row rejected even following valid selected row\nPASS selected-row validation {'team': 'red', 'count': 1}\nPASS selected-row validation {'team': 'red', 'label': 'A'}\nPASS selected-row validation {'team': 'red', 'label': '\\t\\n', 'count': 1}\nPASS selected-row validation {'team': 'red', 'label': 'A', 'count': False}\nPASS catalog/a.json independent value/key/nested/order mapping\nPASS actual subprocess CLI catalog/a.json team=red\nPASS actual subprocess CLI catalog/a.json team=blue\nPASS actual subprocess CLI catalog/a.json team=green\nPASS catalog/b.json independent value/key/nested/order mapping\nPASS actual subprocess CLI catalog/b.json team=red\nPASS actual subprocess CLI catalog/b.json team=blue\nPASS actual subprocess CLI catalog/b.json team=green\nPASS catalog/c.json independent value/key/nested/order mapping\nPASS actual subprocess CLI catalog/c.json team=red\nPASS actual subprocess CLI catalog/c.json team=blue\nPASS actual subprocess CLI catalog/c.json team=green\nPASS catalog/d.json independent value/key/nested/order mapping\nPASS actual subprocess CLI catalog/d.json team=red\nPASS actual subprocess CLI catalog/d.json team=blue\nPASS actual subprocess CLI catalog/d.json team=green\nPASS mocked file contents: late malformed selected count, exit2/stderr/no partial stdout\nPASS mocked file contents: late non-dictionary row, exit2/stderr/no partial stdout\nPASS mocked file contents: non-list JSON input, exit2/stderr/no partial stdout\nPASS mocked file contents: malformed JSON suffix, exit2/stderr/no partial stdout\nPASS PermissionError: exit2/stderr/no stdout\nPASS UnicodeDecodeError: exit2/stderr/no stdout\nPASS reload/import with CLI-like argv does not read input or emit output\nPASS render mixed UTF-8, quotes, comma and embedded LF exact bytes\nPASS render carriage-return newline is quoted and roundtrips as one field\nIndependent review: 0 failure(s): []\n"
+      }
+    },
+    "controller_verdict": {
+      "task": "/root/sol61_live_controller",
+      "verdict": "PASS",
+      "scope": "REQ-1 through REQ-6 of the synthetic fixture only",
+      "evidence_quality": "sufficient for this fixture",
+      "requirement_coverage": {
+        "REQ-1": "satisfied",
+        "REQ-2": "satisfied",
+        "REQ-3": "satisfied",
+        "REQ-4": "satisfied",
+        "REQ-5": "satisfied",
+        "REQ-6": "satisfied"
+      },
+      "findings": [],
+      "required_fixes": [],
+      "inspected": "original request, all real fixture files/diff, complete original/final snapshots, frozen and supplemental checker source, complete saved outputs and exit statuses, current candidate hashes",
+      "fixture_diff_sha256": "a9f3b315a4777dd1d32218ca3b34d04d0ca0161c2631ecca1b7f3869235f902c",
+      "repeated_equivalent_checks": false,
+      "limitations": "operational scope and net diff do not establish OS sandbox isolation or absence of temporary writes; no release or benchmark claim"
+    }
+  },
+  "preservation": {
+    "global_before_sha256": {
+      "~/.agents/skills/codex-prove/SKILL.md": "13ca8f28ba4b7e29325049d95e3b9a158b2e5d9074bb5ecb2d2a6c0ef19d33bf",
+      "~/.agents/skills/codex-prove/agents/openai.yaml": "aa46c04369a5060d43c77904091ab33aeabce36e55ce496b513db66085e7e306",
+      "~/.agents/skills/codex-prove/references/orchestration.md": "fcda53853671128585127496829c5de2a21b905f114ec586a30f0b8dad47ccfc",
+      "~/.agents/skills/codex-prove/references/ponytail-license.txt": "ffc6f98c0e8e03c8eafe92f63c6f03ec517d860bccd833e16a1a8aa1d4b6ec95",
+      "~/.agents/skills/codex-prove/references/runtime-notes.md": "e97d0ebba68dfb0fdb38b8d4b5081bdea8597687f5bfc7a625d34ee1b8722b32",
+      "~/.agents/skills/sol-control/SKILL.md": "4d8f5a4e1131d1e45059e8f402e63ee7bca90d66d4a1948192e8c4b43d01f20c",
+      "~/.agents/skills/sol-control/agents/openai.yaml": "4de77c8704a12646e8be94b90636dd00ff7f2dd7eec059bd16d6a64526d5a436",
+      "~/.codex/config.toml": "dd62f95b7ebc3ed6eb9615a207ed5821ea667912a4c2a941ada8ae1f55b1c91e",
+      "~/.codex/agents/prove-complex-worker.toml": "98ff01ab8155398a3518b975549054f0c12bd6f5ca3621e3081ba1cb4ad0ddc5",
+      "~/.codex/agents/prove-controller.toml": "db0c32b5c18bc6218db5e12b936495230bb600ea941adec57830c0e3e6751567",
+      "~/.codex/agents/prove-efficient-worker.toml": "99c6bf16c7538add2f20ab748cc16cb1f1776098d30fb909b9ee0927d0a401e3",
+      "~/.codex/agents/prove-specialist-worker.toml": "99813cb41fd86f77b3a09335a6e06d16c650e54f3b5c7de1891fc95abc0d716c"
+    },
+    "global_after_matches": true,
+    "source_profiles_unchanged": true
+  },
+  "not_verified": [
+    "unforced Solo default routing",
+    "two Sol execution workers writing in parallel",
+    "candidate Luna/Astra runtime paths",
+    "new-session custom-role discovery and candidate global installation",
+    "Native Nested",
+    "Windows execution",
+    "ownership-conflict and timeout/cancellation fault injection",
+    "paired repeated quality, latency, total-token or currency-cost benchmark",
+    "release readiness"
+  ],
+  "cost": {
+    "tokens": null,
+    "cached_tokens": null,
+    "currency": null,
+    "comparison": "not measured"
+  },
+  "repository_verification": {
+    "tests": 122,
+    "exit_code": 0,
+    "surface": "isolated local source clone excluding unrelated untracked media dependencies",
+    "skill_creator": "both entrypoints valid using system Python with installed PyYAML",
+    "powershell": "structural checks only; pwsh unavailable"
+  }
+}

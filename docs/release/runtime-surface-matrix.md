@@ -4,7 +4,24 @@ Release-time evidence for Codex PROVE. Configuration, an agent label, or a child
 self-report is not runtime proof. Statuses are `VERIFIED`, `FAILED`, or
 `UNVERIFIED`.
 
-Current release evidence: 2026-09-27, v1.1.0. Runtime files are bound by SHA-256
+Sol 6.1 candidate evidence is tracked separately in [release preparation](sol61-readiness.md).
+
+## Sol 6.1 candidate: 2026-10-01
+
+| Surface | Signal | Status | Evidence |
+| --- | --- | --- | --- |
+| Repository | Cross-platform candidate CI | VERIFIED | `fa2c147`: four Linux/macOS and four Windows jobs passed; final follow-up commit must also pass its own CI |
+| macOS | Global upgrade and backup | VERIFIED | 11 installed files equal source; 13 backup files match the prior state; config byte-equal after removing the CLI-created test trust entry |
+| Fresh CLI | Installed custom roles and Compatibility | VERIFIED | [Receipt](../../tests/artifacts/sol61-installed-acceptance.json): actual role selections and child turn settings; six fixture tests; final PASS after bounded same-controller recovery |
+| Fresh CLI | Uninterrupted first attempt | FAILED | 600-second deadline interrupted final review; failed child-only resume and successful parent recovery are retained |
+| Desktop | Installed custom-role runtime | UNVERIFIED | The fresh installed-role acceptance above used CLI, not Desktop |
+| Runtime | Native Nested | UNVERIFIED | This run used Compatibility |
+| Physical Windows | Candidate runtime | UNVERIFIED | Hosted installer CI is not physical-device execution |
+
+This deliberately forced role-coverage fixture is not a routing, cost, speed or
+isolation benchmark. The tables below remain historical release evidence.
+
+Published release evidence: 2026-09-27, v1.1.0. Runtime files are bound by SHA-256
 in the [release receipt](v1.1.0-runtime.json); the source baseline is `93e1c35`.
 The release changes documentation and evidence, not those runtime files.
 

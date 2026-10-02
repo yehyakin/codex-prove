@@ -1,0 +1,72 @@
+[
+  {
+    "id": "known-host-coupled-checker",
+    "request": "$codex-prove: repair the JSON checker diagnostics and add malformed-input and real-CLI regressions. Keep its healthy output and read-only behavior.",
+    "context": "The current-session runtime reports gpt-6.1-sol/high. The checker and new regression file need a shared interface that is not settled yet. This is one bounded local change. No separate review was requested."
+  },
+  {
+    "id": "unknown-host-coupled-checker",
+    "request": "$codex-prove: repair the JSON checker diagnostics and add malformed-input and real-CLI regressions. Keep its healthy output and read-only behavior.",
+    "context": "The Host has the required local read/write/test tools but its model and effort are not exposed. No specific model or independent reviewer was requested. The helper/test interface still needs to be designed."
+  },
+  {
+    "id": "selected-is-not-observed",
+    "request": "$codex-prove: implement a bounded local parser repair, its regressions, and report the actual route and evidence.",
+    "context": "The trusted current launcher records selected_model=gpt-6.1-sol and selected_reasoning_effort=high from its explicit CLI arguments. Observed fields are null; managed overrides have not been inspected. The Host has the needed tools."
+  },
+  {
+    "id": "stale-session-identity",
+    "request": "$codex-prove: fix the fixture serializer and run the focused regression suite.",
+    "context": "An archived receipt identifies a previous chat as gpt-6.1-sol/high. Nothing identifies the current Host. Current custom worker profiles also select that model. The current Host can do the bounded work; no exact model is required."
+  },
+  {
+    "id": "effective-selection-conflict",
+    "request": "$codex-prove: complete the bounded importer fix and report model-selection uncertainty without changing global settings.",
+    "context": "This launch requested gpt-6.1-sol/high, but a trusted current-session effective-settings receipt reports gpt-6-astra/medium. No exact model was required for the work. The current Host has all necessary tools and already knows the importer."
+  },
+  {
+    "id": "exact-model-unavailable",
+    "request": "$codex-prove: the repair must be executed by gpt-6.1-sol/high. Do not substitute another model.",
+    "context": "The current Host identity is unknown. No trusted current selection or effective-settings record exists, and tools cannot select or verify any child model. Only ordinary Host editing is available."
+  },
+  {
+    "id": "explicit-controller",
+    "request": "$codex-prove: use one separate read-only Sol 6.1/high coordinator for the two approved independent module repairs. Keep that coordinator out of implementation.",
+    "context": "The two modules have settled interfaces and disjoint files. The Host identity is unknown, but authoritative custom-role mapping and actual launch records are available for the required Sol controller and workers. Capacity is sufficient."
+  },
+  {
+    "id": "host-plus-independent-owner",
+    "request": "$codex-prove: implement the approved parser change in module-a and the independent exporter repair in module-b, then verify both and their integration.",
+    "context": "Both branches have complete interfaces, no shared writes, and enough work for meaningful independent progress. Host is gpt-6.1-sol/high, already understands module-a, and can write it. One child slot is free; module-b's handoff is concise."
+  },
+  {
+    "id": "large-independent-frontier",
+    "request": "$codex-prove: implement three approved independent module repairs with useful parallel work and a final integration check.",
+    "context": "Host is gpt-6.1-sol/high. Each module has settled boundaries, substantial independent work, and disjoint writes. Two child slots are free. Host can own one module. User did not require a separate controller."
+  },
+  {
+    "id": "small-existing-command",
+    "request": "$codex-prove: regenerate the supplied fixture labels with the existing normalize command and check its exact output.",
+    "context": "The command finishes in seconds. Host model/effort are unknown, but the required command is available and authorized. No design or independent review is involved."
+  },
+  {
+    "id": "mechanical-batch-not-quota",
+    "request": "$codex-prove: apply the supplied exact mapping to a large fixture catalogue and run its deterministic checker.",
+    "context": "The batch needs substantial repetitive work beyond one command. The Host is already occupied with an independent authorized module. A Luna/max worker has authoritative selection and a free slot. No unspecified design choices are needed."
+  },
+  {
+    "id": "child-does-not-inherit-host-proof",
+    "request": "$codex-prove: delegate the approved bounded module-b repair while finishing independent module-a, then report actual model and effort selections.",
+    "context": "The current launcher supplies Host-only selected settings gpt-6.1-sol/high, with observed fields null. A task packet may include that context. The actual custom child launch maps prove-efficient-worker to gpt-6-luna/max; module-b is a mechanical mapped batch."
+  },
+  {
+    "id": "bounded-context-evidence",
+    "request": "$codex-prove: finish the independent fixture migrations and check the integrated result. Preserve all failures and acceptance requirements.",
+    "context": "Host owns one module and an active worker owns another. The worker produced long routine successful logs, one relevant interface change, and a candidate-bound final test artifact with its command and exit status. The complete artifact is readable; no output has been lost."
+  },
+  {
+    "id": "unknown-host-independent-review",
+    "request": "$codex-prove: repair the tenant filter and obtain the explicitly required fresh independent security review before accepting it. Do not deploy.",
+    "context": "Host model/effort are unknown, but it can implement and test the local repair. A trusted fresh read-only Astra/high profile is available. No advisor has participated in the design. The user explicitly requires independent review even though the code change is small."
+  }
+]

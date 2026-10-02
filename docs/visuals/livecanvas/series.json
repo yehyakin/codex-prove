@@ -1,0 +1,76 @@
+{
+  "classic": {
+    "entry": "src/index.tsx",
+    "data": "data.json",
+    "assets": "assets.json",
+    "sources": "sources.md",
+    "ids": [
+      "roles-zh",
+      "roles-en",
+      "solo-zh",
+      "solo-en"
+    ],
+    "coverFrame": 126,
+    "reviewFrames": [
+      0,
+      18,
+      45,
+      65,
+      90,
+      108,
+      126,
+      149
+    ],
+    "exportDirectory": "../../assets/readme/livecanvas",
+    "description": "Two themes; Chinese and English are translation variants."
+  },
+  "polish": {
+    "entry": "src/polish.tsx",
+    "data": "data-polish.json",
+    "assets": "assets-polish.json",
+    "sources": "sources-polish.md",
+    "ids": [
+      "routing-zh",
+      "routing-en",
+      "ownership-zh",
+      "ownership-en",
+      "evidence-zh",
+      "evidence-en"
+    ],
+    "coverFrame": 156,
+    "reviewFrames": [
+      0,
+      18,
+      45,
+      70,
+      98,
+      126,
+      156,
+      179
+    ],
+    "exportDirectory": "../../assets/readme/livecanvas/polish",
+    "description": "Three new themes in the selected Routing Atlas direction; two translation variants each."
+  },
+  "cost-budget": {
+    "entry": "src/cost-budget.tsx",
+    "data": "data-cost-budget.json",
+    "assets": "assets-cost-budget.json",
+    "sources": "sources-cost-budget.md",
+    "ids": ["cost-budget-zh", "cost-budget-en"],
+    "coverFrame": 156,
+    "reviewFrames": [0, 18, 45, 70, 98, 126, 156, 179],
+    "exportDirectory": "../../assets/readme/livecanvas/cost-budget",
+    "description": "Cost-theme budget edition: 82.8% illustrative savings versus all-Astra; two translation variants, not measured results."
+  },
+  "cost": {
+    "entry": "src/cost.tsx",
+    "data": "data-cost.json",
+    "assets": "assets-cost.json",
+    "sources": "sources-cost.md",
+    "ids": ["cost-zh", "cost-en"],
+    "coverFrame": 156,
+    "reviewFrames": [0, 18, 45, 70, 98, 126, 156, 179],
+    "exportDirectory": "../../assets/readme/livecanvas/cost",
+    "description": "One cost-efficiency design-goal theme, Chinese and English; not measured savings."
+  }
+}

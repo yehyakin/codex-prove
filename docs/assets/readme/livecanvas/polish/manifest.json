@@ -1,0 +1,69 @@
+{
+  "status": "integrated-local-readmes-not-released",
+  "asOf": "2026-10-01",
+  "factsBaseline": "f4dba1c20b0dc299fbcf565bc883c5afdc0324a9",
+  "sourceSha256": "5a0631fb4c5fbf5fa5d03cee1229f5707591144ff475619a4fa5f10ac0074857",
+  "artwork": "Three new themes in the selected Routing Atlas direction; two translation variants each.",
+  "assets": [
+    {
+      "filename": "routing-zh.png",
+      "bytes": 1447096,
+      "sha256": "7a71369b00fb7502a0b11e2f3e394ec70c3a3bf9ddd8f467ba1a30e36641c970"
+    },
+    {
+      "filename": "routing-zh.gif",
+      "bytes": 577510,
+      "sha256": "0585d67652d50ae40457c1a8773e92bff7d2ccb895e470add005e7802eed0408"
+    },
+    {
+      "filename": "routing-en.png",
+      "bytes": 1447984,
+      "sha256": "cf5fc5e0ac12f065d26296f6513198a58e73b25f192b383f3b37586df7bf8e3d"
+    },
+    {
+      "filename": "routing-en.gif",
+      "bytes": 470786,
+      "sha256": "eef7fe38a0b287e3d76487add0fb7fc4329e504971bf3c0089648b1a07f5cdf1"
+    },
+    {
+      "filename": "ownership-zh.png",
+      "bytes": 1457344,
+      "sha256": "c4b2e6288f67489701213e4314d606186081edcfd2600448196f61803881d45d"
+    },
+    {
+      "filename": "ownership-zh.gif",
+      "bytes": 420155,
+      "sha256": "fdcd1758fc06e25cd769b773bb1425e9b934e2611739bae15862ac104970a15c"
+    },
+    {
+      "filename": "ownership-en.png",
+      "bytes": 1472295,
+      "sha256": "bea9e2f7c48cf159c334c254140d22cd7b71dcad0ea83fa27509a4f6dec04277"
+    },
+    {
+      "filename": "ownership-en.gif",
+      "bytes": 544565,
+      "sha256": "c68747d52832d08eedf741e694ebb794d67b196656b52d977e556d6aa59a173d"
+    },
+    {
+      "filename": "evidence-zh.png",
+      "bytes": 1526044,
+      "sha256": "4854c360d83afb2c7d6a6dab1eab4bf5552a242e1ae25b1239f39ce2f11c64c4"
+    },
+    {
+      "filename": "evidence-zh.gif",
+      "bytes": 424296,
+      "sha256": "dff0eb153b15b9ff23bc067b6d5ffad1fb873905bc70fd308e4644142f0b27d6"
+    },
+    {
+      "filename": "evidence-en.png",
+      "bytes": 1512886,
+      "sha256": "081817f08a037645356cd86f55b84f889c6ab7b67560b2d3e20daf6ba762eb5b"
+    },
+    {
+      "filename": "evidence-en.gif",
+      "bytes": 432251,
+      "sha256": "2db388c4da6141d615d37abea61f6c05917487f037bbcb666ba570a3c82cfe20"
+    }
+  ]
+}

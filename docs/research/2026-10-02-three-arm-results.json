@@ -1,0 +1,965 @@
+{
+  "schema_version": 1,
+  "audit_result": "PASS",
+  "scope": "All reported usage of these three local CLI invocations; no provider billing reconciliation.",
+  "descendant_discovery": {
+    "active_and_archived_header_count": 30,
+    "local_dates": [
+      "2026-10-01",
+      "2026-10-02"
+    ],
+    "method": "Recursive parent_thread_id linkage plus CLI and rollout tool-call checks"
+  },
+  "reconciliation": "Response-identity deduplication sum = final turn/thread usage = final token event = CLI completion.",
+  "unknown": [
+    "Provider-resolved service tier",
+    "Unreported provider retries or charges",
+    "Subscription quota consumption and cash bill"
+  ],
+  "excluded": [
+    "Coordinator and post-run independent grading costs/time",
+    "Dependency preparation"
+  ],
+  "pricing": {
+    "checked_on": "2026-10-02",
+    "currency": "USD",
+    "source": "https://developers.openai.com/api/docs/pricing",
+    "context_source": "https://developers.openai.com/api/docs/models/gpt-6.1-sol",
+    "basis": "Standard short-context API equivalent, not observed billing tier",
+    "per_million": {
+      "uncached_input": "2.00",
+      "cached_input": "0.10",
+      "cache_write_input": "2.50",
+      "output": "10.00"
+    }
+  },
+  "arms": [
+    {
+      "arm": "da34",
+      "cli_version": "0.159.2",
+      "start_utc": "2026-10-01T21:17:46.232386+00:00",
+      "end_utc": "2026-10-01T21:21:36.910433+00:00",
+      "elapsed_seconds": 230.6639885,
+      "observed_model": "gpt-6.1-sol",
+      "observed_effort": "high",
+      "selected_service_tier": "default",
+      "observed_service_tier": null,
+      "discovered_descendants": 0,
+      "collaboration_calls": 0,
+      "unique_responses": 8,
+      "duplicate_usage_records": 0,
+      "maximum_response_input_tokens": 49021,
+      "usage": {
+        "input_tokens": 278851,
+        "cached_input_tokens": 235904,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 6444,
+        "reasoning_output_tokens": 1526,
+        "total_tokens": 285295
+      },
+      "api_equivalent_usd_standard_short_context": "0.1739244",
+      "completed_commands": 16,
+      "nonzero_command_exit_codes": [
+        128,
+        1
+      ],
+      "cli_exit_code": 0,
+      "timed_out": false,
+      "cli_error_or_failed_turn_events": 0,
+      "stderr_bytes": 319816,
+      "stderr_sha256": "ae3a6c7ce700e26fc71c00b6ec7da5b1d57dc02679bf7abf66ac37fca5f1c137",
+      "telemetry_counts": {
+        "mcp_authorization_warnings": 2,
+        "mcp_lifecycle_warnings": 1,
+        "sandbox_violation_warnings": 0,
+        "tool_wrapper_failures": 1,
+        "error_level_lines": 0
+      },
+      "cli_events_sha256": "619aac1b553c30c2e397c4b06bd5f7ab55098ef252f265b44b5ca3993f708958",
+      "local_rollout_sha256": "97bcc9674b6f3788520e0c1f76c51ddd8708886d96381e0e9d722752fde076eb",
+      "response_usage": [
+        {
+          "identity_sha256": "ec2bd0f4054a2dc0126db3b606f80abf36478eb4815b4ac34d100a96ef854ce9",
+          "input_tokens": 21382,
+          "cached_input_tokens": 7168,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 137,
+          "reasoning_output_tokens": 0,
+          "total_tokens": 21519
+        },
+        {
+          "identity_sha256": "5e82b87c35c4f7335ae9d13af9f3dae182a7d19cbc2760c547c3c6bdbad1cbbe",
+          "input_tokens": 21616,
+          "cached_input_tokens": 21248,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 185,
+          "reasoning_output_tokens": 18,
+          "total_tokens": 21801
+        },
+        {
+          "identity_sha256": "9c5638f462e5673066988d2a0d6c85505534af5cfb2e680f07691c07405fe6ae",
+          "input_tokens": 29063,
+          "cached_input_tokens": 21376,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 580,
+          "reasoning_output_tokens": 153,
+          "total_tokens": 29643
+        },
+        {
+          "identity_sha256": "980641bca2ceb90d5ecba6699b373e8b2aadb87f41652472715f45cfcfffea52",
+          "input_tokens": 32515,
+          "cached_input_tokens": 28928,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 550,
+          "reasoning_output_tokens": 227,
+          "total_tokens": 33065
+        },
+        {
+          "identity_sha256": "f677bd05355aec9a897099902572f1b976014da3d883321da3140b3ecf2ecd15",
+          "input_tokens": 35615,
+          "cached_input_tokens": 32384,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 3268,
+          "reasoning_output_tokens": 516,
+          "total_tokens": 38883
+        },
+        {
+          "identity_sha256": "f6438f242f9406794200fe5ad4aa351f58450bd25b43d080ecbdd94757ab6d68",
+          "input_tokens": 44336,
+          "cached_input_tokens": 35456,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 740,
+          "reasoning_output_tokens": 126,
+          "total_tokens": 45076
+        },
+        {
+          "identity_sha256": "8ed6f9c78e96ec5b077a0a42c4dff274cb1fdbd1fa62b8b69bdfb6a0191927c9",
+          "input_tokens": 45303,
+          "cached_input_tokens": 44160,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 472,
+          "reasoning_output_tokens": 237,
+          "total_tokens": 45775
+        },
+        {
+          "identity_sha256": "c77553d07a34d3a570457f8beb2df6f807d93756221526f66b24da8775e4e5ae",
+          "input_tokens": 49021,
+          "cached_input_tokens": 45184,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 512,
+          "reasoning_output_tokens": 249,
+          "total_tokens": 49533
+        }
+      ],
+      "independent_oracle": {
+        "exit_code": 0,
+        "passed": 19,
+        "oracle_source_sha256": "661cd94cc22bccf951945db56a547356d63887bda1dbbbe3850491e2c2b68f7a",
+        "oracle_template_sha256": "1f7c381d6c67db592702d89a9fbf490dccfcf8865f090b1dc0371f572d6929e8",
+        "candidate_sha256": "cc2c3895965803827ba62a28462c50755573165026c3b9ca62ae64fae2939d5b",
+        "cases": [
+          {
+            "case": "mixed-simplified",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "mixed-traditional",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "cross-field",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "order",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "all-required",
+            "want": false,
+            "got": false,
+            "passed": true
+          },
+          {
+            "case": "whitespace",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "fullwidth-query",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "fullwidth-data",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "local-language",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "empty",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "keys",
+            "want": false,
+            "got": false,
+            "passed": true
+          },
+          {
+            "case": "null-placeholder",
+            "want": false,
+            "got": false,
+            "passed": true
+          },
+          {
+            "case": "metadata",
+            "want": false,
+            "got": false,
+            "passed": true
+          },
+          {
+            "case": "missing-values",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "ignore-nonstrings",
+            "want": false,
+            "got": false,
+            "passed": true
+          },
+          {
+            "case": "alias-phrase",
+            "want": false,
+            "got": false,
+            "passed": true
+          },
+          {
+            "case": "legacy-alias",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "unrelated",
+            "want": false,
+            "got": false,
+            "passed": true
+          },
+          {
+            "case": "read-only",
+            "passed": true
+          }
+        ]
+      },
+      "fresh_unit_tests_passed": 52,
+      "fresh_unit_test_exit_code": 0,
+      "fresh_typecheck_exit_code": 0,
+      "net_source_scope_check": "PASS: exactly two permitted files changed; original tests retained; injected workflow files unchanged."
+    },
+    {
+      "arm": "baseline",
+      "cli_version": "0.159.2",
+      "start_utc": "2026-10-01T21:21:44.478845+00:00",
+      "end_utc": "2026-10-01T21:26:25.397335+00:00",
+      "elapsed_seconds": 280.91692462500004,
+      "observed_model": "gpt-6.1-sol",
+      "observed_effort": "high",
+      "selected_service_tier": "default",
+      "observed_service_tier": null,
+      "discovered_descendants": 0,
+      "collaboration_calls": 0,
+      "unique_responses": 10,
+      "duplicate_usage_records": 0,
+      "maximum_response_input_tokens": 52513,
+      "usage": {
+        "input_tokens": 347363,
+        "cached_input_tokens": 300416,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 7919,
+        "reasoning_output_tokens": 2765,
+        "total_tokens": 355282
+      },
+      "api_equivalent_usd_standard_short_context": "0.2031256",
+      "completed_commands": 18,
+      "nonzero_command_exit_codes": [
+        128,
+        1
+      ],
+      "cli_exit_code": 0,
+      "timed_out": false,
+      "cli_error_or_failed_turn_events": 0,
+      "stderr_bytes": 463304,
+      "stderr_sha256": "101fe474311c8dc3463adfeddc1150c4dbc90382a6a17a17217ffa889e096441",
+      "telemetry_counts": {
+        "mcp_authorization_warnings": 2,
+        "mcp_lifecycle_warnings": 1,
+        "sandbox_violation_warnings": 0,
+        "tool_wrapper_failures": 1,
+        "error_level_lines": 0
+      },
+      "cli_events_sha256": "7084ef1287df8cc5fdb8de8b7ab6c73558531285e543559df1270d23cd3e5e59",
+      "local_rollout_sha256": "16a9192bbd368f7240f0a8f78b19b177cd9571bb662b9971b182416002ba83de",
+      "response_usage": [
+        {
+          "identity_sha256": "44058742d931eed57b1514e155e25b2f15c0229ab91b2433412e7976f272872a",
+          "input_tokens": 20243,
+          "cached_input_tokens": 7168,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 217,
+          "reasoning_output_tokens": 0,
+          "total_tokens": 20460
+        },
+        {
+          "identity_sha256": "3f2d4b89a5350956a2af2a0cc9af039eef31631442c13585f8605f86d7d0a652",
+          "input_tokens": 22453,
+          "cached_input_tokens": 20096,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 621,
+          "reasoning_output_tokens": 198,
+          "total_tokens": 23074
+        },
+        {
+          "identity_sha256": "335b43f3eaa7a8d962a60cf53eb94334f7edd96048c32b321611b79b4801d5b3",
+          "input_tokens": 25661,
+          "cached_input_tokens": 22272,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 699,
+          "reasoning_output_tokens": 516,
+          "total_tokens": 26360
+        },
+        {
+          "identity_sha256": "1160ea1e0448c3716d26c1d728f8e1e16823f2f8967c17dcf68aa22fecc9160e",
+          "input_tokens": 27380,
+          "cached_input_tokens": 25472,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 44,
+          "reasoning_output_tokens": 0,
+          "total_tokens": 27424
+        },
+        {
+          "identity_sha256": "5de43d13fc9907203f7488bf66d4efb46aca5497a1040dd71fd0759bdcf8c275",
+          "input_tokens": 29359,
+          "cached_input_tokens": 27264,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 3022,
+          "reasoning_output_tokens": 496,
+          "total_tokens": 32381
+        },
+        {
+          "identity_sha256": "7fe092dabdac545df213fec99079e127fb261500d8bbbdddcd3e00f9daecbae9",
+          "input_tokens": 38894,
+          "cached_input_tokens": 29184,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 568,
+          "reasoning_output_tokens": 17,
+          "total_tokens": 39462
+        },
+        {
+          "identity_sha256": "419230ab244cfc59b71a34d62e0463a2ac7b11057685c822c8b77d853c66d39d",
+          "input_tokens": 39699,
+          "cached_input_tokens": 38656,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 981,
+          "reasoning_output_tokens": 516,
+          "total_tokens": 40680
+        },
+        {
+          "identity_sha256": "cf9764fa05f37ddf170c12d70e450f09c68027bbe92ee13777ee2d605ed93d1a",
+          "input_tokens": 43816,
+          "cached_input_tokens": 39552,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 311,
+          "reasoning_output_tokens": 138,
+          "total_tokens": 44127
+        },
+        {
+          "identity_sha256": "dcaf20b3b20b0a43129bd2948e47f80bd566de9bbab32b99e1b37c004342e7d6",
+          "input_tokens": 47345,
+          "cached_input_tokens": 43648,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 810,
+          "reasoning_output_tokens": 516,
+          "total_tokens": 48155
+        },
+        {
+          "identity_sha256": "3d99c8d53efb4d327cc7c5a743c84cf34bc2f341f4ca4a1dba353f15bc41a863",
+          "input_tokens": 52513,
+          "cached_input_tokens": 47104,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 646,
+          "reasoning_output_tokens": 368,
+          "total_tokens": 53159
+        }
+      ],
+      "independent_oracle": {
+        "exit_code": 0,
+        "passed": 19,
+        "oracle_source_sha256": "661cd94cc22bccf951945db56a547356d63887bda1dbbbe3850491e2c2b68f7a",
+        "oracle_template_sha256": "1f7c381d6c67db592702d89a9fbf490dccfcf8865f090b1dc0371f572d6929e8",
+        "candidate_sha256": "c9ef2b061b27305a57c0a022b247230d7ae9874d609fa3a65228116fe0753def",
+        "cases": [
+          {
+            "case": "mixed-simplified",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "mixed-traditional",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "cross-field",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "order",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "all-required",
+            "want": false,
+            "got": false,
+            "passed": true
+          },
+          {
+            "case": "whitespace",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "fullwidth-query",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "fullwidth-data",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "local-language",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "empty",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "keys",
+            "want": false,
+            "got": false,
+            "passed": true
+          },
+          {
+            "case": "null-placeholder",
+            "want": false,
+            "got": false,
+            "passed": true
+          },
+          {
+            "case": "metadata",
+            "want": false,
+            "got": false,
+            "passed": true
+          },
+          {
+            "case": "missing-values",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "ignore-nonstrings",
+            "want": false,
+            "got": false,
+            "passed": true
+          },
+          {
+            "case": "alias-phrase",
+            "want": false,
+            "got": false,
+            "passed": true
+          },
+          {
+            "case": "legacy-alias",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "unrelated",
+            "want": false,
+            "got": false,
+            "passed": true
+          },
+          {
+            "case": "read-only",
+            "passed": true
+          }
+        ]
+      },
+      "fresh_unit_tests_passed": 64,
+      "fresh_unit_test_exit_code": 0,
+      "fresh_typecheck_exit_code": 0,
+      "net_source_scope_check": "PASS: exactly two permitted files changed; original tests retained; injected workflow files unchanged."
+    },
+    {
+      "arm": "prove",
+      "cli_version": "0.159.2",
+      "start_utc": "2026-10-01T21:26:33.849400+00:00",
+      "end_utc": "2026-10-01T21:30:46.103812+00:00",
+      "elapsed_seconds": 252.25312029099996,
+      "observed_model": "gpt-6.1-sol",
+      "observed_effort": "high",
+      "selected_service_tier": "default",
+      "observed_service_tier": null,
+      "discovered_descendants": 0,
+      "collaboration_calls": 0,
+      "unique_responses": 10,
+      "duplicate_usage_records": 0,
+      "maximum_response_input_tokens": 49570,
+      "usage": {
+        "input_tokens": 336976,
+        "cached_input_tokens": 298880,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 6890,
+        "reasoning_output_tokens": 1355,
+        "total_tokens": 343866
+      },
+      "api_equivalent_usd_standard_short_context": "0.17498",
+      "completed_commands": 14,
+      "nonzero_command_exit_codes": [
+        1,
+        2,
+        2
+      ],
+      "cli_exit_code": 0,
+      "timed_out": false,
+      "cli_error_or_failed_turn_events": 0,
+      "stderr_bytes": 359737,
+      "stderr_sha256": "2c19a6a14eae1fbc1bf45a12d6489a1df6737de8389d07152d7388065c37c539",
+      "telemetry_counts": {
+        "mcp_authorization_warnings": 2,
+        "mcp_lifecycle_warnings": 1,
+        "sandbox_violation_warnings": 1,
+        "tool_wrapper_failures": 0,
+        "error_level_lines": 0
+      },
+      "cli_events_sha256": "3ee484fa501999a810f90003bc1b56fb5717412243ceb12f197b14c1a89275ca",
+      "local_rollout_sha256": "a8e67d735954b1486d34d86a3198bffa0ce88fe5116316ed6b276693e79a5b06",
+      "response_usage": [
+        {
+          "identity_sha256": "4e056f043448d8e148a314aff083440b298f588c62d9b865d478b73a0202044f",
+          "input_tokens": 20276,
+          "cached_input_tokens": 12928,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 124,
+          "reasoning_output_tokens": 0,
+          "total_tokens": 20400
+        },
+        {
+          "identity_sha256": "b84ce6ab02b08c360b0ebb5709c3233a1ee47e56259709d4fbd18e062660f980",
+          "input_tokens": 21907,
+          "cached_input_tokens": 20096,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 195,
+          "reasoning_output_tokens": 45,
+          "total_tokens": 22102
+        },
+        {
+          "identity_sha256": "099459b4f6a64bc81f2b5f6d468ed2cce2cda54ba93f5f79cdae0be72fa47355",
+          "input_tokens": 23037,
+          "cached_input_tokens": 21760,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 408,
+          "reasoning_output_tokens": 41,
+          "total_tokens": 23445
+        },
+        {
+          "identity_sha256": "30f34d0b09b1d3c23b2b77dc475f71160aaeb6595033740fccd7c3207a3743a0",
+          "input_tokens": 27032,
+          "cached_input_tokens": 22912,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 2886,
+          "reasoning_output_tokens": 516,
+          "total_tokens": 29918
+        },
+        {
+          "identity_sha256": "34eedc59385a0cafb661ec3997e7488c3e8074f15d5e37d9851254badb268b2d",
+          "input_tokens": 32198,
+          "cached_input_tokens": 26880,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 225,
+          "reasoning_output_tokens": 125,
+          "total_tokens": 32423
+        },
+        {
+          "identity_sha256": "78266bacccecbfef9abf784fa910670c568c76bac3306b1d5653f5fd701be476",
+          "input_tokens": 37504,
+          "cached_input_tokens": 32000,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 673,
+          "reasoning_output_tokens": 26,
+          "total_tokens": 38177
+        },
+        {
+          "identity_sha256": "d7a9e3fc22e12050e00dc728a56da824e577ed902b079d1877a7e48321a27037",
+          "input_tokens": 38569,
+          "cached_input_tokens": 37376,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1058,
+          "reasoning_output_tokens": 279,
+          "total_tokens": 39627
+        },
+        {
+          "identity_sha256": "a983d73690f8b8fc68a3f3f1c84e28095a164a13f9a778668417296d8a1adcc6",
+          "input_tokens": 42998,
+          "cached_input_tokens": 38400,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 651,
+          "reasoning_output_tokens": 251,
+          "total_tokens": 43649
+        },
+        {
+          "identity_sha256": "8cfc6814bd5d94839e0a145bd863cc4c544aaa669375ce6c6052f15a13cc42ec",
+          "input_tokens": 43885,
+          "cached_input_tokens": 42880,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 439,
+          "reasoning_output_tokens": 72,
+          "total_tokens": 44324
+        },
+        {
+          "identity_sha256": "0c90a2b51b679b6ec82213080874e14bce3c5214556681973fc7a58ea4eb2d63",
+          "input_tokens": 49570,
+          "cached_input_tokens": 43648,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 231,
+          "reasoning_output_tokens": 0,
+          "total_tokens": 49801
+        }
+      ],
+      "independent_oracle": {
+        "exit_code": 0,
+        "passed": 19,
+        "oracle_source_sha256": "661cd94cc22bccf951945db56a547356d63887bda1dbbbe3850491e2c2b68f7a",
+        "oracle_template_sha256": "1f7c381d6c67db592702d89a9fbf490dccfcf8865f090b1dc0371f572d6929e8",
+        "candidate_sha256": "995d686d46909a29d4eabd284cd2d2bedef548bcea76a0e7716bd5f40ee126a7",
+        "cases": [
+          {
+            "case": "mixed-simplified",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "mixed-traditional",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "cross-field",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "order",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "all-required",
+            "want": false,
+            "got": false,
+            "passed": true
+          },
+          {
+            "case": "whitespace",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "fullwidth-query",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "fullwidth-data",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "local-language",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "empty",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "keys",
+            "want": false,
+            "got": false,
+            "passed": true
+          },
+          {
+            "case": "null-placeholder",
+            "want": false,
+            "got": false,
+            "passed": true
+          },
+          {
+            "case": "metadata",
+            "want": false,
+            "got": false,
+            "passed": true
+          },
+          {
+            "case": "missing-values",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "ignore-nonstrings",
+            "want": false,
+            "got": false,
+            "passed": true
+          },
+          {
+            "case": "alias-phrase",
+            "want": false,
+            "got": false,
+            "passed": true
+          },
+          {
+            "case": "legacy-alias",
+            "want": true,
+            "got": true,
+            "passed": true
+          },
+          {
+            "case": "unrelated",
+            "want": false,
+            "got": false,
+            "passed": true
+          },
+          {
+            "case": "read-only",
+            "passed": true
+          }
+        ]
+      },
+      "fresh_unit_tests_passed": 46,
+      "fresh_unit_test_exit_code": 0,
+      "fresh_typecheck_exit_code": 0,
+      "net_source_scope_check": "PASS: exactly two permitted files changed; original tests retained; injected workflow files unchanged."
+    }
+  ],
+  "comparisons": {
+    "prove_vs_baseline": {
+      "api_equivalent_reduction_percent": 13.856254455371454,
+      "elapsed_reduction_percent": 10.203658740840837,
+      "total_token_reduction_percent": 3.2132221728092047
+    },
+    "prove_vs_da34": {
+      "api_equivalent_reduction_percent": -0.6069303674470057,
+      "elapsed_reduction_percent": -9.359558868028483,
+      "total_token_reduction_percent": -20.529977742336868
+    }
+  },
+  "case_id": "multilingual-record-search-2026-10-02",
+  "public_raw_reproducibility": false,
+  "raw_evidence_policy": "Private project source, prompts, rollouts and account diagnostics retained locally; this is a sanitized numerical receipt, not a public runnable benchmark.",
+  "design": {
+    "tasks": 1,
+    "trials_per_arm": 1,
+    "order": [
+      "da34",
+      "baseline",
+      "prove"
+    ],
+    "randomized": false,
+    "same_initial_project_files": 749,
+    "allowed_changed_file_count": 2,
+    "independent_oracle_cases": 19,
+    "routing": "No arm delegated; PROVE selected Direct.",
+    "shared_environment": "One Codex installation, dependency snapshot and ambient skills/plugins; not a hermetic environment."
+  },
+  "provenance": {
+    "runtime_candidate_sha256": "72d3f417ea4559bf1a5afa71448c79c6f5570b3f43a4ca1e3458909d60c674e0",
+    "runtime_candidate_files": 11,
+    "task_sha256": "b65b9eaf82c8100be6d992ea51d75714264e51bb7b1c5282b81ab7d697287246",
+    "project_manifest_file_sha256": "32a9e9849e3dbe0e480b4efdaecd564bde44ebb7af0384a08a877c1bd670e548",
+    "competitor_repository": "https://github.com/da34/codex-orchestrator",
+    "competitor_commit": "df36074b74048cbca9fc987996a1e70403ec70a2",
+    "competitor_license": "MIT",
+    "competitor_customization": "Host model Astra -> Sol 6.1, effort medium -> high, concurrency 4 -> 3; upstream child role profiles unchanged. Not a stock Pro configuration comparison."
+  },
+  "original_oracle": {
+    "exit_code": 1,
+    "passed": 9,
+    "oracle_source_sha256": "661cd94cc22bccf951945db56a547356d63887bda1dbbbe3850491e2c2b68f7a",
+    "oracle_template_sha256": "1f7c381d6c67db592702d89a9fbf490dccfcf8865f090b1dc0371f572d6929e8",
+    "candidate_sha256": "67a8a86c4481b0a36b7e1c61773170484a2c06bbdc097db15139536a11b436fa",
+    "cases": [
+      {
+        "case": "mixed-simplified",
+        "want": true,
+        "got": false,
+        "passed": false
+      },
+      {
+        "case": "mixed-traditional",
+        "want": true,
+        "got": false,
+        "passed": false
+      },
+      {
+        "case": "cross-field",
+        "want": true,
+        "got": false,
+        "passed": false
+      },
+      {
+        "case": "order",
+        "want": true,
+        "got": false,
+        "passed": false
+      },
+      {
+        "case": "all-required",
+        "want": false,
+        "got": false,
+        "passed": true
+      },
+      {
+        "case": "whitespace",
+        "want": true,
+        "got": false,
+        "passed": false
+      },
+      {
+        "case": "fullwidth-query",
+        "want": true,
+        "got": false,
+        "passed": false
+      },
+      {
+        "case": "fullwidth-data",
+        "want": true,
+        "got": false,
+        "passed": false
+      },
+      {
+        "case": "local-language",
+        "want": true,
+        "got": true,
+        "passed": true
+      },
+      {
+        "case": "empty",
+        "want": true,
+        "got": true,
+        "passed": true
+      },
+      {
+        "case": "keys",
+        "want": false,
+        "got": true,
+        "passed": false
+      },
+      {
+        "case": "null-placeholder",
+        "want": false,
+        "got": true,
+        "passed": false
+      },
+      {
+        "case": "metadata",
+        "want": false,
+        "got": false,
+        "passed": true
+      },
+      {
+        "case": "missing-values",
+        "want": true,
+        "got": true,
+        "passed": true
+      },
+      {
+        "case": "ignore-nonstrings",
+        "want": false,
+        "got": true,
+        "passed": false
+      },
+      {
+        "case": "alias-phrase",
+        "want": false,
+        "got": false,
+        "passed": true
+      },
+      {
+        "case": "legacy-alias",
+        "want": true,
+        "got": true,
+        "passed": true
+      },
+      {
+        "case": "unrelated",
+        "want": false,
+        "got": false,
+        "passed": true
+      },
+      {
+        "case": "read-only",
+        "passed": true
+      }
+    ]
+  }
+}

@@ -372,6 +372,63 @@ function Test-V100FourTierMigration {
     Assert-True ((Get-FileDigest $specialist) -eq $userHash) "uninstall removed unowned specialist"
 }
 
+function New-V110Fixture {
+    param([Parameter(Mandatory = $true)][string]$HomePath)
+    New-V100Fixture $HomePath
+    $oldRoles = @(
+        @("prove-controller", "gpt-6-astra", "high", "read-only"),
+        @("prove-complex-worker", "gpt-5.6-terra", "high", "workspace-write"),
+        @("prove-efficient-worker", "gpt-6-luna", "max", "workspace-write"),
+        @("prove-specialist-worker", "gpt-6-sol", "high", "workspace-write")
+    )
+    foreach ($roleSpec in $oldRoles) {
+        $text = @(
+            "name = `"$($roleSpec[0])`"",
+            "model = `"$($roleSpec[1])`"",
+            "model_reasoning_effort = `"$($roleSpec[2])`"",
+            "sandbox_mode = `"$($roleSpec[3])`""
+        ) -join "`n"
+        Write-TestText (Join-Path $HomePath ".codex/agents/$($roleSpec[0]).toml") ($text + "`n")
+    }
+    $stateText = @(
+        "version=6", "backup_id=v110-fixture",
+        "skill_sha256=$(Get-TreeDigest (Join-Path $HomePath '.agents/skills/codex-prove'))",
+        "compat_skill_sha256=$(Get-TreeDigest (Join-Path $HomePath '.agents/skills/sol-control'))",
+        "controller_sha256=$(Get-FileDigest (Join-Path $HomePath '.codex/agents/prove-controller.toml'))",
+        "complex_worker_sha256=$(Get-FileDigest (Join-Path $HomePath '.codex/agents/prove-complex-worker.toml'))",
+        "efficient_worker_sha256=$(Get-FileDigest (Join-Path $HomePath '.codex/agents/prove-efficient-worker.toml'))",
+        "specialist_worker_sha256=$(Get-FileDigest (Join-Path $HomePath '.codex/agents/prove-specialist-worker.toml'))"
+    ) -join "`n"
+    Write-TestText (Join-Path $HomePath '.codex/codex-prove/install-state') ($stateText + "`n")
+    Write-TestText (Join-Path $HomePath '.codex/config.toml') "model = `"gpt-6-astra`"`n"
+    Write-TestText (Join-Path $HomePath '.codex/agents/user-agent.toml') "name = `"user-agent`"`n"
+}
+
+function Test-V110ProfileRemapAndRestore {
+    $homePath = Join-Path $testRoot "v110-profile-remap"
+    New-V110Fixture $homePath
+    $before = @{}
+    foreach ($item in @(Get-ChildItem -LiteralPath $homePath -File -Force -Recurse)) {
+        $relative = $item.FullName.Substring($homePath.Length).TrimStart([char[]]"/\")
+        $before[$relative] = Get-FileDigest $item.FullName
+    }
+
+    Install-At $homePath 1 "after-state"
+    foreach ($relative in $before.Keys) {
+        Assert-True ((Get-FileDigest (Join-Path $homePath $relative)) -eq $before[$relative]) "v1.1 rollback changed $relative"
+    }
+    Install-At $homePath
+    Assert-V1Installed $homePath
+    foreach ($relative in @(".codex/config.toml", ".codex/agents/user-agent.toml")) {
+        $nativeRelative = $relative.Replace('/', [System.IO.Path]::DirectorySeparatorChar)
+        Assert-True ((Get-FileDigest (Join-Path $homePath $relative)) -eq $before[$nativeRelative]) "profile remap changed unrelated $relative"
+    }
+    Uninstall-At $homePath -RestoreLatest
+    foreach ($relative in $before.Keys) {
+        Assert-True ((Get-FileDigest (Join-Path $homePath $relative)) -eq $before[$relative]) "v1.1 restore changed $relative"
+    }
+}
+
 function Test-ExceptionAfterMoveRestoresUnmarkedOriginal {
     $wrapper = Join-Path $testRoot "after-move.ps1"
     Write-TestText $wrapper @'
@@ -503,6 +560,7 @@ try {
     Test-InstallRollback
     Test-V050MigrationAndRestore
     Test-V100FourTierMigration
+    Test-V110ProfileRemapAndRestore
     Test-ExceptionAfterMoveRestoresUnmarkedOriginal
     Test-FailedRecoveryPreservesCopy
     Write-Output "Windows lifecycle contract: PASS"

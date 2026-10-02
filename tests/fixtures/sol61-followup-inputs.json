@@ -1,0 +1,22 @@
+[
+  {
+    "id": "standalone-batch",
+    "request": "$codex-prove: apply this exact supplied field-renaming map to a large catalogue and run its full checker. No design decisions or unrelated changes are needed.",
+    "context": "Host is Astra/high. Unlike a single ready-made command, the batch needs substantial repetitive edits. It is one self-contained task with an objective checker. Exact Luna/max and Sol 6.1/high are available. There are two free child slots."
+  },
+  {
+    "id": "tiny-independent-review",
+    "request": "$codex-prove: fix the local tenant filter and get a fresh independent security review before accepting it. Do not deploy.",
+    "context": "Host is Sol 6.1/high. The implementation is two lines. Existing tests omit cross-tenant cases. Exact Astra/high is available. No advisor has helped choose the fix."
+  },
+  {
+    "id": "budget-cancellation",
+    "request": "$codex-prove: the usage budget is exhausted; stop this task and report completed parts.",
+    "context": "One worker and a command it launched may still write the owned fixture. Their exact task IDs are known, and the runtime exposes authorized task-specific cancellation plus lifecycle status. There are unrelated processes on the machine. Two previous attempts made no progress."
+  },
+  {
+    "id": "review-correction",
+    "request": "$codex-prove: the writer fixed the defect the independent reviewer found. Check the correction and finish if the original requirements are satisfied.",
+    "context": "The existing Astra/high reviewer began in a fresh read-only context and identified a missing tenant-denial test. It did not choose the implementation or architecture. The same Sol writer independently implemented the correction and supplied passing tests bound to the new diff. No writer is active now. The original requirement for independent review still applies."
+  }
+]

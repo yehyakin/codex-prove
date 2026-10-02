@@ -11,6 +11,143 @@ import worker_model_pilot as pilot
 
 
 class WorkerPilotTests(unittest.TestCase):
+    def read_usage(self, events, **options):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "events.jsonl"
+            path.write_text("\n".join(json.dumps(event) for event in events) + "\n")
+            return pilot.parse_usage(path, **options)
+
+    def completion(self, **identity):
+        return {"type": "turn.completed", "usage": {
+            "input_tokens": 100, "cached_input_tokens": 80, "output_tokens": 10}, **identity}
+
+    def test_identified_completion_is_counted_once(self):
+        event = self.completion(thread_id="root", turn_id="turn-1")
+        result = self.read_usage([event, event])
+        self.assertEqual(100, result["usage"]["input_tokens"])
+        self.assertEqual(1, result["duplicate_events_ignored"])
+        self.assertEqual("root_cli_stream_only", result["usage_scope"])
+        self.assertIsNone(result["whole_run_usage"])
+
+    def test_equal_counts_on_different_turns_are_not_duplicates(self):
+        result = self.read_usage([self.completion(turn_id="one"), self.completion(turn_id="two")])
+        self.assertEqual(200, result["usage"]["input_tokens"])
+        self.assertEqual(0, result["duplicate_events_ignored"])
+
+    def test_conflicting_duplicate_is_not_a_total(self):
+        event = self.completion(thread_id="root", turn_id="one")
+        other = event | {"usage": event["usage"] | {"input_tokens": 120}}
+        result = self.read_usage([event, other])
+        self.assertIsNone(result["usage"])
+        self.assertIsNone(result["observed_completed_usage"])
+        self.assertIn("conflicting_completion_identity", result["usage_issues"])
+
+    def test_cli_lifecycle_identifies_turns_without_turn_ids(self):
+        start = {"type": "turn.started"}
+        event = self.completion()
+        result = self.read_usage([{"type": "thread.started", "thread_id": "root"},
+                                  start, event, event, start, event])
+        self.assertEqual(200, result["usage"]["input_tokens"])
+        self.assertEqual(1, result["duplicate_events_ignored"])
+        self.assertTrue(result["usage_complete_for_scope"])
+
+    def test_unidentifiable_multiple_completions_are_unknown(self):
+        result = self.read_usage([self.completion(), self.completion()])
+        self.assertIsNone(result["usage"])
+        self.assertIn("unidentified_multiple_completions", result["usage_issues"])
+
+    def test_completion_identity_must_agree_with_the_active_turn(self):
+        result = self.read_usage([{"type": "turn.started", "turn_id": "one"},
+                                  self.completion(turn_id="two")])
+        self.assertIsNone(result["usage"])
+        self.assertIn("mismatched_turn_identity", result["usage_issues"])
+
+    def test_late_explicit_identity_does_not_double_count_replay(self):
+        result = self.read_usage([{"type": "turn.started"},
+                                  self.completion(turn_id="one"), self.completion()])
+        self.assertEqual(100, result["usage"]["input_tokens"])
+        self.assertEqual(1, result["duplicate_events_ignored"])
+        # An ID arriving only in a second completion could be an enriched replay
+        # or a different turn with a missing start. Do not silently add both.
+        ambiguous = self.read_usage([{"type": "turn.started"},
+                                     self.completion(), self.completion(turn_id="one")])
+        self.assertIsNone(ambiguous["usage"])
+        self.assertIn("ambiguous_completion_identity", ambiguous["usage_issues"])
+
+    def test_overlapping_starts_leave_usage_unknown(self):
+        result = self.read_usage([{"type": "turn.started"}, {"type": "turn.started"}, self.completion()])
+        self.assertIsNone(result["usage"])
+        self.assertIn("overlapping_turn_lifecycle", result["usage_issues"])
+
+    def test_failure_or_incomplete_lifecycle_preserves_only_known_successes(self):
+        for tail in ([{"type": "turn.failed"}], [{"type": "error"}], [{"type": "turn.started"}]):
+            with self.subTest(tail=tail):
+                result = self.read_usage([self.completion(turn_id="one"), *tail])
+                self.assertIsNone(result["usage"])
+                self.assertEqual(100, result["observed_completed_usage"]["input_tokens"])
+                self.assertFalse(result["usage_complete_for_scope"])
+                self.assertIsNone(result["whole_run_usage"])
+
+    def test_unsuccessful_process_cannot_claim_complete_usage(self):
+        result = self.read_usage([self.completion()], process_complete=False)
+        self.assertIsNone(result["usage"])
+        self.assertEqual(100, result["observed_completed_usage"]["input_tokens"])
+        self.assertIn("process_incomplete", result["usage_issues"])
+
+    def test_child_activity_does_not_make_root_usage_whole_run(self):
+        result = self.read_usage([{"type": "item.completed", "item": {
+            "type": "collab_tool_call", "tool": "spawn_agent", "receiver_thread_ids": ["child"]}},
+            self.completion()])
+        self.assertEqual(100, result["usage"]["input_tokens"])
+        self.assertIsNone(result["whole_run_usage"])
+        self.assertEqual("root_cli_stream_only", result["usage_scope"])
+
+    def test_mixed_thread_stream_cannot_be_silently_aggregated(self):
+        result = self.read_usage([self.completion(thread_id="root", turn_id="one"),
+                                  self.completion(thread_id="child", turn_id="one")])
+        self.assertIsNone(result["usage"])
+        self.assertIn("mixed_thread_stream", result["usage_issues"])
+
+    def test_repeated_thread_start_is_not_a_new_billable_turn_identity(self):
+        block = [{"type": "thread.started", "thread_id": "root"},
+                 {"type": "turn.started"}, self.completion()]
+        for events in (block + block, [block[0], *block]):
+            with self.subTest(events=events):
+                result = self.read_usage(events)
+                self.assertIsNone(result["usage"])
+                self.assertFalse(result["usage_complete_for_scope"])
+                self.assertIn("repeated_thread_start", result["usage_issues"])
+
+    def test_invalid_event_type_cannot_be_ignored_in_a_complete_stream(self):
+        for event in ({}, {"type": None}, {"type": []}, {"type": ""}):
+            with self.subTest(event=event):
+                result = self.read_usage([event, self.completion()])
+                self.assertIsNone(result["usage"])
+                self.assertIn("invalid_event_type", result["usage_issues"])
+
+    def test_failed_turn_closes_before_recovery_and_keeps_successful_subset(self):
+        result = self.read_usage([{"type": "turn.started"}, {"type": "turn.failed"},
+                                  {"type": "turn.started"}, self.completion()])
+        self.assertIsNone(result["usage"])
+        self.assertEqual(100, result["observed_completed_usage"]["input_tokens"])
+        self.assertEqual(["failed_turn_usage_unknown"], result["usage_issues"])
+
+    def test_malformed_stream_cannot_appear_complete(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "events.jsonl"
+            path.write_text(json.dumps(self.completion()) + '\n{"type":')
+            result = pilot.parse_usage(path)
+        self.assertIsNone(result["usage"])
+        self.assertIn("malformed_jsonl", result["usage_issues"])
+
+    def test_invalid_identity_and_counters_are_not_coerced(self):
+        event = self.completion(turn_id="one")
+        for bad in (event | {"turn_id": []}, event | {"thread_id": 3},
+                    event | {"usage": event["usage"] | {"input_tokens": True}},
+                    event | {"usage": event["usage"] | {"output_tokens": -1}}):
+            with self.subTest(event=bad):
+                self.assertIsNone(self.read_usage([bad])["usage"])
+
     def test_archived_inputs_and_candidates_match_recorded_hashes(self):
         archive = json.loads((pilot.ROOT / "docs/research/worker-pilot-2026-09-25.json").read_text(encoding="utf-8"))
         fixtures = {case["id"]: case for case in archive["frozen_fixtures"]}
