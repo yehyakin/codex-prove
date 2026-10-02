@@ -1,0 +1,8 @@
+node_modules/
+.build/
+.cache/
+out/
+qa-output/
+output/playwright/
+.playwright-cli/
+*.tsbuildinfo

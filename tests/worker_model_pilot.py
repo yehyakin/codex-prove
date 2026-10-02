@@ -177,33 +177,123 @@ An external acceptance check will run after your process ends; do not search for
 """
 
 
-def parse_usage(path):
-    totals = {"input_tokens": 0, "cached_input_tokens": 0, "output_tokens": 0}
+def parse_usage(path, *, process_complete=True):
+    """Account for a single root CLI stream, never infer a whole-session bill.
+
+    Prefer explicit turn identity; otherwise turn.started boundaries identify
+    turns in the native CLI stream. Equal counters alone are not an identity.
+    A known successful subtotal survives failure, but is not a complete total.
+    """
+    keys = ("input_tokens", "cached_input_tokens", "output_tokens")
+    records = {}
+    issues = set()
+    root_id = None
+    thread_started = False
+    active_key = None
+    sequence = 0
+    anonymous = 0
+    duplicates = 0
+    turn_open = False
     seen = False
-    invalid = False
     failed = False
     for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
         try:
             event = json.loads(line)
         except json.JSONDecodeError:
+            issues.add("malformed_jsonl")
             continue
         if not isinstance(event, dict):
+            issues.add("invalid_event")
             continue
-        if event.get("type") in ("turn.failed", "error"):
+        kind = event.get("type")
+        if not isinstance(kind, str) or not kind:
+            issues.add("invalid_event_type")
+            continue
+        if kind in ("turn.failed", "error"):
             failed = True
-        if event.get("type") != "turn.completed":
+            if kind == "turn.failed":
+                turn_open = False
+                active_key = None
+        if kind not in ("thread.started", "turn.started", "turn.completed"):
             continue
-        usage = event.get("usage", {})
+        if any(event.get(key) is not None and
+               (not isinstance(event[key], str) or not event[key])
+               for key in ("thread_id", "turn_id")):
+            issues.add("invalid_identity")
+            continue
+        thread_id = event.get("thread_id")
+        if thread_id is not None:
+            if root_id is not None and root_id != thread_id:
+                issues.add("mixed_thread_stream")
+            root_id = thread_id
+        turn_id = event.get("turn_id")
+        if kind == "thread.started":
+            if thread_started:
+                # A second CLI invocation or a repeated export is not a new
+                # turn identity. This collector accepts one invocation only.
+                issues.add("repeated_thread_start")
+            thread_started = True
+            continue
+        if kind == "turn.started":
+            if turn_open:
+                issues.add("overlapping_turn_lifecycle")
+            sequence += 1
+            active_key = ("id", turn_id) if turn_id else ("ordinal", sequence)
+            turn_open = True
+            continue
+
         seen = True
-        if not isinstance(usage, dict) or any(type(usage.get(k)) is not int or usage[k] < 0 for k in totals):
-            invalid = True
+        key = ("id", turn_id) if turn_id else active_key
+        if not turn_open and active_key is not None and active_key[0] == "ordinal" and turn_id:
+            issues.add("ambiguous_completion_identity")
+        if turn_open and active_key[0] == "id" and key != active_key:
+            issues.add("mismatched_turn_identity")
+        if turn_open:
+            # A turn may gain its explicit ID only on completion. Bind replayed
+            # ID-less completion events to that same lifecycle, not a new row.
+            active_key = key
+        turn_open = False
+        if key is None:
+            anonymous += 1
+            key = ("anonymous", anonymous)
+        if anonymous and len(records) > 0:
+            issues.add("unidentified_multiple_completions")
+        usage = event.get("usage", {})
+        if not isinstance(usage, dict) or any(type(usage.get(k)) is not int or usage[k] < 0 for k in keys):
+            issues.add("invalid_usage")
             continue
         if usage["cached_input_tokens"] > usage["input_tokens"]:
-            invalid = True
+            issues.add("invalid_usage")
             continue
-        for key in totals:
-            totals[key] += usage[key]
-    return {"usage": totals if seen and not invalid else None,
+        counters = {name: usage[name] for name in keys}
+        if key in records:
+            if records[key] != counters:
+                issues.add("conflicting_completion_identity")
+            else:
+                duplicates += 1
+        else:
+            records[key] = counters
+    observed = ({name: sum(row[name] for row in records.values()) for name in keys}
+                if records and not issues else None)
+    if failed:
+        issues.add("failed_turn_usage_unknown")
+    if turn_open:
+        issues.add("unfinished_turn")
+    if not process_complete:
+        issues.add("process_incomplete")
+    if not seen:
+        issues.add("no_completed_turn")
+    complete = observed is not None and not issues
+    return {"usage": observed if complete else None,
+            "observed_completed_usage": observed,
+            "usage_scope": "root_cli_stream_only",
+            "usage_source": "provided CLI turn.completed events, not provider billing",
+            "usage_complete_for_scope": complete,
+            "usage_issues": sorted(issues),
+            "duplicate_events_ignored": duplicates,
+            "whole_run_usage": None,
             "completed_event": seen, "error_event": failed}
 
 
@@ -240,7 +330,8 @@ def execute(case, model, repetition, output, codex, timeout, task_prompt):
     check = grade(case, workspace, cell, live=True) if integrity else {"pass": False, "skipped": "scope violation"}
     public_check = (grade(case, workspace, cell, "public", live=True, public=True)
                     if integrity else {"pass": False, "skipped": "scope violation"})
-    telemetry = parse_usage(cell / "events.jsonl")
+    telemetry = parse_usage(cell / "events.jsonl",
+                            process_complete=run["exit_code"] == 0 and not run["timed_out"])
     row = {"case_id": case["id"], "model_requested": model, "effort_requested": "high",
            "repetition": repetition, "base_sha256": digest(before),
            "prompt_sha256": digest(task_prompt), "grader_sha256": digest(case["grader"]),

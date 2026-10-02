@@ -120,10 +120,69 @@ class ReadmeContractTests(unittest.TestCase):
             self.assertIn(REPO, text)
             self.assertNotRegex(text, r"https://github\.com/yehyakin/(?:codex-sol-luna|sol-control)")
             images = IMAGE_RE.findall(visible_markdown(text))
-            self.assertEqual([f"docs/assets/readme/hero-{lang}.svg", f"docs/assets/readme/control-plane-{lang}.svg"],
-                             [target for _, target in images])
+            base = "docs/assets/readme/livecanvas"
+            expected = [f"{base}/cost-budget/cost-budget-{lang}.png"]
+            expected += [f"{base}/polish/{theme}-{lang}.png" for theme in ("routing", "evidence", "ownership")]
+            self.assertEqual(expected, [target for _, target in images])
             self.assertTrue(all(alt.strip() for alt, _ in images))
             self.assertEqual(text.count("<details>"), text.count("</details>"))
+            # The ownership detail stays collapsed; key facts also exist as text.
+            ownership_fold = re.search(r"<details>\s*<summary>[^<]+</summary>.*?ownership-.*?</details>", text, re.S)
+            self.assertIsNotNone(ownership_fold, path.name)
+            for relative in expected:
+                poster = ROOT / relative
+                manifest = json.loads((poster.parent / "manifest.json").read_text(encoding="utf-8"))
+                # Dated artwork-integration receipt, not current product publication status.
+                self.assertEqual("integrated-local-readmes-not-released", manifest["status"])
+                for asset in (poster, poster.with_suffix(".gif")):
+                    metadata = next(row for row in manifest["assets"] if row["filename"] == asset.name)
+                    data = asset.read_bytes()
+                    self.assertEqual(metadata["bytes"], len(data), asset.name)
+                    self.assertEqual(metadata["sha256"], hashlib.sha256(data).hexdigest(), asset.name)
+                self.assertIn(poster.with_suffix(".gif").relative_to(ROOT).as_posix(), text)
+
+    def test_candidate_budget_matches_verified_rates(self):
+        visuals = ROOT / "docs/visuals/livecanvas"
+        data = json.loads((visuals / "data-cost-budget.json").read_text(encoding="utf-8"), parse_float=Decimal)
+        budget = data["budget"]
+        evidence = json.loads((visuals / budget["evidencePath"]).read_text(encoding="utf-8"), parse_float=Decimal)
+        self.assertEqual("https://learn.chatgpt.com/docs/pricing", evidence["source"])
+        self.assertEqual("2026-10-01", evidence["accessedAt"])
+        self.assertEqual("Standard", evidence["speed"])
+        self.assertEqual(evidence["accessedAt"], data["asOf"])
+        self.assertEqual(0, budget["cachedInputTokens"])
+        self.assertEqual(1_000_000, budget["inputTokens"])
+        self.assertEqual(100_000, budget["outputTokensIncludingBilledReasoning"])
+        self.assertEqual({"sol": Decimal("0.8"), "luna": Decimal("0.2"), "astra": 0}, budget["perModelTokenShares"])
+        costs = {
+            model: Decimal(budget["inputTokens"]) / 1_000_000 * rates["input"]
+            + Decimal(budget["outputTokensIncludingBilledReasoning"]) / 1_000_000 * rates["output"]
+            for model, rates in evidence["rates"].items()
+        }
+        self.assertEqual(budget["fullModelCosts"], costs)
+        routed = sum(costs[model] * share for model, share in budget["perModelTokenShares"].items())
+        overhead = costs["sol"] * Decimal("0.05")
+        total = routed + overhead
+        saving = 100 * (1 - total / costs["astra"])
+        self.assertEqual((Decimal("375"), Decimal("60.75"), Decimal("3.75"), Decimal("64.5"), Decimal("82.8")),
+                         (costs["astra"], routed, overhead, total, saving))
+        self.assertEqual("GPT-6 Astra", budget["baselineModel"])
+        for key, expected in (("baselineCredits", costs["astra"]), ("routedCredits", routed),
+                              ("extraCoordinationCredits", overhead), ("totalCredits", total), ("savingsPercent", saving)):
+            self.assertEqual(expected, budget[key])
+        notes = COSTS.read_text(encoding="utf-8")
+        candidate = notes.split("## v1.1.0", 1)[0]
+        for rates in evidence["rates"].values():
+            self.assertIn((rates["model"], str(rates["input"]), str(rates["cachedInput"]), f'{rates["output"]:,}'),
+                          table_rows(candidate))
+        for path, text in (*self.documents().items(), (COSTS, notes)):
+            for fact in ("2026-10-01", "Standard", "1M", "0.1M", "80%", "20%", "375", "60.75", "3.75", "64.5", "82.8%", "A/B"):
+                self.assertIn(fact, text, path.name)
+        self.assertIn("预算示例", self.documents()[READMES[0]])
+        self.assertIn("不是实测", self.documents()[READMES[0]])
+        self.assertIn("全 Sol 费用的 5%", self.documents()[READMES[0]])
+        self.assertIn("not measured savings", self.documents()[READMES[1]])
+        self.assertIn("5% of the all-Sol cost", self.documents()[READMES[1]])
 
     def test_historical_release_receipt_keeps_its_mapping(self):
         receipt = json.loads((ROOT / "docs/release/v1.1.0-runtime.json").read_text(encoding="utf-8"))
@@ -148,8 +207,60 @@ class ReadmeContractTests(unittest.TestCase):
             self.assertNotIn('62.3%', text)
             self.assertNotIn('$15.00', text)
             self.assertNotIn('$5.66', text)
-        self.assertIn('尚未发布', self.documents()[READMES[0]])
-        self.assertIn('not released', self.documents()[READMES[1]])
+        for text in self.documents().values():
+            self.assertIn(f'{REPO}/releases/tag/v1.2.0', text)
+            self.assertIn('docs/release/v1.2.0.md', text)
+
+    def test_three_arm_receipt_reconciles_usage_and_cost(self):
+        receipt = json.loads((ROOT / 'docs/research/2026-10-02-three-arm-results.json').read_text(encoding='utf-8'), parse_float=Decimal)
+        arms = {arm['arm']: arm for arm in receipt['arms']}
+        self.assertEqual({'da34', 'baseline', 'prove'}, set(arms))
+        rates = {key: Decimal(value) for key, value in receipt['pricing']['per_million'].items()}
+        for arm in arms.values():
+            identities = [record['identity_sha256'] for record in arm['response_usage']]
+            self.assertEqual(len(set(identities)), arm['unique_responses'])
+            self.assertEqual(len(identities), arm['unique_responses'])
+            totals = {key: sum(record[key] for record in arm['response_usage']) for key in arm['usage']}
+            self.assertEqual(totals, arm['usage'])
+            self.assertEqual(totals['input_tokens'] + totals['output_tokens'], totals['total_tokens'])
+            self.assertLessEqual(totals['reasoning_output_tokens'], totals['output_tokens'])
+            self.assertEqual(0, totals['cache_write_input_tokens'])
+            self.assertLessEqual(arm['maximum_response_input_tokens'], 272000)
+            cost = ((totals['input_tokens'] - totals['cached_input_tokens']) * rates['uncached_input']
+                    + totals['cached_input_tokens'] * rates['cached_input']
+                    + totals['output_tokens'] * rates['output']) / 1_000_000
+            self.assertEqual(cost, Decimal(arm['api_equivalent_usd_standard_short_context']))
+        for other in ('baseline', 'da34'):
+            expected = (1 - Decimal(arms['prove']['api_equivalent_usd_standard_short_context'])
+                        / Decimal(arms[other]['api_equivalent_usd_standard_short_context'])) * 100
+            observed = receipt['comparisons'][f'prove_vs_{other}']['api_equivalent_reduction_percent']
+            self.assertLess(abs(expected - observed), Decimal('0.0000000001'))
+
+    def test_three_arm_case_keeps_quality_and_limitations(self):
+        path = ROOT / 'docs/research/2026-10-02-three-arm-results.json'
+        text = path.read_text(encoding='utf-8')
+        receipt = json.loads(text)
+        self.assertEqual(1, receipt['design']['tasks'])
+        self.assertEqual(1, receipt['design']['trials_per_arm'])
+        self.assertFalse(receipt['design']['randomized'])
+        self.assertFalse(receipt['public_raw_reproducibility'])
+        self.assertEqual(9, receipt['original_oracle']['passed'])
+        self.assertEqual(1, receipt['original_oracle']['exit_code'])
+        for arm in receipt['arms']:
+            self.assertEqual(19, arm['independent_oracle']['passed'])
+            self.assertEqual(19, len(arm['independent_oracle']['cases']))
+            self.assertTrue(all(case['passed'] for case in arm['independent_oracle']['cases']))
+            self.assertEqual(0, arm['discovered_descendants'])
+            self.assertEqual(0, arm['collaboration_calls'])
+            self.assertIsNone(arm['observed_service_tier'])
+            for field in ('fresh_unit_test_exit_code', 'fresh_typecheck_exit_code', 'cli_exit_code'):
+                self.assertEqual(0, arm[field])
+        self.assertTrue(receipt['unknown'])
+        self.assertTrue(receipt['excluded'])
+        self.assertNotRegex(text, r'/Users/|/home/|[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}')
+        for readme in self.documents().values():
+            for fact in ('19/19', '13.86%', '10.20%', '0.61%', '9.36%', 'three-arm-results.md'):
+                self.assertIn(fact, readme)
 
     def test_historical_v110_rates_and_sources(self):
         current = COSTS.read_text(encoding="utf-8").split("## v1.0")[0]
@@ -306,14 +417,31 @@ class ReadmeContractTests(unittest.TestCase):
             self.assertEqual(0, archived.returncode, relative)
             self.assertEqual(expected_hash, hashlib.sha256(archived.stdout.replace(b"\r\n", b"\n")).hexdigest(), relative)
 
-    def test_candidate_status_does_not_relabel_stable_budgets(self):
+    def test_release_source_status_does_not_relabel_stable_budgets(self):
         for path, text in self.documents().items():
             intro = "\n".join(text.splitlines()[:5])
             self.assertIn("Sol 6.1", intro, path.name)
             self.assertIn("docs/release/sol61-readiness.md", intro, path.name)
             self.assertNotIn("62.3%", text, path.name)
-        self.assertIn("尚未发布", self.documents()[READMES[0]])
-        self.assertIn("not released", self.documents()[READMES[1]])
+            self.assertIn('v1.2.0', intro, path.name)
+            self.assertIn(f'{REPO}/releases/tag/v1.2.0', intro, path.name)
+            self.assertIn('git checkout v1.2.0', text, path.name)
+        self.assertNotIn('尚未发布的候选改动', self.documents()[READMES[0]])
+        self.assertNotIn('These changes are not released yet', self.documents()[READMES[1]])
+
+    def test_public_candidate_summaries_redact_home_paths(self):
+        names = ('sol61-installed-acceptance.json', 'sol61-live-smoke.json', 'sol61-live-smoke.md')
+        for name in names:
+            source = (ROOT / 'tests/artifacts' / name).read_text(encoding='utf-8')
+            self.assertNotRegex(source, r'/Users/[A-Za-z0-9._-]+/|[A-Za-z]:[\\/]Users[\\/]')
+            if name.endswith('.json'):
+                self.assertIn('Original evidence', json.loads(source)['privacy_redaction'])
+        receipt = json.loads((ROOT / 'tests/artifacts/sol61-installed-acceptance.json').read_text(encoding='utf-8'))
+        phase = receipt['runtime']['cli_phases'][0]
+        public_hash = hashlib.sha256(phase['prompt'].encode('utf-8')).hexdigest()
+        self.assertEqual(public_hash, phase['sanitized_prompt_sha256'])
+        self.assertNotEqual(public_hash, phase['prompt_sha256'])
+        self.assertEqual(phase['prompt_sha256'], phase['invocation']['prompt_sha256'])
 
     def test_support_security_and_prior_art(self):
         for path, text in self.documents().items():

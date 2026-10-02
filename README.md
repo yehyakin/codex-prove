@@ -1,8 +1,8 @@
 [简体中文](README.md) · [English](README.en.md)
 
-> **Sol 6.1 候选版，尚未发布。** 本页和配图介绍候选方案；安装后角色加载与跨平台验收仍需完成。见[发布准备记录](docs/release/sol61-readiness.md)。
+> **v1.2.0 · Sol 6.1 主力分工。** 本页描述此版本源码；正式发布状态、标签与 CI 以 [GitHub Release](https://github.com/yehyakin/codex-prove/releases/tag/v1.2.0) 为准。详见[版本说明](docs/release/v1.2.0.md)；[历史准备记录](docs/release/sol61-readiness.md)保留较早候选的验收范围。
 
-![Codex PROVE：Sol 做主力，Astra 解难题，Luna 做批量](docs/assets/readme/hero-zh.svg)
+配图保留制作时的候选标记与日期，不表示当前发布状态。
 
 <p align="center">
   <a href="https://github.com/yehyakin/codex-prove/releases"><img alt="Release" src="https://img.shields.io/github/v/release/yehyakin/codex-prove?style=flat-square"></a>
@@ -19,18 +19,23 @@ PROVE 是给 Codex 用的模型分工 Skill。**Sol 6.1 做主力，Astra 解难
 
 改个文案、修个小问题，当前 Codex 直接做。一个功能即使涉及几个文件，也不必先开规划代理、再开执行代理。你说清目标和边界，PROVE 决定是否需要帮手，并检查实际结果。
 
-[怎么分工](#怎么分工) · [安装](#安装) · [怎么用](#怎么用) · [这次更新](#这次更新了什么)
+[成本预算](#成本预算) · [怎么分工](#怎么分工) · [安装](#安装) · [怎么用](#怎么用) · [交付前检查](#交付前检查)
+
+## 成本预算
+
+**一组预算示例：相对全 Astra，375 → 64.5 credits，少 82.8%。** 这是按公开费率和假设工作量计算的预算，不是实测节省。
+
+![预算示例：全 Astra 为 375 credits，Sol 80% 与 Luna 20% 分工加额外开销为 64.5 credits，少 82.8%；非实测](docs/assets/readme/livecanvas/cost-budget/cost-budget-zh.png)
+
+按 **2026-10-01 Codex Standard** 费率，假设累计 **1M 非缓存输入 + 0.1M 输出（含计费推理）**，输入和输出各按 **Sol 80% / Luna 20%** 分配。模型费用为 60.75 credits，另加 3.75 credits 的协调预算，合计 64.5。这里的额外开销是**全 Sol 费用的 5%**，不是全 Astra 的 5%；80/20 也不是任务的固定配额。
+
+这个例子不含额外 Astra 咨询、工具费、人工成本或等待时间，不保证不同模型有同等质量，也不代表订阅月费或每周额度的变化。真实任务的缓存、上下文、审核和返工会改变结果。计算过程、费率来源和历史算例见[成本说明](docs/costs.md#sol-61-预算示例--2026-10-01)；也可[查看动态图](docs/assets/readme/livecanvas/cost-budget/cost-budget-zh.gif)。
 
 ## 怎么分工
 
 先选最简单的可行方式，不要求每次用齐所有模型。
 
-| 任务 | 怎么做 |
-| --- | --- |
-| 小修改、明确问答（Direct） | 当前 Codex 直接完成，零子代理 |
-| 一条完整功能或排查（Solo） | Sol 自己规划、实现和检查，不另开规划代理 |
-| 只分析、只评审（Assist） | Sol 分析；具体难题或独立风险评审按需找 Astra，不改代码 |
-| 多条独立工作线（Coordinated） | Sol 协调并行，明确各自改哪些文件 |
+![Sol 6.1 负责完整任务，Astra 只读解难题，Luna 处理规则明确的机械批量；不要求每次用齐所有模型](docs/assets/readme/livecanvas/polish/routing-zh.png)
 
 | 模型 | 负责什么 | 默认推理等级 |
 | --- | --- | --- |
@@ -40,11 +45,20 @@ PROVE 是给 Codex 用的模型分工 Skill。**Sol 6.1 做主力，Astra 解难
 
 如果当前 Codex 已是 Sol 6.1，就复用当前会话及其已确认的推理等级。独立批量可以直接交给 Luna，不必先开 Sol 做计划。Astra 不是每次都要走的审批环节。
 
-少传上下文、少开空代理，是这个版本的设计目标，不是已测得的节省比例。**新版尚无同任务成本或速度 A/B 结论。** 实际费用要包含规划、审核和返工；旧版预算保留在[成本说明](docs/costs.md)，不能当作新版成绩。
+| 任务 | 怎么做 |
+| --- | --- |
+| 小修改、明确问答（Direct） | 当前 Codex 直接完成，零子代理 |
+| 一条完整功能或排查（Solo） | Sol 自己规划、实现和检查，不另开规划代理 |
+| 只分析、只评审（Assist） | Sol 分析；具体难题或独立风险评审按需找 Astra，不改代码 |
+| 多条独立工作线（Coordinated） | Sol 协调并行，明确各自改哪些文件 |
+
+少传上下文、少开空代理，是这个版本的设计目标，不是已测得的节省比例。已有[单任务三组 A/B 对照](docs/research/2026-10-02-three-arm-results.md)：三组均通过 19/19 独立检查，也都没有委派子代理。PROVE 本例比普通 Codex 的 API 等价估算低 13.86%、用时短 10.20%，但比定制 Host 的 da34 组估算高 0.61%、用时长 9.36%。**每组仅一次，不证明普遍节省或混合模型分工优势。** 上面的预算示例不是本次实测值。[查看分工动态图](docs/assets/readme/livecanvas/polish/routing-zh.gif)
 
 ## 安装
 
 需要 Git、Python 3.11+，以及支持自定义 Agent 的 Codex。默认配置使用上面三个模型；一次任务只需它实际用到的模型可用。安装前确认账号支持对应模型和推理等级。
+
+以下命令拉取 `main`。如需固定 v1.2.0，请先确认 [Release](https://github.com/yehyakin/codex-prove/releases/tag/v1.2.0) 已发布，再在克隆目录执行 `git checkout v1.2.0` 后验证、安装。安装需要完整 Git 工作区，不支持直接使用无 Git 元数据的源码压缩包。旧 [v1.1.0](https://github.com/yehyakin/codex-prove/releases/tag/v1.1.0) 的分工和运行记录不作为本版验收。
 
 ### macOS / Linux
 
@@ -75,8 +89,6 @@ pwsh -NoProfile -File scripts/install.ps1
 
 安装器会先备份旧版，不改你原有的 `~/.codex/config.toml`，也不动其他 Agent。装好后开一个新的 Codex 会话。
 
-以上命令拉取 `main`，不会自动选中这个候选分支。已发布的 [v1.1.0](https://github.com/yehyakin/codex-prove/releases/tag/v1.1.0) 使用旧分工；不要把它的运行记录当作候选版验收。候选安装只用于明确授权的发布验证，暂不作为日常升级。
-
 ## 怎么用
 
 在任务前加上 `$codex-prove`，然后正常说你要做什么：
@@ -88,11 +100,7 @@ $codex-prove 给项目加一个账号设置页，能改昵称和头像。
 
 不用填表，也不用指定开几个子代理。把目标和不能动的地方说清楚就行。
 
-![小任务直接做，完整任务由 Sol 做完，独立工作再按需分工](docs/assets/readme/control-plane-zh.svg)
-
 比如上面的账号设置页，通常由一个 Sol 看接口、改页面、跑测试。只有确实能独立推进的模块才拆开；遇到一个难以确定的问题，再请 Astra 专项分析；有足够多的重复修改才交给 Luna。
-
-分工时，每个写入范围只安排一个活跃负责人。交接前先停止原代理及其写入进程、检查并保留改动。最后检查真实文件、测试和需求覆盖，再交付结果。这些是工作流约束，不是文件锁或隔离机制。
 
 如果只想讨论方案，也可以直接说：
 
@@ -101,6 +109,25 @@ $codex-prove 看看这个项目的登录方案，比较一下怎么改更合适�
 ```
 
 **只有你写了 `$codex-prove` 才会启用。** 平时照常用 Codex；即使叫了 PROVE，简单任务也会直接完成，不额外开子代理。默认用简体中文回复，想换语言直接说。
+
+## 交付前检查
+
+**“代理说完成了”不等于交付完成。** PROVE 要检查真实文件、执行验证并核对需求覆盖；未通过的项目继续处理，需要新权限或关键选择时才交给你决定。验收看证据，不要求 Astra 每次签字。
+
+![交付前核对真实文件、验证输出与需求覆盖，再决定是否通过；不能只采信代理的完成声明](docs/assets/readme/livecanvas/polish/evidence-zh.png)
+
+[查看验收动态图](docs/assets/readme/livecanvas/polish/evidence-zh.gif)
+
+<details>
+<summary>并行修改时，怎样避免写入冲突？</summary>
+
+每个写入范围只安排一个活跃负责人。交接前先停止原代理及其写入进程，检查并保留改动，再交给新负责人继续。不能一边让旧代理写，一边让新代理接手同一范围。
+
+![一个写入范围只有一个活跃负责人；交接顺序是停止旧写入、检查并保留改动、再启用新负责人](docs/assets/readme/livecanvas/polish/ownership-zh.png)
+
+这些是工作流约束，不是文件锁或隔离机制；它们不能阻止外部编辑器或其他进程写入。[查看交接动态图](docs/assets/readme/livecanvas/polish/ownership-zh.gif) · [完整调度说明](.agents/skills/codex-prove/references/orchestration.md)
+
+</details>
 
 ## 这次更新了什么
 
@@ -113,7 +140,7 @@ $codex-prove 看看这个项目的登录方案，比较一下怎么改更合适�
 - **能继续的就继续。** 已经授权的本地修改和测试，不会因为一次失败或少了一个标题就停下来找你批准。需要新权限或关键选择时才问你。
 - **少写没必要的代码。** 借鉴 Ponytail，先看项目里有没有、标准库能不能做，再考虑新依赖和新抽象。
 
-这是尚未发布的候选改动。已验证什么、还缺什么，见[发布准备记录](docs/release/sol61-readiness.md)和[同类项目调研](docs/research/2026-09-30-peer-release-readiness.md)。[v1.1.0 发布记录](docs/release/v1.1.0.md)与[历史兼容性记录](docs/release/runtime-surface-matrix.md)保留原有范围，不自动覆盖新版。
+本版变更和证据边界见[版本说明](docs/release/v1.2.0.md)、[发布准备检查表](docs/release/sol61-release-checklist.md)和[最新同类项目调研](docs/research/2026-10-02-competitive-orchestration.md)。[历史准备记录](docs/release/sol61-readiness.md)、[v1.1.0 发布记录](docs/release/v1.1.0.md)与[历史兼容性记录](docs/release/runtime-surface-matrix.md)保留原有范围，不自动覆盖新版。
 
 ## 几个常见问题
 

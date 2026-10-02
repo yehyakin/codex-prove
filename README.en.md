@@ -1,8 +1,8 @@
 [简体中文](README.md) · [English](README.en.md)
 
-> **Sol 6.1 candidate, not released.** This page and its illustrations describe the candidate. Installed-profile loading and cross-platform acceptance are still pending. See the [release preparation record](docs/release/sol61-readiness.md).
+> **v1.2.0 · Sol 6.1-first routing.** This page describes this source version. Publication status, tag and CI are recorded in the [GitHub Release](https://github.com/yehyakin/codex-prove/releases/tag/v1.2.0). See the [version notes](docs/release/v1.2.0.md); the [historical preparation record](docs/release/sol61-readiness.md) retains the scope of earlier candidate checks.
 
-![Codex PROVE: Sol does the main work, Astra tackles hard questions, Luna handles batches](docs/assets/readme/hero-en.svg)
+Illustrations retain their dated candidate labels, not the current publication status.
 
 <p align="center">
   <a href="https://github.com/yehyakin/codex-prove/releases"><img alt="Release" src="https://img.shields.io/github/v/release/yehyakin/codex-prove?style=flat-square"></a>
@@ -19,18 +19,23 @@ PROVE is a model-routing skill for Codex. **Sol 6.1 does the main work, Astra ta
 
 A copy change or small fix stays with your current Codex. A feature can span several files without needing a planning agent followed by an implementation agent. Describe the goal and boundaries; PROVE decides whether help is useful and checks the real result.
 
-[Routing](#how-work-is-routed) · [Install](#install) · [Usage](#usage) · [What's new](#whats-new)
+[Cost example](#cost-example) · [Routing](#how-work-is-routed) · [Install](#install) · [Usage](#usage) · [Before delivery](#before-delivery)
+
+## Cost example
+
+**One illustrative budget: 375 → 64.5 credits, or 82.8% less than all-Astra.** This calculation uses published rates and an assumed workload. It is not measured savings.
+
+![Illustrative budget: all-Astra costs 375 credits; Sol 80% plus Luna 20% with extra overhead costs 64.5, or 82.8% less; not measured](docs/assets/readme/livecanvas/cost-budget/cost-budget-en.png)
+
+Using **2026-10-01 Codex Standard** rates, assume **1M uncached input + 0.1M output tokens (including billed reasoning)** in total. Split both input and output **Sol 80% / Luna 20%**. Model costs are 60.75 credits; adding 3.75 credits for coordination gives 64.5. That overhead is **5% of the all-Sol cost**, not 5% of all-Astra. The 80/20 split is not a routing quota.
+
+This example excludes additional Astra consultation, tool fees, human effort, and elapsed time. It does not establish equal quality, a lower subscription price, or more weekly usage. Caching, context, review, and rework change real costs. See the [cost notes](docs/costs.md#english) for sources, formulas, and historical examples, or [view the animation](docs/assets/readme/livecanvas/cost-budget/cost-budget-en.gif).
 
 ## How work is routed
 
 Start with the simplest useful route. No task has to use every model.
 
-| Task | Route |
-| --- | --- |
-| Small edit or clear question (Direct) | Your current Codex completes it, with zero agents |
-| One cohesive feature or investigation (Solo) | Sol plans, implements, and checks it; no separate planner |
-| Analysis or review only (Assist) | Sol analyzes; Astra handles a specific hard question or independent risk review; no implementation |
-| Multiple independent workstreams (Coordinated) | Sol coordinates parallel work with explicit file ownership |
+![Sol 6.1 completes cohesive tasks, Astra advises on hard questions read-only, and Luna handles rule-based batches; not every task needs every model](docs/assets/readme/livecanvas/polish/routing-en.png)
 
 | Model | What it does | Default effort |
 | --- | --- | --- |
@@ -40,11 +45,20 @@ Start with the simplest useful route. No task has to use every model.
 
 If your current Codex is already Sol 6.1, reuse it and its verified effort setting. A self-contained mechanical batch can go straight to Luna. Astra is not a mandatory approval stage.
 
-Less context transfer and fewer unnecessary agents are design goals, not measured savings. **There is no same-task cost or speed A/B result for this candidate.** Count planning, review, and rework in real costs. The [cost notes](docs/costs.md#english) retain historical budgets, not results for this version.
+| Task | Route |
+| --- | --- |
+| Small edit or clear question (Direct) | Your current Codex completes it, with zero agents |
+| One cohesive feature or investigation (Solo) | Sol plans, implements, and checks it; no separate planner |
+| Analysis or review only (Assist) | Sol analyzes; Astra handles a specific hard question or independent risk review; no implementation |
+| Multiple independent workstreams (Coordinated) | Sol coordinates parallel work with explicit file ownership |
+
+Less context transfer and fewer unnecessary agents are design goals, not measured savings percentages. A [single-task, three-arm A/B case](docs/research/2026-10-02-three-arm-results.md#english-summary) passed the same 19/19 independent checks in all arms, with no delegation. PROVE's API-equivalent estimate was 13.86% lower and elapsed time 10.20% shorter than ordinary Codex, but 0.61% higher and 9.36% longer than the host-customized da34 arm. **One trial per arm does not establish general savings or mixed-model routing benefits.** The budget above is not this case's measured result. [View the routing animation](docs/assets/readme/livecanvas/polish/routing-en.gif)
 
 ## Install
 
 You need Git, Python 3.11+, and Codex with custom-agent support. The defaults use the three models above; a task needs only the models it actually invokes. Check account availability and supported effort settings before installation.
+
+These commands fetch `main`. To pin v1.2.0, first confirm that its [Release](https://github.com/yehyakin/codex-prove/releases/tag/v1.2.0) is published, then run `git checkout v1.2.0` in the clone before validation and installation. A complete Git checkout is required; source archives without Git metadata are not supported direct-install inputs. The old [v1.1.0](https://github.com/yehyakin/codex-prove/releases/tag/v1.1.0) routing and runtime records do not validate this version.
 
 ### macOS / Linux
 
@@ -75,8 +89,6 @@ pwsh -NoProfile -File scripts/install.ps1
 
 The installer backs up the previous version, leaves your existing `~/.codex/config.toml` alone, and doesn't touch unrelated agents. Open a new Codex session when it's done.
 
-These commands fetch `main`, not this candidate branch. The published [v1.1.0](https://github.com/yehyakin/codex-prove/releases/tag/v1.1.0) uses the old routing; its runtime records do not validate the candidate. Candidate installation is for explicitly authorized release checks, not routine upgrades.
-
 ## Usage
 
 Put `$codex-prove` before your task, then describe what you want as usual:
@@ -88,11 +100,7 @@ Use the existing login API and UI components. Leave payments alone and run the t
 
 No form to fill out. No agent count to choose. Say what you want and what should stay untouched.
 
-![Small tasks stay direct; Sol completes cohesive work; independent work can be split when useful](docs/assets/readme/control-plane-en.svg)
-
 For that settings page, one Sol would normally inspect the API, edit the page, and run tests. Split off a module only when it can progress independently. Consult Astra about a concrete unresolved problem; use Luna when there is enough repetitive work to justify delegation.
-
-Each write scope has one active owner. Before a handoff, stop the old agent and its mutating processes, then inspect and preserve its changes. Check real files, tests, and requirement coverage before delivery. These are workflow rules, not file locks or enforced isolation.
 
 If you only want to discuss a plan, say so:
 
@@ -102,9 +110,28 @@ $codex-prove Look at this project's login setup and compare ways to improve it. 
 
 **PROVE only runs when you ask for `$codex-prove`.** Use Codex normally the rest of the time. Even when you invoke PROVE, small tasks stay direct, without extra agents. It responds in Simplified Chinese by default; ask for English or another language if you prefer.
 
+## Before delivery
+
+**An agent saying “done” is not enough.** PROVE checks real files, runs verification, and checks requirement coverage. It continues work on failed checks, asking you when new permissions or important choices are needed. Acceptance depends on evidence, not a mandatory Astra sign-off.
+
+![Before delivery, inspect real files, verification output, and requirement coverage; an agent's completion claim alone is not acceptance](docs/assets/readme/livecanvas/polish/evidence-en.png)
+
+[View the acceptance animation](docs/assets/readme/livecanvas/polish/evidence-en.gif)
+
+<details>
+<summary>How does parallel work avoid write conflicts?</summary>
+
+Each write scope has one active owner. Before a handoff, stop the old agent and its mutating processes, inspect and preserve its changes, then let the new owner continue. Do not give the same scope to a new agent while the old one can still write.
+
+![One active owner per write scope; stop old writers, inspect and preserve changes, then activate the new owner](docs/assets/readme/livecanvas/polish/ownership-en.png)
+
+These are workflow rules, not file locks or enforced isolation; they cannot prevent edits by an external editor or process. [View the handoff animation](docs/assets/readme/livecanvas/polish/ownership-en.gif) · [Full scheduling notes](.agents/skills/codex-prove/references/orchestration.md)
+
+</details>
+
 ## What's new
 
-This candidate reduces context handoffs and unnecessary role changes.
+This version reduces context handoffs and unnecessary role changes as a design goal.
 
 - **Sol first.** Sol 6.1 takes routine execution and coordination; Terra leaves the defaults. The four stable role IDs remain, without requiring a four-agent team.
 - **Keep cohesive work together.** Solo plans, implements, and checks its own task. Parallelize useful independent work only.
@@ -113,7 +140,7 @@ This candidate reduces context handoffs and unnecessary role changes.
 - **Keep moving when it's safe.** Local edits and tests you've already authorized don't stop for approval just because a test fails or a heading is missing. New permissions and important unresolved choices still need your input.
 - **Less unnecessary code.** Borrowing from Ponytail, check what the project and standard library already offer before adding dependencies or abstractions.
 
-These changes are not released yet. See the [release preparation record](docs/release/sol61-readiness.md) and [peer research](docs/research/2026-09-30-peer-release-readiness.md) for evidence and gaps. The [v1.1.0 release notes](docs/release/v1.1.0.md) and [historical compatibility matrix](docs/release/runtime-surface-matrix.md) retain their original scope; they do not automatically cover this version.
+See the [version notes](docs/release/v1.2.0.md), [release preparation checklist](docs/release/sol61-release-checklist.md) and [latest peer research](docs/research/2026-10-02-competitive-orchestration.md) for changes, evidence and gaps. The [historical preparation record](docs/release/sol61-readiness.md), [v1.1.0 release notes](docs/release/v1.1.0.md), and [historical compatibility matrix](docs/release/runtime-surface-matrix.md) retain their original scope; they do not automatically cover this version.
 
 ## A few common questions
 

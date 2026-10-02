@@ -22,7 +22,19 @@ class SourceValidationTests(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.parent = Path(self.temporary.name)
         self.root = self.parent / "source"
-        shutil.copytree(ROOT, self.root, ignore=shutil.ignore_patterns(".git", "__pycache__", "media"))
+        # Mirror tracked and non-ignored source, including documentation media.
+        # A recursive "media" exclusion drops linked source files; copying local
+        # render outputs and node_modules is also unnecessary for these fixtures.
+        files = subprocess.run(
+            ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
+            cwd=ROOT, check=True, capture_output=True,
+        ).stdout.decode("utf-8").split("\0")
+        for relative in files:
+            if not relative or Path(relative).parts[0] == "media":
+                continue  # Keep the existing exclusion of root-level scratch art.
+            target = self.root / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(ROOT / relative, target, follow_symlinks=False)
         subprocess.run(["git", "init", "-q", str(self.root)], check=True, capture_output=True)
 
     def run_check(self):

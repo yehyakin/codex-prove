@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import statistics
 import sys
 from collections import defaultdict
@@ -69,8 +70,14 @@ def validate_manifest(data: Any) -> dict[str, Any]:
     require(data.get("fresh_isolated_checkout") is True, "fresh checkout isolation is required")
     require(data.get("hidden_grader_after_run") is True, "hidden post-run graders are required")
 
+    scope = data.get("routing_scope", "fixed_settings")
+    require(isinstance(scope, str) and scope in {"fixed_settings", "autonomous"}, "unsupported routing_scope")
+    if scope == "autonomous":
+        require(data.get("routing_unconstrained") is True,
+                "autonomous routing requires a routing_unconstrained=true declaration")
+
     repetitions = data.get("repetitions")
-    require(isinstance(repetitions, int) and repetitions >= 3, "repetitions must be >= 3")
+    require(isinstance(repetitions, int) and not isinstance(repetitions, bool) and repetitions >= 3, "repetitions must be >= 3")
 
     arms = data.get("arms")
     require(isinstance(arms, list), "arms must be a list")
@@ -119,15 +126,24 @@ def make_schedule(manifest: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def is_finite_number(value: Any) -> bool:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False
+    try:
+        return math.isfinite(value)
+    except OverflowError:
+        return False
+
+
 def validate_metric_value(name: str, value: Any) -> None:
     if name in {"held_out_pass", "integrity_pass", "false_pass"}:
         require(isinstance(value, bool), f"{name} must be boolean")
     elif name in {"input_tokens", "output_tokens", "subagent_count", "retry_count"}:
         require(isinstance(value, int) and not isinstance(value, bool) and value >= 0, f"{name} must be a non-negative integer")
     elif name == "elapsed_seconds":
-        require(isinstance(value, (int, float)) and not isinstance(value, bool) and value >= 0, "elapsed_seconds must be non-negative")
+        require(is_finite_number(value) and value >= 0, "elapsed_seconds must be finite and non-negative")
     elif name == "cost_value":
-        require(value is None or (isinstance(value, (int, float)) and not isinstance(value, bool) and value >= 0), "cost_value must be non-negative or null")
+        require(value is None or (is_finite_number(value) and value >= 0), "cost_value must be finite and non-negative or null")
     elif name == "cost_unit":
         require(value is None or (isinstance(value, str) and value.strip()), "cost_unit must be a non-empty string or null")
 
@@ -163,6 +179,14 @@ def validate_results(
             f"cost_value and cost_unit must both be set or both null for {key}",
         )
 
+    paired: dict[tuple[str, int], list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        paired[(row["case_id"], row["repetition"])].append(row)
+    for key, pair in paired.items():
+        for proof in ("base_commit", "prompt_sha256", "grader_sha256"):
+            require(len({row[proof] for row in pair}) == 1,
+                    f"paired {proof} mismatch for {key}")
+
     missing = scheduled - observed
     require(not missing, f"missing {len(missing)} scheduled result cells")
     return rows
@@ -177,12 +201,15 @@ def summarize(manifest: dict[str, Any], rows: list[dict[str, Any]]) -> dict[str,
     for row in rows:
         grouped[row["arm"]].append(row)
 
+    units = {row["cost_unit"] for row in rows if row["cost_unit"] is not None}
+    require(len(units) <= 1, "mixed cost units across arms")
     arms: dict[str, Any] = {}
     for arm in ARM_IDS:
         arm_rows = grouped[arm]
         units = {row["cost_unit"] for row in arm_rows if row["cost_unit"] is not None}
         require(len(units) <= 1, f"mixed cost units for {arm}: {sorted(units)}")
         unit = next(iter(units), None)
+        cost_complete = all(row["cost_value"] is not None for row in arm_rows)
         arms[arm] = {
             "runs": len(arm_rows),
             "held_out_pass_rate": rate(arm_rows, "held_out_pass"),
@@ -193,12 +220,16 @@ def summarize(manifest: dict[str, Any], rows: list[dict[str, Any]]) -> dict[str,
             "elapsed_seconds_total": round(sum(row["elapsed_seconds"] for row in arm_rows), 6),
             "elapsed_seconds_median": round(statistics.median(row["elapsed_seconds"] for row in arm_rows), 6),
             "cost_value_total": (
-                round(sum(row["cost_value"] for row in arm_rows), 6) if unit is not None else None
+                round(sum(row["cost_value"] for row in arm_rows), 6) if cost_complete else None
             ),
-            "cost_unit": unit,
+            "cost_unit": unit if cost_complete else None,
+            "cost_observed_runs": sum(row["cost_value"] is not None for row in arm_rows),
             "subagent_count_total": sum(row["subagent_count"] for row in arm_rows),
             "retry_count_total": sum(row["retry_count"] for row in arm_rows),
         }
+        for metric in ("elapsed_seconds_total", "elapsed_seconds_median", "cost_value_total"):
+            value = arms[arm][metric]
+            require(value is None or is_finite_number(value), f"nonfinite {metric} for {arm}")
 
     return {
         "schema_version": 1,
@@ -206,6 +237,8 @@ def summarize(manifest: dict[str, Any], rows: list[dict[str, Any]]) -> dict[str,
         "manifest_sha256": sha256(manifest),
         "arms": arms,
         "winner": None,
+        "routing_scope": manifest.get("routing_scope", "fixed_settings"),
+        "autonomous_routing_declared": manifest.get("routing_scope") == "autonomous",
         "note": "Descriptive metrics only; apply the declared acceptance thresholds separately.",
     }
 

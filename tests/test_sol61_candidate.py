@@ -58,6 +58,15 @@ class Sol61CandidateTests(unittest.TestCase):
         self.assertFalse((canonical / "hooks").exists())
         self.assertFalse((canonical / "scripts").exists())
 
+    def test_routing_regression_inputs_are_separate_from_the_grading_rubric(self):
+        # Fixture integrity only: the policy's decisions still need forward evaluation.
+        cases = json.loads((ROOT / "tests/fixtures/sol61-routing-regressions.json").read_text(encoding="utf-8"))
+        self.assertEqual(14, len(cases))
+        self.assertEqual(14, len({case["id"] for case in cases}))
+        for case in cases:
+            self.assertEqual({"id", "request", "context"}, set(case))
+            self.assertTrue(all(isinstance(value, str) and value.strip() for value in case.values()))
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "demo": false,
+  "asOf": "2026-10-01",
+  "timezone": "Asia/Shanghai",
+  "provenance": "illustrative-budget-from-verified-rates-not-measured-savings",
+  "project": "Codex PROVE",
+  "baseline": "f4dba1c20b0dc299fbcf565bc883c5afdc0324a9",
+  "releaseStatus": "candidate-not-released",
+  "sources": [
+    {
+      "id": "readme",
+      "title": "Codex PROVE candidate README",
+      "path": "README.md",
+      "url": "https://github.com/yehyakin/codex-prove/blob/f4dba1c20b0dc299fbcf565bc883c5afdc0324a9/README.md",
+      "accessedAt": "2026-10-01",
+      "method": "Read the current local candidate and compare the exact committed snapshot."
+    },
+    {
+      "id": "costs",
+      "title": "Candidate evidence boundary and historical cost notes",
+      "path": "docs/costs.md",
+      "url": "https://github.com/yehyakin/codex-prove/blob/f4dba1c20b0dc299fbcf565bc883c5afdc0324a9/docs/costs.md",
+      "accessedAt": "2026-10-01",
+      "method": "Read the candidate section and accounting notes; do not relabel historical prices as current rates."
+    },
+    {
+      "id": "skill",
+      "title": "Candidate same-context Solo workflow",
+      "path": ".agents/skills/codex-prove/SKILL.md",
+      "url": "https://github.com/yehyakin/codex-prove/blob/f4dba1c20b0dc299fbcf565bc883c5afdc0324a9/.agents/skills/codex-prove/SKILL.md",
+      "accessedAt": "2026-10-01",
+      "method": "Read as subject matter only; this does not invoke codex-prove."
+    }
+  ],
+  "models": [],
+  "claims": [
+    {
+      "id": "goal",
+      "text": "少传上下文、少开空代理是降本设计目标，不是已测节省。",
+      "sourceId": "readme",
+      "excerpt": "少传上下文、少开空代理，是这个版本的设计目标，不是已测得的节省比例。",
+      "nature": "design-goal-not-measured-savings"
+    },
+    {
+      "id": "direct",
+      "text": "小任务由当前 Codex 直接完成，零子代理。",
+      "sourceId": "readme",
+      "excerpt": "当前 Codex 直接完成，零子代理",
+      "nature": "configured-workflow"
+    },
+    {
+      "id": "same-context",
+      "text": "一个 Sol 在同一上下文规划、实现并检查完整任务。",
+      "sourceId": "skill",
+      "excerpt": "It plans, implements, and checks that task in one\n  context.",
+      "nature": "configured-workflow"
+    },
+    {
+      "id": "astra",
+      "text": "具体难题可按需请 Astra 提供只读咨询。",
+      "sourceId": "readme",
+      "excerpt": "Sol 分析；具体难题或独立风险评审按需找 Astra，不改代码",
+      "nature": "configured-workflow"
+    },
+    {
+      "id": "luna",
+      "text": "Luna 适合规则明确、结果可检查的机械批量。",
+      "sourceId": "readme",
+      "excerpt": "规则明确、结果可检查的机械批量任务",
+      "nature": "configured-workflow"
+    },
+    {
+      "id": "accounting",
+      "text": "总费用应包含规划、审核、协调、重试与返工，不重复计算已包含的开销。",
+      "sourceId": "costs",
+      "excerpt": "实际日志已经包含规划、检查和返工时，不要额外再加一次示例里的 5%。",
+      "nature": "accounting-guidance-not-a-price-quote"
+    },
+    {
+      "id": "no-ab",
+      "text": "新版暂无同任务成本、速度或质量 A/B 结论。",
+      "sourceId": "costs",
+      "excerpt": "尚无同任务成本、速度或质量 A/B 结论",
+      "nature": "evidence-boundary"
+    },
+    {
+      "id": "historical",
+      "text": "旧版 62.3% 预算不作为当前候选的成绩或图中数字。",
+      "sourceId": "costs",
+      "excerpt": "新版不沿用旧版的 token 分配比例，也不宣称节省 62.3%。",
+      "nature": "historical-budget-not-candidate-result"
+    }
+  ],
+  "visualSemantics": {
+    "headline": "82.8% illustrative saving relative to all-Astra, not all-Sol.",
+    "comparison": "Equal-sized labelled cards show credit amounts; their area is not a quantity encoding.",
+    "animation": "Focus follows the baseline-to-budget connection; numbers, qualifiers and assumptions remain stable.",
+    "notClaimed": [
+      "measured savings",
+      "fixed routing quotas",
+      "equal task quality",
+      "subscription fee savings",
+      "weekly allowance changes",
+      "formal release",
+      "phone compatibility"
+    ]
+  },
+  "budget": {
+    "evidencePath": "evidence/cost-budget-rates.json",
+    "billing": "Codex Standard credits",
+    "inputTokens": 1000000,
+    "cachedInputTokens": 0,
+    "outputTokensIncludingBilledReasoning": 100000,
+    "perModelTokenShares": {
+      "sol": 0.8,
+      "luna": 0.2,
+      "astra": 0
+    },
+    "fullModelCosts": {
+      "astra": 375,
+      "sol": 75,
+      "luna": 3.75
+    },
+    "extraCoordinationCredits": 3.75,
+    "extraCoordinationBasis": "5% of all-Sol baseline, equivalently 1% of all-Astra; hypothetical, not measured.",
+    "routedCredits": 60.75,
+    "totalCredits": 64.5,
+    "baselineModel": "GPT-6 Astra",
+    "baselineCredits": 375,
+    "costPercentOfBaseline": 17.2,
+    "savingsPercent": 82.8,
+    "assumptions": [
+      "The same shares apply separately to input and output tokens.",
+      "The core token volume is normalized across plans; real model token usage and quality may differ.",
+      "Additional coordination, review and retry budget is hypothetical and must not be double-counted in actual usage.",
+      "No cache discount, tool/image fees, labor cost, or elapsed-time value is modeled.",
+      "The 80/20 split is an illustrative choice, not a configured or measured routing quota."
+    ]
+  }
+}

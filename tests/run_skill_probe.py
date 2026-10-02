@@ -4,6 +4,8 @@
 Codex may persist a project-trust entry even with --ignore-user-config. The caller
 must compare its config baseline and clean only the probe-owned entry afterward;
 this harness never restores an entire shared config file automatically.
+CLI usage is root-only. Retaining a transcript does not discover descendants or
+make this a whole-run collector; missing/failed usage remains unknown.
 """
 
 from __future__ import annotations
@@ -25,6 +27,27 @@ ROOT = Path(__file__).resolve().parents[1]
 def task_snapshot(workspace):
     return {path: value for path, value in snapshot(workspace).items()
             if path != ".git" and not path.startswith(".git/")}
+
+
+def prepare_prompt(task_prompt, model, effort):
+    """Expose this launcher's selection, not a claim about effective execution."""
+    selection = {
+        "source": "this invocation's explicit CLI arguments",
+        "scope": "current_host_only",
+        "selected_model": model,
+        "selected_reasoning_effort": effort,
+        "observed_model": None,
+        "observed_reasoning_effort": None,
+    }
+    prompt = (
+        "Launcher context for this Host only (not child identity or a provider receipt). "
+        "Selected settings may be overridden by managed policy or the runtime; "
+        "observed settings remain unknown. This does not change task scope, "
+        "permissions, or prescribe a route.\n"
+        + json.dumps(selection, ensure_ascii=False, sort_keys=True)
+        + "\n\n" + task_prompt
+    )
+    return selection, prompt
 
 
 def main():
@@ -54,7 +77,8 @@ def main():
         parser.error("use a new output directory outside the source repository and probe workspace")
     if sys.platform == "win32":
         parser.error("live probes require POSIX process-group cleanup; Windows is not supported")
-    task_prompt = args.prompt_file.read_text(encoding="utf-8")
+    task_prompt = args.prompt_file.read_bytes().decode("utf-8")
+    selection, launch_prompt = prepare_prompt(task_prompt, "gpt-6.1-sol", "high")
     version = subprocess.run([args.codex, "--version"], check=True, capture_output=True, text=True).stdout.strip()
     output.mkdir(parents=True)
     before = task_snapshot(workspace)
@@ -63,22 +87,27 @@ def main():
     command = [args.codex, "exec", "--ignore-user-config",
                *([] if args.retain_session else ["--ephemeral"]),
                "--sandbox", args.sandbox, "-c", 'approval_policy="never"',
-               "--model", "gpt-6.1-sol", "-c", 'model_reasoning_effort="high"',
+               "--model", selection["selected_model"], "-c",
+               'model_reasoning_effort=' + json.dumps(selection["selected_reasoning_effort"]),
                "-c", f"agents.max_concurrent_threads_per_session={args.max_agent_threads}",
                "-c", "sandbox_workspace_write.network_access=false",
                "--color", "never", "--json", "-C", str(workspace),
                "--output-last-message", str(output / "final.txt"), "-"]
     save(output / "invocation.json", {
         "command": command, "codex_version": version,
-        "prompt_sha256": hashlib.sha256(task_prompt.encode()).hexdigest(),
+        "prompt_sha256": hashlib.sha256(launch_prompt.encode()).hexdigest(),
+        "task_prompt_sha256": hashlib.sha256(task_prompt.encode()).hexdigest(),
+        "host_selection": selection,
         "initial_files": before,
         "evidence_scope": "selected CLI settings and actual tool/file behavior; no cost or general quality claim",
     })
-    shutil.copyfile(args.prompt_file, output / "prompt.txt")
-    result = run_process(command, workspace, task_prompt, args.timeout,
+    shutil.copyfile(args.prompt_file, output / "task-prompt.txt")
+    (output / "prompt.txt").write_bytes(launch_prompt.encode("utf-8"))
+    result = run_process(command, workspace, launch_prompt, args.timeout,
                          output / "events.jsonl", output / "runtime.stderr")
     after = task_snapshot(workspace)
-    result.update(parse_usage(output / "events.jsonl"))
+    result.update(parse_usage(output / "events.jsonl",
+                              process_complete=result["exit_code"] == 0 and not result["timed_out"]))
     result["final_files"] = after
     result["net_changes"] = sorted(path for path in before.keys() | after.keys() if before.get(path) != after.get(path))
     save(output / "result.json", result)

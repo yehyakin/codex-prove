@@ -25,6 +25,22 @@ mandatory idle turn, or child self-report of hidden model metadata is required.
 If the runtime does not expose a model field to the child, that absence is not
 a blocker when the Host's authoritative selection is available.
 
+For Host identity, use current-session runtime metadata when exposed. A trusted
+launcher may pass its explicit model/effort selection as Host-only context derived
+from the same arguments it launches; keep selected and observed settings separate.
+CLI selection is not proof of effective execution: managed policy or the runtime
+can override it. Prefer a current effective-settings receipt over requested values;
+record conflicts rather than silently relabeling either. Never infer the Host from
+child profiles, model self-description, user-config defaults, or another session's
+receipt. Do not copy Host-only identity metadata into a child's identity claim.
+
+If identity is unavailable, state unknown once and use the capable current Host
+for Solo work or coordination unless an explicit model requirement prevents it.
+Do not launch a controller just to resolve identity uncertainty, inspect broad
+session histories, or add identity-only turns. Exact-model or independent-review
+requirements still need their own valid selection/evidence; uncertainty does not
+satisfy them. This preserves work without claiming an unobserved Sol profile ran.
+
 A current Sol 6.1 Host may plan and implement Solo work or act as controller.
 Reuse its authoritatively known, supported user-selected effort; the child profile's
 `high` default is not a reason to reset the Host or spawn a duplicate controller.
@@ -32,10 +48,12 @@ Record the actual Host settings, not an exact-profile launch if they differ.
 An explicit requested model/effort still takes precedence. A Host that implements
 does not become an independent reviewer of its own work.
 
-On a different Host, Solo normally means one `prove-complex-worker` owns the whole
-bounded task and the Host accepts it; a mechanical batch may go to Luna alone.
+On a known different Host, a worthwhile Solo handoff gives one
+`prove-complex-worker` the whole bounded task and the Host accepts it; a mechanical
+batch may go to Luna alone. Unknown identity alone does not justify that handoff.
 Assist uses a read-only Sol or a problem-specific Astra. Only Coordinated may
-need a separate controller plus workers. A worker never gains
+need a separate controller, for a concrete capability gap or an explicit request,
+not merely a different or unknown Host model. A worker never gains
 subagent permission just because its model is also used for the controller.
 
 If custom-agent selection is unavailable or its mapping is stale but the runtime
@@ -45,6 +63,10 @@ Record this as an explicit-profile launch, not a successfully selected custom
 agent. Do not assume its sandbox matches the profile.
 
 ## Native Nested / Compatibility
+
+Choose this topology only after a separate controller is justified. When the Host
+is the controller, it launches the useful leaf workers directly; no extra
+controller is needed to qualify as Coordinated.
 
 Use **Native Nested** (Host → controller → workers) only when custom or explicit
 model selection is supported, nesting depth permits it, capacity is available,

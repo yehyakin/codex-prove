@@ -1,5 +1,6 @@
 {
   "schema_version": 1,
+  "privacy_redaction": "Public summary normalizes the local home path to ~ and the replay command to repository-relative form. Original evidence, result fields and raw hashes are unchanged; prompt_sha256 refers to the unredacted original, not the displayed sanitized prompt.",
   "purpose": "Bounded installed custom-role Compatibility acceptance; not a quality, latency, cost, isolation, or Native Nested benchmark.",
   "date": "2026-10-01",
   "timezone": "Asia/Shanghai",
@@ -10,7 +11,7 @@
     "unchanged_runtime_between_revisions": true
   },
   "install": {
-    "command": "ORCHESTRATE_HOME=/Users/kin3 bash scripts/install.sh",
+    "command": "ORCHESTRATE_HOME=~ bash scripts/install.sh",
     "source_commit": "0acdc957c3a47c63ee58b03455fae0887459e4be",
     "backup_id": "20260930T155235Z-2882",
     "backup_root": "~/.codex/codex-prove/backups/20260930T155235Z-2882",
@@ -167,7 +168,7 @@
         "id": "01a0f307-082c-7970-b6e1-9364b0faec81",
         "source": "exec",
         "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
-        "raw_local_path": "/Users/kin3/.codex/sessions/2026/09/30/rollout-2026-09-30T23-55-19-01a0f307-082c-7970-b6e1-9364b0faec81.jsonl",
+        "raw_local_path": "~/.codex/sessions/2026/09/30/rollout-2026-09-30T23-55-19-01a0f307-082c-7970-b6e1-9364b0faec81.jsonl",
         "raw_sha256": "97113eaf0a3838b70260306af837058ff4e4caec9be1ef45edb6ea661166ed58",
         "turn_settings": [
           {
@@ -221,7 +222,7 @@
           }
         },
         "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
-        "raw_local_path": "/Users/kin3/.codex/sessions/2026/09/30/rollout-2026-09-30T23-56-30-01a0f308-1f5c-7de1-8e17-aada802fc57e.jsonl",
+        "raw_local_path": "~/.codex/sessions/2026/09/30/rollout-2026-09-30T23-56-30-01a0f308-1f5c-7de1-8e17-aada802fc57e.jsonl",
         "raw_sha256": "4e20e9640e34d9e824cd898668fe7e1bed2224755c52dd6faae4d99813fbe742",
         "turn_settings": [
           {
@@ -295,7 +296,7 @@
           }
         },
         "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
-        "raw_local_path": "/Users/kin3/.codex/sessions/2026/09/30/rollout-2026-09-30T23-57-40-01a0f309-2ed8-72c3-9387-f074b8ff844d.jsonl",
+        "raw_local_path": "~/.codex/sessions/2026/09/30/rollout-2026-09-30T23-57-40-01a0f309-2ed8-72c3-9387-f074b8ff844d.jsonl",
         "raw_sha256": "bd2d92ede34ede53f5337a35ebdacd0993f200b0771f8e41aa41d9f357470670",
         "turn_settings": [
           {
@@ -336,7 +337,7 @@
           }
         },
         "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
-        "raw_local_path": "/Users/kin3/.codex/sessions/2026/09/30/rollout-2026-09-30T23-58-01-01a0f309-800e-7531-a71a-bd7434039e91.jsonl",
+        "raw_local_path": "~/.codex/sessions/2026/09/30/rollout-2026-09-30T23-58-01-01a0f309-800e-7531-a71a-bd7434039e91.jsonl",
         "raw_sha256": "d6897435739c5a6b37ca3b7a67d7fa06bd89a17f0701647c51ac02f8360129b8",
         "turn_settings": [
           {
@@ -377,7 +378,7 @@
           }
         },
         "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
-        "raw_local_path": "/Users/kin3/.codex/sessions/2026/09/30/rollout-2026-09-30T23-59-28-01a0f30a-d55e-75b0-9182-d596676a33f4.jsonl",
+        "raw_local_path": "~/.codex/sessions/2026/09/30/rollout-2026-09-30T23-59-28-01a0f30a-d55e-75b0-9182-d596676a33f4.jsonl",
         "raw_sha256": "36f0fe3bc23e197a3957585a144ef4c9c75a0ac2791970066f8b5dc3052f11c5",
         "turn_settings": [
           {
@@ -418,7 +419,7 @@
           }
         },
         "cwd": "/private/tmp/prove-installed-acceptance.c01JwG/workspace",
-        "raw_local_path": "/Users/kin3/.codex/sessions/2026/10/01/rollout-2026-10-01T00-01-46-01a0f30c-ee2c-7452-9437-aad83e2a1ded.jsonl",
+        "raw_local_path": "~/.codex/sessions/2026/10/01/rollout-2026-10-01T00-01-46-01a0f30c-ee2c-7452-9437-aad83e2a1ded.jsonl",
         "raw_sha256": "c880b5e0536b8be411bf23241769e65adb27c8ab5bd82f1ecd62bb09d9edbc13",
         "turn_settings": [
           {
@@ -519,7 +520,8 @@
     "cli_phases": [
       {
         "name": "original",
-        "prompt": "使用已安装的 /Users/kin3/.agents/skills/codex-prove 的 $codex-prove 做一轮受限的安装验收。这是显式要求的四种自定义角色 Compatibility 调用测试，不是证明这个小夹具自然需要这么多代理。不要安装、联网、写全局配置、改源码仓库或提交。工作目录就是给定的一次性 Git 夹具，没有项目级 Skill/agent 配置。全程最多5个初始子代理，最多2个同时执行；完成但仍占名额的代理应计入容量。主会话参数允许5个开放名额。整轮10分钟硬截止，不得用新代理重置预算。所有子代理 fork_turns=none，后续同任务用原代理；子代理不得再委派。\n\n先读已安装 Skill 和委派参考。核对实际工具声明里的4个自定义角色：prove-controller 与 prove-complex-worker 应为 gpt-6.1-sol/high，prove-efficient-worker 为 gpt-6-luna/max，prove-specialist-worker 为 gpt-6-astra/high。如果声明缺失/陈旧，报告 BLOCKED，不能用 generic 显式模型替代或靠 TOML 冒充角色加载成功。\n\n为覆盖安装后的四个角色，这次明确要求启动一个 prove-controller，限定只读、Compatibility 模式、只做必要任务分配和一次最终验收；不允许它启动子代理。Host只负责实际派发/许可/收集证据，不重做控制者的最终审核。controller完成初始分配后，Host启动两个 prove-complex-worker，分别独占以下互不冲突的写入文件，必须让两者实际并行而非顺序等待：\n1. tags.py 的 normalize 接受 list[str]，strip 后 casefold，丢弃空项，去重并保留首次出现顺序；错误类型（含非list）ValueError；不改输入。只能写 tags.py。\n2. ranges.py 的 merge 接受 list[tuple[int,int]]，两端都是严格int（不含bool），start<=end；错误类型或形状ValueError。按起点排序合并重叠或相触区间，不合并有间隔的区间，不改输入。只能写 ranges.py。\n\n有空闲执行容量时，给一个 prove-efficient-worker 做 batch.json 的机械批量：只将 status=draft 改成 ready，其他值、顺序、字段不变。只能写 batch.json。这个小批量只作角色运行验证，不作效率结论。\n\n三个实现完成后，启动一个全新 prove-specialist-worker，独立只读检查“输入类型校验或Unicode归一化是否会让测试通过却违反需求”。只读 tags.py、ranges.py、batch.json、test_contract.py，可做不写文件的实际检查；不得修改/调度/批准整轮。没有缺陷就报告无发现，不需编造问题。\n\n保护 test_contract.py、user-notes.txt。告知所有worker不是唯一工作者，不得还原别人改动。测试需使用可用的python3，带-B防止__pycache__；不要修改测试。Host运行完整 python3 -B -m unittest -v，提供实际输出、最终文件及 git diff 给原controller做唯一最终验收；其只读检查实际候选并可复用这份证据，没有变化或缺口时不要重复跑相同检查。不要要求第二个controller或额外review。\n\n最后给 PASS/FIX/BLOCKED、实际角色启动ID/模型/effort/权限、每个任务覆盖及检查结果，明确实际工具权限与配置请求的边界。别把源码TOML、自报模型、CLI退出码0、净改动快照或一次成功推广成隐藏运行模型、OS隔离、无临时写入、普遍路由正确性或成本A/B证据。原始会话由调用方保留，Host应如实记录能力缺口。\n",
+        "sanitized_prompt_sha256": "23f028d09f9586f64cd0675f129d0650a312aadce57dd39a85e0a0ee2a31d1a3",
+        "prompt": "使用已安装的 ~/.agents/skills/codex-prove 的 $codex-prove 做一轮受限的安装验收。这是显式要求的四种自定义角色 Compatibility 调用测试，不是证明这个小夹具自然需要这么多代理。不要安装、联网、写全局配置、改源码仓库或提交。工作目录就是给定的一次性 Git 夹具，没有项目级 Skill/agent 配置。全程最多5个初始子代理，最多2个同时执行；完成但仍占名额的代理应计入容量。主会话参数允许5个开放名额。整轮10分钟硬截止，不得用新代理重置预算。所有子代理 fork_turns=none，后续同任务用原代理；子代理不得再委派。\n\n先读已安装 Skill 和委派参考。核对实际工具声明里的4个自定义角色：prove-controller 与 prove-complex-worker 应为 gpt-6.1-sol/high，prove-efficient-worker 为 gpt-6-luna/max，prove-specialist-worker 为 gpt-6-astra/high。如果声明缺失/陈旧，报告 BLOCKED，不能用 generic 显式模型替代或靠 TOML 冒充角色加载成功。\n\n为覆盖安装后的四个角色，这次明确要求启动一个 prove-controller，限定只读、Compatibility 模式、只做必要任务分配和一次最终验收；不允许它启动子代理。Host只负责实际派发/许可/收集证据，不重做控制者的最终审核。controller完成初始分配后，Host启动两个 prove-complex-worker，分别独占以下互不冲突的写入文件，必须让两者实际并行而非顺序等待：\n1. tags.py 的 normalize 接受 list[str]，strip 后 casefold，丢弃空项，去重并保留首次出现顺序；错误类型（含非list）ValueError；不改输入。只能写 tags.py。\n2. ranges.py 的 merge 接受 list[tuple[int,int]]，两端都是严格int（不含bool），start<=end；错误类型或形状ValueError。按起点排序合并重叠或相触区间，不合并有间隔的区间，不改输入。只能写 ranges.py。\n\n有空闲执行容量时，给一个 prove-efficient-worker 做 batch.json 的机械批量：只将 status=draft 改成 ready，其他值、顺序、字段不变。只能写 batch.json。这个小批量只作角色运行验证，不作效率结论。\n\n三个实现完成后，启动一个全新 prove-specialist-worker，独立只读检查“输入类型校验或Unicode归一化是否会让测试通过却违反需求”。只读 tags.py、ranges.py、batch.json、test_contract.py，可做不写文件的实际检查；不得修改/调度/批准整轮。没有缺陷就报告无发现，不需编造问题。\n\n保护 test_contract.py、user-notes.txt。告知所有worker不是唯一工作者，不得还原别人改动。测试需使用可用的python3，带-B防止__pycache__；不要修改测试。Host运行完整 python3 -B -m unittest -v，提供实际输出、最终文件及 git diff 给原controller做唯一最终验收；其只读检查实际候选并可复用这份证据，没有变化或缺口时不要重复跑相同检查。不要要求第二个controller或额外review。\n\n最后给 PASS/FIX/BLOCKED、实际角色启动ID/模型/effort/权限、每个任务覆盖及检查结果，明确实际工具权限与配置请求的边界。别把源码TOML、自报模型、CLI退出码0、净改动快照或一次成功推广成隐藏运行模型、OS隔离、无临时写入、普遍路由正确性或成本A/B证据。原始会话由调用方保留，Host应如实记录能力缺口。\n",
         "prompt_sha256": "d6098b149aa4233d9b75da9cbbc1950ec0d6af0fc0b167b91f4c713bf76eaca5",
         "invocation": {
           "command": [

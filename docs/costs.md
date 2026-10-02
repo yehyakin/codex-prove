@@ -2,15 +2,47 @@
 
 [返回中文 README](../README.md) · [Back to the English README](../README.en.md) · [English explanation](#english)
 
-这里保留历史预算和计算方法。价格带日期保留，避免把不同版本的数字混在一起。
+这里区分候选版的预算演示与历史预算，并保留计算方法。费率注明日期，避免把不同版本的数字混在一起。
 
 ## Sol 6.1 候选版 / Candidate
 
-当前默认分工是 Sol 6.1 主力、Astra 只读咨询、Luna 机械批量。减少上下文传递和不必要的代理是设计目标，**尚无同任务成本、速度或质量 A/B 结论**。实跑验证不能替代对照实验。
+当前默认分工是 Sol 6.1 主力、Astra 只读咨询、Luna 机械批量。减少上下文传递和不必要的代理是设计目标。已有[单任务三组 A/B 对照](research/2026-10-02-three-arm-results.md)：三组独立验收均为 19/19，且都没有委派；每组仅一次，不证明混合模型或普遍性能优势。
 
 新版不沿用旧版的 token 分配比例，也不宣称节省 62.3%。未来比较应固定任务、起点和验收条件，记录实际模型、输入/缓存/输出、重试、协调、耗时和通过率，再使用执行当日适用费率计算。单次 smoke 或模型单价不能证明整体收益。
 
-Sol 6.1 is the main model, Astra a read-only adviser, and Luna a mechanical batch worker. There is **no same-task cost, speed, or quality A/B result** for this candidate. Historical savings below are not candidate results. See the [candidate design](research/2026-09-30-sol61-routing.md) and [release evidence](release/sol61-readiness.md).
+Sol 6.1 is the main model, Astra a read-only adviser, and Luna a mechanical batch worker. A [single-task three-arm A/B case](research/2026-10-02-three-arm-results.md#english-summary) now exists; all arms passed 19/19 without delegation. One trial per arm is not a general or mixed-model advantage. Historical savings below are not candidate results. See the [candidate design](research/2026-09-30-sol61-routing.md) and [release checklist](release/sol61-release-checklist.md).
+
+本例 PROVE / 普通 Codex / 定制 Host 的 da34 组，统一 Standard API 等价估算分别为 **$0.1749800 / $0.2031256 / $0.1739244**；PROVE 对前者低 13.86%，对后者高 0.61%。运行时间分别为 252.253 / 280.917 / 230.664 秒。费率、响应去重、失败历史、实际服务层级未知、事后评分未计入等边界见报告。不是账单或订阅额度，不与下面的 credits 预算混算。
+
+配图证据截至 **2026-10-01** 时的原文是“尚无同任务成本、速度或质量 A/B 结论”；这句话现在只表示制作时的历史状态，不是当前结论。配图及其日期保留，新增的 2026-10-02 有限对照单独记录，不把旧预算重新标成实测。The artwork's October 1 evidence is historical; use the separately dated October 2 case for current observations.
+
+### Sol 6.1 预算示例 · 2026-10-01
+
+README 的 **82.8%** 是相对**全 Astra** 的预算示例，不是相对全 Sol，也不是实测结果。以下是 2026-10-01 核对的 Codex **Standard credits / 每 1M tokens**；不是 API 美元报价，也不是订阅内含额度。
+
+| 模型 / Model | 非缓存输入 / Input | 缓存输入 / Cached | 输出 / Output |
+| --- | ---: | ---: | ---: |
+| GPT-6 Astra | 250 | 25 | 1,250 |
+| GPT-6.1 Sol | 50 | 2.5 | 250 |
+| GPT-6 Luna | 2.5 | 0.25 | 12.5 |
+
+来源：[官方 Codex 费率](https://learn.chatgpt.com/docs/pricing)；核对日期与数字保留在[费率摘录](visuals/livecanvas/evidence/cost-budget-rates.json)，假设和计算值保留在[算例数据](visuals/livecanvas/data-cost-budget.json)。实际执行应使用当日适用费率。
+
+假设累计 **1M 非缓存输入 + 0.1M 输出（含计费推理）**，分布在适用上述 Standard 费率的请求中。各方案使用相同的总 token 量，输入和输出分别按 **Sol 80% / Luna 20%** 分配；本例没有额外 Astra 咨询。80/20 是算例假设，不是配置要求或测得的平均分工。
+
+```text
+all_astra = 1 × 250 + 0.1 × 1250 = 375 credits
+all_sol   = 1 × 50  + 0.1 × 250  = 75 credits
+all_luna  = 1 × 2.5 + 0.1 × 12.5 = 3.75 credits
+routed    = 80% × 75 + 20% × 3.75 = 60.75 credits
+extra     = 5% × 75 = 3.75 credits
+total     = 60.75 + 3.75 = 64.5 credits
+saving    = 1 - 64.5 / 375 = 82.8%
+```
+
+3.75 credits 是假设的额外协调、审核和重试预算，等于**全 Sol 费用的 5%**，也等于全 Astra 的 1%。换成 Astra 作比较基线，不意味着把额外开销改成 Astra 的 5%。如果实际日志已包含这些调用，就不再加一次预算开销。
+
+本例不计缓存折扣、工具或图片附加费、人工成本、等待时间，也不保证不同模型用同样的 token 就能达到同样质量。额外咨询、长上下文、重复上下文和返工都可能改变实际结果。**不代表订阅月费减少 82.8%，也不能直接换算为每周可用额度。**
 
 ## v1.1.0 历史费率 / Historical rates · 2026-09-26
 
@@ -114,7 +146,19 @@ ordinary_saving = 72.2% to 76.2%
 
 ## English
 
-The tables retain two historical price snapshots, not current quotes. **2026-09-26** describes v1.1.0's four-model setup, not this Sol 6.1 candidate. The candidate has no measured savings claim. The historical rates are per 1M tokens, Standard mode, with no more than 272K input tokens in a request. The total 1M input in the example can span multiple requests.
+### Sol 6.1 illustrative budget · 2026-10-01
+
+The README's **82.8%** compares with **all-Astra**, not all-Sol. It is a budget calculation, not measured savings. The [official Codex Standard rates](https://learn.chatgpt.com/docs/pricing), checked on **2026-10-01**, are preserved in the [numeric extract](visuals/livecanvas/evidence/cost-budget-rates.json). In credits per 1M tokens, uncached input / cached input / output are **250 / 25 / 1,250** for Astra, **50 / 2.5 / 250** for Sol 6.1, and **2.5 / 0.25 / 12.5** for Luna. These are not API dollar prices or included subscription allowances.
+
+Assume **1M uncached input + 0.1M output tokens including billed reasoning**, spread across requests eligible for those Standard rates. Normalize that volume across plans, and split both input and output **Sol 80% / Luna 20%**, with no additional Astra consultation. These are illustrative shares, not configured quotas or observed averages.
+
+At that volume, all-Astra costs **375 credits**, all-Sol **75**, and all-Luna **3.75**. The weighted cost is **0.8 × 75 + 0.2 × 3.75 = 60.75**. Add **3.75 credits** for additional coordination, review, and retries to reach **64.5**. Thus **1 − 64.5 / 375 = 82.8%**. The [structured example](visuals/livecanvas/data-cost-budget.json) contains the same inputs and totals.
+
+The extra budget is **5% of all-Sol**, equivalent to **1% of all-Astra**; changing the comparison baseline does not turn it into 5% of Astra. Do not add the overhead again when real usage already includes those calls. No caching discount, tool/image fees, human effort, or elapsed-time value is modeled. Equal token volumes do not establish equal output quality. Extra consultation, context, and rework can change the result. This does not imply a lower subscription price or more weekly usage. The candidate still has no same-task cost, speed, or quality A/B result.
+
+### Historical snapshots
+
+The remaining tables retain two historical price snapshots, not current quotes. **2026-09-26** describes v1.1.0's four-model setup, not this Sol 6.1 candidate. The historical rates are per 1M tokens, Standard mode, with no more than 272K input tokens in a request. The total 1M input in the example can span multiple requests.
 
 ### The historical v1.1.0 README example
 

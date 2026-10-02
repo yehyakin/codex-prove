@@ -1,0 +1,55 @@
+{
+  "assets": [
+    {
+      "id": "cost-zh",
+      "kind": "generated-raster",
+      "localPath": "public/media/cost/cost-zh.png",
+      "sourceUrl": null,
+      "provider": "OpenAI built-in ImageGen",
+      "generatedSource": "exec-82d124cd-df16-4861-94ca-456f9a41d40c.png",
+      "usage": "AI-generated project illustration; no third-party stock license claimed.",
+      "modifications": "New cost-efficiency subject based on the selected routing illustration.",
+      "role": "scene",
+      "schematic": true,
+      "officialScreenshot": false,
+      "officialLogo": false,
+      "width": 1672,
+      "height": 941,
+      "sha256": "e5d73b71eaa48ea1c7e8cba998a787edf549e01fe32faed63d2e4f0c61788eb2",
+      "promptFile": "public/media/cost/cost-prompts.md",
+      "factCheck": "passed",
+      "textReview": "passed",
+      "reviewedBy": "Main agent inspected each actual image against current candidate README, skill and cost notes."
+    },
+    {
+      "id": "cost-en",
+      "kind": "generated-raster",
+      "localPath": "public/media/cost/cost-en.png",
+      "sourceUrl": null,
+      "provider": "OpenAI built-in ImageGen",
+      "generatedSource": "exec-c8caf523-1667-447a-a3ab-35d3c803a5da.png",
+      "usage": "AI-generated project illustration; no third-party stock license claimed.",
+      "modifications": "English text localization; same shared-context diagram and optional branches.",
+      "role": "scene",
+      "schematic": true,
+      "officialScreenshot": false,
+      "officialLogo": false,
+      "width": 1672,
+      "height": 941,
+      "sha256": "a335bd815c32bb2a866a812cfe5b241abd09c9b04ae0b46f6ac741a5c780e4ad",
+      "promptFile": "public/media/cost/cost-prompts.md",
+      "factCheck": "passed",
+      "textReview": "passed",
+      "reviewedBy": "Main agent inspected each actual image against current candidate README, skill and cost notes."
+    }
+  ],
+  "fonts": {
+    "bakedIntoImages": true,
+    "redistributed": false
+  },
+  "notes": [
+    "One subject with Chinese/English translation editions.",
+    "Design goal only; no numeric or measured cost-savings claim.",
+    "All visible text is part of the source raster asset."
+  ]
+}

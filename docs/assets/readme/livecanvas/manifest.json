@@ -1,0 +1,49 @@
+{
+  "status": "local-preview-not-integrated",
+  "asOf": "2026-10-01",
+  "factsBaseline": "f4dba1c20b0dc299fbcf565bc883c5afdc0324a9",
+  "sourceSha256": "95a85e48751621be47150644f255279572a78f0744d8aace9017d0f91c6ffb92",
+  "artwork": "Two themes; Chinese and English are translation variants.",
+  "assets": [
+    {
+      "filename": "roles-zh.png",
+      "bytes": 370289,
+      "sha256": "53af0c439bfcc6462cd76b5a3d64a87948fc955c6898abcadf500a85eb8de7f4"
+    },
+    {
+      "filename": "roles-zh.gif",
+      "bytes": 381713,
+      "sha256": "aeea5db9bef8dba7597bc161b638d4176942d2fb98ab9d2312db0a9508342010"
+    },
+    {
+      "filename": "roles-en.png",
+      "bytes": 372621,
+      "sha256": "06060c3ae4f8c56426a30e24676cc334bdf52ffe816b962fb1e195289c3b81e3"
+    },
+    {
+      "filename": "roles-en.gif",
+      "bytes": 420925,
+      "sha256": "6c40b88facd14e12aa6be545bf0a1fcff06ec9c4dddc4585219335aa4c5dd6df"
+    },
+    {
+      "filename": "solo-zh.png",
+      "bytes": 302536,
+      "sha256": "136a3cdfb53214f3e68f2e1514f17220a5fcfb94bec570277473535ccbe4b7a7"
+    },
+    {
+      "filename": "solo-zh.gif",
+      "bytes": 292371,
+      "sha256": "b69060d7f551426f9512e601f253bfeec4615169362eadb60fade8b3b6ed3b58"
+    },
+    {
+      "filename": "solo-en.png",
+      "bytes": 300218,
+      "sha256": "369162a4b0c4f5f42490dcd214fc417e33be756157ab8872b894df8fa3832e61"
+    },
+    {
+      "filename": "solo-en.gif",
+      "bytes": 260188,
+      "sha256": "01cca9493554c1cc1f5fdeeda3326274bd47b5ce85368fb3a33e12278bffd822"
+    }
+  ]
+}

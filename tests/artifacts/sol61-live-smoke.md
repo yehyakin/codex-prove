@@ -5,6 +5,8 @@ Status: **PASS for this fixture's REQ-1…6**, including independent review and
 the original controller's final files/diff/evidence acceptance.
 This is a bounded synthetic-project check, not release approval or a benchmark.
 
+The replay command below is normalized for publication; set PROVE_REPO to the source checkout. Original evidence and its hashes are retained unchanged.
+
 ## What actually ran
 
 The Host selected three fresh generic contexts with exact
@@ -73,9 +75,10 @@ file hashes, the real diff, and checker outputs/exit status. The
 To repeat the saved checks while the temporary fixture exists:
 
 ```sh
+PROVE_REPO="/path/to/codex-prove"
 cd /tmp/prove-sol61-live-3a2fx7
 /opt/homebrew/bin/python3.13 -B verify.py all
-/opt/homebrew/bin/python3.13 -B - < /Users/kin3/Projects/codex-prove/tests/artifacts/sol61-live-review-probe.py
+python3.13 -B - < "$PROVE_REPO/tests/artifacts/sol61-live-review-probe.py"
 ```
 
 If that directory is gone, the receipt retains its complete baseline and final

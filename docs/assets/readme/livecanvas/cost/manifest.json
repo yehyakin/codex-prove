@@ -1,0 +1,29 @@
+{
+  "status": "local-preview-not-integrated",
+  "asOf": "2026-10-01",
+  "factsBaseline": "f4dba1c20b0dc299fbcf565bc883c5afdc0324a9",
+  "sourceSha256": "efd4f2adaec0bb0a2b0a30da13e3eff9be100f4fcf62563383a911aa2919aebf",
+  "artwork": "One cost-efficiency design-goal theme, Chinese and English; not measured savings.",
+  "assets": [
+    {
+      "filename": "cost-zh.png",
+      "bytes": 1556884,
+      "sha256": "669865dd86def696ddf7bf88c42384a46722d125246bce48d08529679ba89032"
+    },
+    {
+      "filename": "cost-zh.gif",
+      "bytes": 318616,
+      "sha256": "5dab0cee0d060689871d933789f5e1e2317f9296d93d8b079f10c2e841795392"
+    },
+    {
+      "filename": "cost-en.png",
+      "bytes": 1539246,
+      "sha256": "4e7433cacb22b3418688887834ab4fdbf63d75cfdc3ed9509d7216d89c1cee48"
+    },
+    {
+      "filename": "cost-en.gif",
+      "bytes": 335169,
+      "sha256": "788d17595bfcbbd2fd629e20d9789e8b9485af0177059fc391a4efff7bc158e5"
+    }
+  ]
+}

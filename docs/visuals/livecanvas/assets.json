@@ -1,0 +1,12 @@
+{
+  "assets": [
+    {"id": "sol-symbol", "kind": "inline-svg", "localPath": "src/index.tsx#Icon", "sourceUrl": null, "provider": "Original illustration for Codex PROVE", "license": "Apache-2.0 (repository license)", "modifications": "Original sun-like schematic; drawn as frame-bound React SVG.", "role": "subject", "schematic": true, "officialLogo": false},
+    {"id": "astra-symbol", "kind": "inline-svg", "localPath": "src/index.tsx#Icon", "sourceUrl": null, "provider": "Original illustration for Codex PROVE", "license": "Apache-2.0 (repository license)", "modifications": "Original four-point schematic; not an official model logo.", "role": "explanation", "schematic": true, "officialLogo": false},
+    {"id": "luna-symbol", "kind": "inline-svg", "localPath": "src/index.tsx#Icon", "sourceUrl": null, "provider": "Original illustration for Codex PROVE", "license": "Apache-2.0 (repository license)", "modifications": "Original crescent schematic; not an official model logo.", "role": "explanation", "schematic": true, "officialLogo": false},
+    {"id": "task-and-workflow", "kind": "inline-svg-and-html", "localPath": "src/index.tsx", "sourceUrl": null, "provider": "Original illustration for Codex PROVE", "license": "Apache-2.0 (repository license)", "modifications": "Original task sheets, planning lines, code brackets and check symbols participate in the timeline.", "role": "scene", "schematic": true, "officialScreenshot": false}
+  ],
+  "fonts": {"family": "System sans-serif with PingFang SC; SFMono-Regular/Menlo fallback", "bundled": false, "redistributed": false, "renderHost": "macOS"},
+  "externalImages": [],
+  "emoji": [],
+  "notes": ["Original geometry, no generated raster imagery, no copied demo media.", "Source code and rendered pixels are separate from system font redistribution."]
+}

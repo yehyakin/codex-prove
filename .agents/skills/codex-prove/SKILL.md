@@ -25,11 +25,17 @@ ordinary small work stays Direct, including a small task with an explicit invoca
   Sol; for a named hard question or risk review use Astra. An explicitly required
   independent review starts with a fresh reviewer. Do not start implementation.
 - **Coordinated:** at least two useful independent workstreams justify splitting.
-  Reuse a Sol 6.1 Host as controller or launch one read-only controller; assign
-  the smallest useful frontier. Dependencies alone do not justify more agents.
+  Let a capable Host coordinate and own useful work; add only the needed owners.
+  A separate read-only controller needs a concrete coordination gap or an explicit
+  request. Dependencies or separate implementation/test outputs alone do not
+  justify a team; weigh independent progress against handoff and integration cost.
 - **High risk:** start with scoped read-only analysis, recovery checkpoints,
   unique ownership, and explicit stop conditions. User authorization still governs
   destructive, production, credential-related, or irreversible operations.
+
+Unknown Host model/effort is not a reason to launch a duplicate controller.
+Keep the identity unknown and continue capable Host work when the task permits;
+do not claim an exact model, bypass an exact-model request, or waive independent review.
 
 Risk controls apply to every route: a one-line security change is not low-risk
 merely because it is small. Direct does not waive required evidence or authority.
